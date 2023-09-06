@@ -1,6 +1,18 @@
 import { minutesToHHmm } from './duration'
 import { TranslatableError } from './localizableErrors'
 
+function convertAreaId (areaId) {
+  if (!areaId || areaId === 'null') {
+    return null
+  }
+
+  if (areaId.match(/^[0-9]{1,}$/)) {
+    return parseInt(areaId)
+  }
+
+  return areaId
+}
+
 export function prepareForSubmission (dayEntries, userProjects, linkedProjects, employeeId) {
   return dayEntries
     .map(({ entries, day }) => ({ day, projects: mergeEntries(entries, userProjects, linkedProjects) }))
@@ -16,7 +28,7 @@ export function prepareForSubmission (dayEntries, userProjects, linkedProjects, 
           employee_id: employeeId,
           date: day,
           hours: Object.keys(project).map(areaId => ({
-            area_id: areaId === 'null' ? null : parseInt(areaId),
+            area_id: convertAreaId(areaId),
             types: {
               internal: project[areaId].decimal_duration.internal || null,
               remote: project[areaId].decimal_duration.remote || null,
