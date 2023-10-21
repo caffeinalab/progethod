@@ -7,6 +7,9 @@ export const state = () => ({
 export const getters = {
   projects (state) {
     return state.projects
+  },
+  visibleProjects (state) {
+    return state.projects.filter(p => p.deleted !== true)
   }
 }
 
@@ -30,7 +33,10 @@ export const mutations = {
     state.projects[updateIndex] = project
   },
   remove (state, id) {
+    const oldProject = state.projects.find(p => p.id === id)
     state.projects.splice(state.projects.findIndex(p => p.id === id), 1)
+    oldProject.deleted = true
+    state.projects.push(oldProject)
   },
   restoreBackup (state, projects) {
     state.projects = projects

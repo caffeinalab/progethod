@@ -187,11 +187,15 @@
                       class="cursor-pointer text-gray-600 dark:text-gray-400 text-sm leading-3 tracking-normal py-3 hover:bg-indigo-700 hover:text-white px-3 font-normal"
                       @click="edit(project.id)"
                     >
-                    {{ $t('edit') }}
+                      {{ $t('edit') }}
                     </li>
-                    <!-- <li class="cursor-pointer text-gray-600 dark:text-gray-400 text-sm leading-3 tracking-normal py-3 hover:bg-indigo-700 hover:text-white px-3 font-normal">
-                      Delete
+                    <li
+                      class="cursor-pointer text-gray-600 dark:text-gray-400 text-sm leading-3 tracking-normal py-3 hover:bg-indigo-700 hover:text-white px-3 font-normal"
+                      @click="removeProject(project.id)"
+                    >
+                      {{ $t('delete') }}
                     </li>
+                    <!--
                     <li class="cursor-pointer text-gray-600 dark:text-gray-400 text-sm leading-3 tracking-normal py-3 hover:bg-indigo-700 hover:text-white px-3 font-normal">
                       Duplicate
                     </li>
@@ -235,6 +239,7 @@ import {
   PlusIcon,
   DotsVerticalIcon
 } from 'vue-tabler-icons'
+import { mapMutations, mapGetters } from 'vuex'
 
 export default {
   components: {
@@ -258,9 +263,9 @@ export default {
   },
   computed: {
     projects () {
-      const linkedProjects = this.$store.getters['apiData/projects']
+      const linkedProjects = this.apiDataProjects // this.$store.getters['apiData/projects']
 
-      return this.$store.getters['projects/projects'].map((p) => {
+      return/*  this.$store.getters['projects/visibleProjects'] */this.visibleProjects.map((p) => {
         let linkedProject = { name: '' }
         let linkedArea = linkedProject
 
@@ -278,7 +283,11 @@ export default {
           linkedArea: linkedArea?.name || ''
         }
       })
-    }
+    },
+    ...mapGetters({
+      visibleProjects: 'projects/visibleProjects',
+      apiDataProjects: 'apiData/projects'
+    })
   },
   methods: {
     edit (id) {
@@ -353,7 +362,10 @@ export default {
         case 2:
           text.innerHTML = 'Viewing 41 - 60 of 60'
       }
-    }
+    },
+    ...mapMutations({
+      removeProject: 'projects/remove'
+    })
   }
 }
 </script>

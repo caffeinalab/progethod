@@ -107,7 +107,7 @@ export default {
       return this.project && this.project.linkedProjectId
     },
     ...mapGetters({
-      projects: 'projects/projects'
+      projects: 'projects/visibleProjects'
     })
   },
   watch: {
@@ -115,7 +115,8 @@ export default {
       immediate: true,
       deep: true,
       handler (newData, oldData) {
-        this.selectedTags = newData.project ? [this.projects.find(p => p.id === newData.project.id)] : []
+        const selectedProject = this.projects.find(p => p.id === newData.project.id)
+        this.selectedTags = newData.project && selectedProject ? [selectedProject] : []
         this.duration = newData.duration
         this.notes = newData.notes
         this.location = newData.location || 'home'
@@ -129,12 +130,12 @@ export default {
   },
   methods: {
     async tagAdded (project) {
-      if (!project.id) {
+      if (project && !project.id) {
         project = await this.addProject(project.name)
         this.selectedTags = [project]
       }
 
-      if (project.defaultNotes && !this.notes) {
+      if (project && project.defaultNotes && !this.notes) {
         this.notes = project.defaultNotes
       }
 
