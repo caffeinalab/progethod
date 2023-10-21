@@ -115,7 +115,7 @@ export default {
       immediate: true,
       deep: true,
       handler (newData, oldData) {
-        const selectedProject = this.projects.find(p => p.id === newData.project.id)
+        const selectedProject = this.projects.find(p => p.id === newData?.project?.id)
         this.selectedTags = newData.project && selectedProject ? [selectedProject] : []
         this.duration = newData.duration
         this.notes = newData.notes
