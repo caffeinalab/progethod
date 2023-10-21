@@ -194,9 +194,9 @@ export default {
       const totalDuration = this.totalDuration
 
       // if duration is less than day don't try to perform adjustment
-      if (totalDuration < dayDuration) {
-        return
-      }
+      // if (totalDuration < dayDuration) {
+      //   return
+      // }
 
       // if duration is not / 60 don't try to adjust
       if (totalDuration % 60) {
