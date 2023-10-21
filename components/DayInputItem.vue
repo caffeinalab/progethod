@@ -25,7 +25,7 @@
           :title="$t('reset_day')"
           @click="nukeDay"
         >
-          <radioactive-icon width="20" height="20" />
+          <trash-x-icon width="20" height="20" />
         </button>
       </div>
     </div>
@@ -102,7 +102,7 @@
 </template>
 
 <script>
-import { TrashIcon, PlusIcon, RadioactiveIcon, SendIcon, CalendarTimeIcon } from 'vue-tabler-icons'
+import { TrashIcon, PlusIcon, SendIcon, CalendarTimeIcon, TrashXIcon } from 'vue-tabler-icons'
 import { mapActions, mapMutations } from 'vuex'
 import TimeEntryItem from '~/components/TimeEntryItem'
 import Alert from '~/components/Alert'
@@ -119,7 +119,7 @@ export default {
     TrashIcon,
     PlusIcon,
     Alert,
-    RadioactiveIcon,
+    TrashXIcon,
     SendIcon,
     CalendarTimeIcon
   },
