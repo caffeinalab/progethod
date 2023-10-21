@@ -5,6 +5,7 @@
   "copy": "Copia",
   "default_notes": "Nota Predefinita",
   "duration": "Durata",
+  "edit": "Modifica",
   "error": "Errore",
   "errors": {
     "error_during_adjustment": "Si è verificato un prolema nella conversione. Fai uno screenshot di questo giorno e segnala il problema.",

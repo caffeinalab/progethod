@@ -36,7 +36,7 @@
         <div class="h-full xl:flex items-center justify-end hidden">
           <div class="w-full h-full flex items-center">
             <div class="w-full pr-12 h-full flex items-center border-r">
-              <div class="relative w-full">
+              <div class="invisible relative w-full">
                 <div class="text-gray-500 absolute ml-3 inset-0 m-auto w-4 h-4">
                   <search-icon
                     class="icon icon-tabler icon-tabler-search"

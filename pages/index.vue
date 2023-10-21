@@ -8,7 +8,7 @@
         <h4 class="text-2xl font-bold leading-tight text-gray-800">
           {{ $t('my_week') }}
         </h4>
-        <ul class="flex flex-col md:flex-row items-start md:items-center text-gray-600 text-sm mt-3">
+        <ul class="invisible flex flex-col md:flex-row items-start md:items-center text-gray-600 text-sm mt-3">
           <li class="flex items-center mr-3 mt-3 md:mt-0">
             <span class="mr-2">
               <paperclip-icon

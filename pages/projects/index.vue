@@ -1,8 +1,8 @@
 <template>
   <div class="w-full bg-gray-200 py-10 pt-20">
     <div class="mx-auto container bg-white dark:bg-gray-800 dark:bg-gray-800 shadow rounded">
-      <div class="flex flex-col lg:flex-row p-4 lg:p-8 justify-between items-start lg:items-stretch w-full">
-        <div class="w-full lg:w-1/3 flex flex-col lg:flex-row items-start lg:items-center">
+      <div class="hidden flex flex-col lg:flex-row p-4 lg:p-8 justify-between items-start lg:items-stretch w-full">
+        <div class=" w-full lg:w-1/3 flex flex-col lg:flex-row items-start lg:items-center">
           <div class="flex items-center">
             <a class="text-gray-600 dark:text-gray-400 p-2 border-transparent border bg-gray-100 dark:hover:bg-gray-600 dark:bg-gray-700 hover:bg-gray-200 cursor-pointer rounded focus:outline-none focus:border-gray-800 focus:shadow-outline-gray" href="javascript: void(0)">
               <edit-icon
@@ -142,7 +142,7 @@
           <thead>
             <tr class="w-full h-16 border-gray-300 border-b py-8">
               <th class="pl-8 text-gray-600 dark:text-gray-400 font-normal pr-6 text-left text-sm tracking-normal leading-4">
-                <input type="checkbox" class="cursor-pointer relative w-5 h-5 border rounded border-gray-400 bg-white dark:bg-gray-800 outline-none" @click="checkAll">
+                <input type="checkbox" class="invisible cursor-pointer relative w-5 h-5 border rounded border-gray-400 bg-white dark:bg-gray-800 outline-none" @click="checkAll">
               </th>
               <th class="text-gray-600 dark:text-gray-400 font-normal pr-6 text-left text-sm tracking-normal leading-4">
                 {{ $t('project_name') }}
@@ -154,14 +154,14 @@
                 {{ $t('linked_area') }}
               </th>
               <td class="text-gray-600 dark:text-gray-400 font-normal pr-8 text-left text-sm tracking-normal leading-4">
-                More
+                {{ $t('More') }}
               </td>
             </tr>
           </thead>
           <tbody>
             <tr v-for="project in projects" :key="project.id" class="h-24 border-gray-300 border-b">
               <td class="pl-8 pr-6 text-left whitespace-no-wrap text-sm text-gray-800 dark:text-gray-100 tracking-normal leading-4">
-                <input type="checkbox" class="cursor-pointer relative w-5 h-5 border rounded border-gray-400 bg-white dark:bg-gray-800 outline-none" @click="tableInteract">
+                <input type="checkbox" class="invisible cursor-pointer relative w-5 h-5 border rounded border-gray-400 bg-white dark:bg-gray-800 outline-none" @click="tableInteract">
               </td>
               <td class="text-sm pr-6 whitespace-no-wrap text-gray-800 dark:text-gray-100 tracking-normal leading-4">
                 <Nuxt-Link :to="localeLocation({ name: 'projects-id', params: { id: project.id } })">
@@ -187,14 +187,15 @@
                       class="cursor-pointer text-gray-600 dark:text-gray-400 text-sm leading-3 tracking-normal py-3 hover:bg-indigo-700 hover:text-white px-3 font-normal"
                       @click="edit(project.id)"
                     >
-                      Edit
+                    {{ $t('edit') }}
                     </li>
-                    <li class="cursor-pointer text-gray-600 dark:text-gray-400 text-sm leading-3 tracking-normal py-3 hover:bg-indigo-700 hover:text-white px-3 font-normal line-through">
+                    <!-- <li class="cursor-pointer text-gray-600 dark:text-gray-400 text-sm leading-3 tracking-normal py-3 hover:bg-indigo-700 hover:text-white px-3 font-normal">
                       Delete
                     </li>
-                    <li class="cursor-pointer text-gray-600 dark:text-gray-400 text-sm leading-3 tracking-normal py-3 hover:bg-indigo-700 hover:text-white px-3 font-normal line-through">
+                    <li class="cursor-pointer text-gray-600 dark:text-gray-400 text-sm leading-3 tracking-normal py-3 hover:bg-indigo-700 hover:text-white px-3 font-normal">
                       Duplicate
                     </li>
+                    -->
                   </ul>
                 </div>
                 <button
