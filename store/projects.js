@@ -55,5 +55,8 @@ export const mutations = {
   restoreFromServer (state, projects, updatedAt) {
     state.projects = projects
     state.updatedAt = updatedAt
+  },
+  itsUpToDate (state) {
+    state.updatedAt = new Date().toISOString()
   }
 }
