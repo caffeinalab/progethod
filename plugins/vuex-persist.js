@@ -6,11 +6,15 @@ export default ({ store }) => {
   new VuexPersistence({
     storage: window.localStorage,
     reducer ({ projects, entries, user, apiData, preferences }) {
+      const today = new Date()
       return {
-        projects,
+        projects: {
+          projects: projects.projects
+            .filter(p => !p.deleted || differenceInDays(today, new Date(p.deletedAt)) < 40)
+        },
         entries: {
           entries: entries.entries
-            .filter(e => differenceInDays(new Date(), parse(e.day, 'yyyy-MM-dd', new Date())) < 30)
+            .filter(e => differenceInDays(today, parse(e.day, 'yyyy-MM-dd', new Date())) < 30)
         },
         user: {
           authToken: user.authToken,
