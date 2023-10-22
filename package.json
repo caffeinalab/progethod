@@ -10,7 +10,7 @@
     "lint:js": "eslint --ext \".js,.vue\" --ignore-path .gitignore .",
     "lint": "yarn lint:js",
     "lintfix": "yarn lint:js --fix",
-    "api": "eval wrangler pages dev ./dist $(node env2Bindings.js)"
+    "api": "eval wrangler pages dev ./dist --compatibility-date=2023-10-16 $(node env2Bindings.js)"
   },
   "dependencies": {
     "@nuxtjs/axios": "^5.13.6",
@@ -40,7 +40,7 @@
     "eslint-plugin-nuxt": "^3.1.0",
     "eslint-plugin-vue": "^8.2.0",
     "postcss": "^8.4.14",
-    "wrangler": "2.0.15"
+    "wrangler": "^3.14.0"
   },
   "volta": {
     "node": "16.14.2"

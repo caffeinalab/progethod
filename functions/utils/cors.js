@@ -10,7 +10,7 @@ export function getCorsHeaders (env) {
   return {
     ...baseCors,
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET,HEAD,POST,OPTIONS',
+    'Access-Control-Allow-Methods': 'GET,HEAD,POST,PUT,OPTIONS',
     'Access-Control-Max-Age': '86400'
   }
 }

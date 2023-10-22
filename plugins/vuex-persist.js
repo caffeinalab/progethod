@@ -9,6 +9,7 @@ export default ({ store }) => {
       const today = new Date()
       return {
         projects: {
+          updatedAt: projects.updatedAt,
           projects: projects.projects
             .filter(p => !p.deleted || differenceInDays(today, new Date(p.deletedAt)) < 40)
         },

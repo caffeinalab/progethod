@@ -154,7 +154,7 @@
                 {{ $t('linked_area') }}
               </th>
               <td class="text-gray-600 dark:text-gray-400 font-normal pr-8 text-left text-sm tracking-normal leading-4">
-                {{ $t('More') }}
+                {{ $t('actions') }}
               </td>
             </tr>
           </thead>

@@ -7,5 +7,5 @@ console.log(
   )
     .reduce((acc, key) => {
       return `${acc} ${key}="${process.env[key]}"`
-    }, '--binding')
+    }, '--kv=PROGETHOD_PROJECTS --binding')
 )

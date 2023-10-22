@@ -1,7 +1,8 @@
 import { v4 as uuid } from 'uuid'
 
 export const state = () => ({
-  projects: []
+  projects: [],
+  updatedAt: null
 })
 
 export const getters = {
@@ -10,6 +11,9 @@ export const getters = {
   },
   visibleProjects (state) {
     return state.projects.filter(p => p.deleted !== true)
+  },
+  updatedAt (state) {
+    return state.updatedAt
   }
 }
 
@@ -29,10 +33,12 @@ export const actions = {
 export const mutations = {
   add (state, project) {
     state.projects.push(project)
+    state.updatedAt = new Date().toISOString()
   },
   update (state, project) {
     const updateIndex = state.projects.findIndex(p => p.id === project.id)
     state.projects[updateIndex] = project
+    state.updatedAt = new Date().toISOString()
   },
   remove (state, id) {
     const oldProject = state.projects.find(p => p.id === id)
@@ -40,8 +46,14 @@ export const mutations = {
     oldProject.deleted = true
     oldProject.deletedAt = (new Date()).toISOString()
     state.projects.push(oldProject)
+    state.updatedAt = new Date().toISOString()
   },
   restoreBackup (state, projects) {
     state.projects = projects
+    state.updatedAt = new Date().toISOString()
+  },
+  restoreFromServer (state, projects, updatedAt) {
+    state.projects = projects
+    state.updatedAt = updatedAt
   }
 }
