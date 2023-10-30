@@ -37,7 +37,7 @@ export const mutations = {
   },
   update (state, project) {
     const updateIndex = state.projects.findIndex(p => p.id === project.id)
-    state.projects[updateIndex] = project
+    Object.assign(state.projects[updateIndex], project)
     state.updatedAt = new Date().toISOString()
   },
   remove (state, id) {
