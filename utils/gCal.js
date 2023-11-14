@@ -79,7 +79,7 @@ function matchEventToProject (description, projects) {
     return null
   }
 
-  const matches = Array.from(description.matchAll(/\[progethod:([0-9]{1,}):((generic)|([0-9]{1,}))\]/g))
+  const matches = Array.from(description.matchAll(/\[progethod:([0-9]{1,}):((generic)|(uid_[a-z0-9]{1,}))\]/g))
 
   if (matches.length < 1) {
     return null
@@ -89,7 +89,7 @@ function matchEventToProject (description, projects) {
   const [fullTag, projectIdString, areaIdString] = matches[0]
 
   const projectId = parseInt(projectIdString)
-  const areaId = areaIdString === 'generic' ? null : parseInt(areaIdString)
+  const areaId = areaIdString === 'generic' ? null : areaIdString
 
   return projects.find(p => p.linkedProjectId === projectId && p.linkedAreaId === areaId)
 }
