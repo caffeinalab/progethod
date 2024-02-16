@@ -12,13 +12,13 @@
   "errors": {
     "error_during_adjustment": "Si è verificato un prolema nella conversione. Fai uno screenshot di questo giorno e segnala il problema.",
     "total_not_adjustable": "Il totale delle ore non è divisibile per 60",
-    "linked_area_not_found": "Area progetto collegato non trovata. Una o più righe non sono state associate ad un'area. Controlla il progetto \"{project}\"",
-    "linked_project_not_found": "Progetto collegato non trovato. Una o più righe non sono state associate ad un progetto. Controlla il progetto \"{project}\"",
+    "linked_area_not_found": "Area commessa non trovata. Una o più righe non sono state associate ad un'area. Controlla il progetto \"{project}\"",
+    "linked_project_not_found": "Commessa non trovata. Una o più righe non sono state associate ad un progetto. Controlla il progetto \"{project}\"",
     "unexpected_status_code": "L'interfaccia ufficiale ha risposto con uno status code non previsto ({code}, {message}) sul progetto \"{project}\". Segnala il problema!"
   },
   "home": "Casa",
   "linked_area": "Area Progetto",
-  "linked_project": "Progetto Collegato",
+  "linked_project": "Commessa",
   "login_instructions": "Come fare il login",
   "login_tutorial": {
     "step_1": "1. Installa l'estensione per Chrome ",
@@ -34,7 +34,7 @@
   "office": "Ufficio",
   "please_wait_sending": "Attendere mentre i dati vengono inviati...",
   "project_information": "Informazioni Progetto",
-  "project_name": "Nome Progetto",
+  "project_name": "Attività",
   "project": "Progetto",
   "projects": "Progetti",
   "require_notes_description": "Il pm richiede di compilare le note per questo progetto",
