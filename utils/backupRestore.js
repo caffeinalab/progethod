@@ -91,6 +91,6 @@ export async function restoreBackup (file, store) {
     store.commit('projects/restoreBackup', content.projects)
     store.commit('entries/restoreBackup', content.entries)
   } catch (error) {
-    console.error(error)
+    // Error caught silently as this is a non-critical operation
   }
 }

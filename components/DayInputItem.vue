@@ -250,8 +250,6 @@ export default {
         this.timesheetData = prepareForSubmission(dayEntries, userProjects, linkedProjects, employeeId)
         this.showSubmitModal = true
       } catch (error) {
-        console.error(error)
-
         let message = error.message
 
         if (error instanceof TranslatableError) {

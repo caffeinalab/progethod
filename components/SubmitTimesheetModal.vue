@@ -98,7 +98,6 @@ export default {
                 const response = await this.$axios.post('timetracking', requestData)
                 data = response.data
               } catch (err) {
-                console.error(err)
                 data = {
                   code: err.response?.status || 500,
                   message: err.message

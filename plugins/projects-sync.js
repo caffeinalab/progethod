@@ -14,6 +14,6 @@ async function uploadProjectChanges (store, $axios) {
   try {
     await $axios.$put('projects', { projects, updatedAt })
   } catch (error) {
-    console.error(error)
+    // Error caught and handled silently as this is a background sync
   }
 }

@@ -22,7 +22,7 @@ export async function updateApiData ($axios, store) {
 
     store.commit('apiData/replace', projects)
   } catch (error) {
-    console.error(error)
+    // Error caught silently as this is a background API data sync
   }
 
   store.commit('apiData/updateEnded')

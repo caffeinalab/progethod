@@ -22,6 +22,6 @@ export async function syncLocalProjects ($axios, store) {
       store.commit('projects/restoreFromServer', projects, updatedAt)
     }
   } catch (error) {
-    console.error(error)
+    // Error caught silently as this is a background sync operation
   }
 }

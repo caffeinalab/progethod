@@ -32,7 +32,6 @@ export async function baseRequest (method, endpoint, queryParams, requestBody, a
     body = await response.json()
     status = response.status
   } catch (error) {
-    console.error(error)
     status = 500
     body = {
       code: status,

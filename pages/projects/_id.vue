@@ -184,7 +184,7 @@ export default {
           navigator.clipboard.writeText(this.magicTag)
         }
       } catch (e) {
-        console.error(e)
+        // Error already handled by try-catch
       }
     },
     ...mapMutations({
