@@ -1,0 +1,28 @@
+{
+   "action": {
+      "default_icon": {
+         "128": "images/icon-128.png",
+         "16": "images/icon-16.png",
+         "32": "images/icon-32.png",
+         "48": "images/icon-48.png"
+      }
+   },
+   "background": {
+      "service_worker": "background.js"
+   },
+   "description": "Enable one click login into Progethod",
+   "differential_fingerprint": "1.916aedd8e20a9676aeca6537101c551a476965e6d87165598f45c8f40b8c79d1",
+   "host_permissions": [ "*://*.wethod.com/", "*://*.progethod.caffeina.io/" ],
+   "icons": {
+      "128": "images/icon-128.png",
+      "16": "images/icon-16.png",
+      "32": "images/icon-32.png",
+      "48": "images/icon-48.png"
+   },
+   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAhygZYDmi69FCjqIiP37b1lMwrYIKpZgU2hkeTXxgGlEUqY15oGw8+PPs8cGDXq9MG/YgKpJH5glyNuwHUCurdU1SDWBqp8e21AzNFY1MbRdyZOpWZjl+i9fMsbVF6B09xdtKRF3pYyWaHKvFIJPMMNJRt5ap2QzhTnPU5CE/V5OeakSQ3CTUhGYslBan3LN/k7T7sEBGeRGglBOyMv0W0ZXvWUKBUdQCT4b8PQd0Dnfs3WxYbhKH5oLImCZXWGaylN5VNJr7Zy7L1o1z2J1yOWkVlXmFi360m/6tDH0jEtjdZOIoptXIhUxpt7uYqRQAuh0G1Sg3TXh7TAm7X8XwAwIDAQAB",
+   "manifest_version": 3,
+   "name": "Progethod",
+   "permissions": [ "scripting", "cookies", "notifications" ],
+   "update_url": "https://clients2.google.com/service/update2/crx",
+   "version": "1.0.1"
+}

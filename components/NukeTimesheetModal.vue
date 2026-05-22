@@ -103,7 +103,11 @@ export default {
         }
       })
 
-      this.dataToSend = prepareForCleanup(data.projects, employeeId)
+      // La response di /timetrackingboard è { code, status, data: [...] };
+      // can_edit=false sono progetti su cui Wethod rifiuterebbe il POST di
+      // azzeramento (whitelist/scope/automatic), quindi vanno esclusi qui.
+      const editableProjects = data.filter(entry => entry.can_edit === true)
+      this.dataToSend = prepareForCleanup(editableProjects, employeeId)
 
       // TODO Error handling
       await Promise.all(
