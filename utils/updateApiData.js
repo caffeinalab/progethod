@@ -10,11 +10,14 @@ export async function updateApiData ($axios, store) {
     // progetto (whitelist, scope, automatic timesheet); su tenant grandi è
     // la stragrande maggioranza degli entry e va filtrato qui per tenere
     // la dropdown leggibile.
-    const { data } = await $axios.$get('timetrackingboard', {
-      params: {
-        date: format(new Date(), 'yyyy-MM-dd')
-      }
-    })
+    const params = { date: format(new Date(), 'yyyy-MM-dd') }
+
+    const selectedBuIds = store.getters['preferences/selectedBusinessUnitIds']
+    if (selectedBuIds !== null) {
+      params.bu = selectedBuIds.map(String).join(',')
+    }
+
+    const { data } = await $axios.$get('timetrackingboard', { params })
     const projects = data
       .filter(entry => entry.can_edit === true)
       .filter(({ project }) => project.archived !== true)

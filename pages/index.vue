@@ -64,7 +64,8 @@
           </li>
         </ul>
       </div>
-      <div class="mt-6 lg:mt-0">
+      <div class="mt-6 lg:mt-0 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        <business-unit-filter v-if="businessUnitsEnabled" />
         <div class="flex justify-between items-center">
           <div class="">
             <label for="toggleConfirmRequired" class="text-sm font-bold text-gray-800 dark:text-gray-100 mr-5">{{ $t('require_confirm_on_submit') }}</label>
@@ -98,11 +99,13 @@
 import { PaperclipIcon } from 'vue-tabler-icons'
 import { mapGetters, mapMutations } from 'vuex'
 import DayInputItem from '~/components/DayInputItem'
+import BusinessUnitFilter from '~/components/BusinessUnitFilter'
 
 export default {
   components: {
     PaperclipIcon,
-    DayInputItem
+    DayInputItem,
+    BusinessUnitFilter
   },
   middleware: 'auth',
   data ({ $dateFns }) {
@@ -122,7 +125,8 @@ export default {
   computed: {
     ...mapGetters({
       isTokenExpired: 'user/isTokenExpired',
-      isConfirmOnSubmitRequired: 'preferences/isConfirmOnSubmitRequired'
+      isConfirmOnSubmitRequired: 'preferences/isConfirmOnSubmitRequired',
+      businessUnitsEnabled: 'user/businessUnitsEnabled'
     })
   },
   methods: {

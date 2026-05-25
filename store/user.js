@@ -33,6 +33,12 @@ export const getters = {
   },
   info (state) {
     return state.info
+  },
+  businessUnits (state) {
+    return state.info.business_units || []
+  },
+  businessUnitsEnabled (state) {
+    return state.info.business_units_enabled === true
   }
 }
 
