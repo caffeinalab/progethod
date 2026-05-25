@@ -138,9 +138,9 @@ export default {
     }
   },
   env: {
-    apiBaseUrl: `${process.env.CF_PAGES_URL}/api/`,
-    feUrl: `${process.env.CF_PAGES_URL}/`,
-    feHost: (new URL(process.env.CF_PAGES_URL)).host,
+    apiBaseUrl: `${process.env.CF_PAGES_URL || 'http://localhost:3000'}/api/`,
+    feUrl: `${process.env.CF_PAGES_URL || 'http://localhost:3000'}/`,
+    feHost: (new URL(process.env.CF_PAGES_URL || 'http://localhost:3000')).host,
     loginHost: process.env.LOGIN_HOST,
     loginExtensionUrl: process.env.LOGIN_EXTENSION_URL,
     instructionVideoUrl: process.env.INSTRUCTION_VIDEO_URL,
