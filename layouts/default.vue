@@ -76,52 +76,8 @@
                   stroke-width="1.5"
                 />
               </div>
-              <div aria-haspopup="true" class="w-full flex items-center justify-end relative" @click="dropdownHandler($event)">
-                <ul class="p-2 w-40 border-r bg-white absolute rounded z-40 left-0 shadow mt-64 hidden">
-                  <li class="text-gray-200 text-sm leading-3 tracking-normal py-2 focus:outline-none">
-                    <div class="flex items-center">
-                      <user-icon
-                        class="icon icon-tabler icon-tabler-user"
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        stroke-width="1.5"
-                        stroke="currentColor"
-                        fill="none"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      />
-                      <span class="ml-2"> My Profile </span>
-                    </div>
-                  </li>
-                  <li class="text-gray-200 text-sm leading-3 tracking-normal mt-2 py-2 focus:outline-none flex items-center">
-                    <help-icon
-                      class="icon icon-tabler icon-tabler-help"
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      stroke-width="1.5"
-                      stroke="currentColor"
-                      fill="none"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
-                    <span class="ml-2">Help Center</span>
-                  </li>
-                  <li class="text-gray-200 text-sm leading-3 tracking-normal mt-2 py-2 flex items-center focus:outline-none">
-                    <settings-icon
-                      class="icon icon-tabler icon-tabler-settings"
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      stroke-width="1.5"
-                      stroke="currentColor"
-                      fill="none"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
-                    <span class="ml-2">Account Settings</span>
-                  </li>
+              <div aria-haspopup="true" class="w-full flex items-center justify-end relative" @click.stop="dropdownHandler($event)">
+                <ul v-show="showDropdown" class="p-2 w-40 border-r bg-white absolute rounded z-40 left-0 shadow mt-64">
                   <li
                     class="cursor-pointer text-gray-600 text-sm leading-3 tracking-normal mt-2 py-2 hover:text-indigo-700 flex items-center focus:text-indigo-700 focus:outline-none"
                     @click="backup()"
@@ -174,7 +130,8 @@
                     <span class="ml-2">{{ $t('update_projects') }}</span>
                   </li>
                 </ul>
-                <img class="rounded h-10 w-10 object-cover cursor-pointer" :src="userInfo.pic || profilePhoto" alt="logo">
+                <img v-if="userInfo.pic" class="rounded h-10 w-10 object-cover cursor-pointer" :src="userInfo.pic" alt="logo">
+                <span v-else class="inline-flex items-center justify-center h-10 w-10 rounded bg-indigo-700 text-white text-sm font-bold cursor-pointer select-none">{{ userInitials }}</span>
                 <p class="text-gray-800 text-sm ml-2 cursor-pointer">
                   {{ `${userInfo.name} ${userInfo.surname}` }}
                 </p>
@@ -205,7 +162,8 @@
             <li class="ml-2 cursor-pointer text-gray-600 text-sm leading-3 tracking-normal mt-2 py-2 hover:text-indigo-700 flex items-center focus:text-indigo-700 focus:outline-none">
               <div class="flex items-center">
                 <div class="w-12 cursor-pointer flex text-sm border-2 border-transparent rounded focus:outline-none focus:border-white transition duration-150 ease-in-out">
-                  <img class="rounded h-10 w-10 object-cover" :src="userInfo.pic || profilePhoto" alt="logo">
+                  <img v-if="userInfo.pic" class="rounded h-10 w-10 object-cover" :src="userInfo.pic" alt="logo">
+                  <span v-else class="inline-flex items-center justify-center h-10 w-10 rounded bg-indigo-700 text-white text-sm font-bold select-none">{{ userInitials }}</span>
                 </div>
                 <p class="leading-6 text-base ml-1 cursor-pointer">
                   {{ `${userInfo.name} ${userInfo.surname}` }}
@@ -348,12 +306,10 @@ import {
   CircleXIcon,
   DatabaseExportIcon,
   DatabaseImportIcon,
-  HelpIcon,
   MenuIcon,
   LoaderIcon,
   RefreshIcon,
   SearchIcon,
-  SettingsIcon,
   UserIcon
 } from 'vue-tabler-icons'
 import { getBackupData, getBackupFile, triggerFileDownload, askForBackupFile, restoreBackup } from '~/utils/backupRestore'
@@ -366,19 +322,17 @@ export default {
     CircleXIcon,
     DatabaseExportIcon,
     DatabaseImportIcon,
-    HelpIcon,
     LoaderIcon,
     MenuIcon,
     RefreshIcon,
     SearchIcon,
-    SettingsIcon,
     UserIcon
   },
   data () {
     return {
       xmlns: 'http://www.w3.org/2000/svg',
       xlink: 'http://www.w3.org/1999/xlink',
-      profilePhoto: 'https://tuk-cdn.s3.amazonaws.com/assets/components/boxed_layout/bl_1.png'
+      showDropdown: false
     }
   },
   computed: {
@@ -386,12 +340,19 @@ export default {
       userInfo: 'user/info',
       isUpdating: 'apiData/isUpdating',
       isTokenExpired: 'user/isTokenExpired'
-    })
+    }),
+    userInitials () {
+      const first = (this.userInfo.name || '')[0] || ''
+      const last = (this.userInfo.surname || '')[0] || ''
+      return (first + last).toUpperCase() || '?'
+    }
   },
   methods: {
-    dropdownHandler (event) {
-      const single = event.currentTarget.getElementsByTagName('ul')[0]
-      single.classList.toggle('hidden')
+    dropdownHandler () {
+      this.showDropdown = !this.showDropdown
+    },
+    closeDropdown () {
+      this.showDropdown = false
     },
     MenuHandler (el, val) {
       const MainList = el.currentTarget.parentElement.getElementsByTagName('ul')[0]
@@ -419,6 +380,12 @@ export default {
     async updateProjects () {
       await updateApiData(this.$axios, this.$store)
     }
+  },
+  mounted () {
+    document.addEventListener('click', this.closeDropdown)
+  },
+  beforeDestroy () {
+    document.removeEventListener('click', this.closeDropdown)
   }
 }
 </script>
