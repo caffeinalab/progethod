@@ -41,7 +41,8 @@ export default {
   plugins: [
     { src: '~/plugins/vuex-persist', ssr: false },
     { src: '~/plugins/axios', ssr: false },
-    { src: '~/plugins/projects-sync.js', ssr: false }
+    { src: '~/plugins/projects-sync.js', ssr: false },
+    ...(process.env.NODE_ENV === 'development' ? [{ src: '~/plugins/dev-bypass-auth.js', ssr: false }] : [])
   ],
 
   router: {
@@ -111,30 +112,19 @@ export default {
     defaultLocale: 'it',
     fallbackLocale: 'it',
     methods: [
-      'format', 'addDays', 'startOfWeek', 'intervalToDuration'
+      'format', 'addDays', 'addWeeks', 'startOfWeek', 'intervalToDuration'
     ]
   },
   tailwindcss: {
     config: {
-      options: {
-        // List your classes here, or you can even use RegExp
-        safelist: [
-          'bg-red-500',
-          'bg-red-200',
-          'text-red-500',
-          'bg-yellow-500',
-          'bg-yellow-200',
-          'text-yellow-500'
-        ]
-      },
-      variants: {
-        extend: {
-          cursor: ['disabled'],
-          pointerEvents: ['disabled'],
-          backgroundColor: ['disabled'],
-          color: ['disabled']
-        }
-      }
+      safelist: [
+        'bg-red-500',
+        'bg-red-200',
+        'text-red-500',
+        'bg-yellow-500',
+        'bg-yellow-200',
+        'text-yellow-500'
+      ]
     }
   },
   env: {
