@@ -83,8 +83,17 @@ export default {
   },
   middleware: 'auth',
   data () {
+    const queryWeek = parseInt(this.$route.query.week, 10)
     return {
-      weekOffset: 0
+      weekOffset: Number.isFinite(queryWeek) ? queryWeek : 0
+    }
+  },
+  watch: {
+    weekOffset (value) {
+      const query = value === 0 ? {} : { week: String(value) }
+      if (this.$route.query.week !== query.week) {
+        this.$router.replace({ query })
+      }
     }
   },
   computed: {
