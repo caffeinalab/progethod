@@ -11,6 +11,18 @@
       <div class="text-xl font-bold">
         W: {{ printableDecimalDuration.hours }}h {{ printableDecimalDuration.minutes }}m
       </div>
+      <div
+        class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold"
+        :class="wethodHours > 0 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'"
+        :title="$t('wethod_tracked')"
+      >
+        <template v-if="wethodHours != null">
+          ✓ {{ wethodHours }}h
+        </template>
+        <template v-else>
+          –
+        </template>
+      </div>
       <div>
         <button
           class="ml-2 mr-1 p-2 text-white focus:outline-none border border-transparent focus:border-gray-800 focus:shadow-outline-gray bg-indigo-700 hover:bg-indigo-600 rounded transition duration-150 ease-in-out disabled:cursor-default disabled:bg-gray-500"
@@ -127,6 +139,10 @@ export default {
     day: {
       required: true,
       type: Date
+    },
+    wethodHours: {
+      type: Number,
+      default: null
     }
   },
   data: () => ({

@@ -126,6 +126,7 @@ export default {
 
       this.emitChange(false)
       this.isSubmitting = false
+      this.$nuxt.$emit('tracked-hours:refresh')
     },
     ...mapMutations({
       syncEntry: 'entries/setSyncState'

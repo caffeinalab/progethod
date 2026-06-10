@@ -127,6 +127,7 @@ export default {
       this.isSubmitting = false
       this.$refs.explosion.pause()
       this.$refs.explosion.currentTime = 0
+      this.$nuxt.$emit('tracked-hours:refresh')
     },
     ...mapMutations({
       syncEntry: 'entries/setSyncState'

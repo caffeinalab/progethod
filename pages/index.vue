@@ -31,6 +31,16 @@
             {{ $t('current_week') }}
           </button>
         </div>
+        <div class="flex items-center gap-3 mt-1 text-sm text-gray-500">
+          <template v-if="trackedHoursLoading">
+            <span class="inline-block w-32 h-4 bg-gray-200 rounded animate-pulse" />
+          </template>
+          <template v-else>
+            <span>{{ $t('week_short') }} <strong class="text-gray-700">{{ weekTrackedHours.length ? weekTrackedTotal + '/' + weekExpectedHours + 'h' : '–' }}</strong></span>
+            <span class="text-gray-300">|</span>
+            <span class="capitalize">{{ monthLabel }}: <strong class="text-gray-700">{{ monthTrackedHours.length ? monthTrackedTotal + '/' + monthExpectedHours + 'h' : '–' }}</strong></span>
+          </template>
+        </div>
       </div>
       <div class="mt-6 lg:mt-0 flex flex-col sm:flex-row items-start sm:items-center gap-4">
         <business-unit-filter v-if="businessUnitsEnabled" />
@@ -61,7 +71,7 @@
         class="w-full rounded border-2 mb-5 p-2"
         :class="isToday(day) ? 'border-indigo-400 bg-indigo-50' : 'border-gray-300'"
       >
-        <day-input-item :day="day" />
+        <day-input-item :day="day" :wethod-hours="trackedHoursByDay[$dateFns.format(day, 'yyyy-MM-dd')]" />
       </div>
     </div>
   </div>
@@ -69,7 +79,7 @@
 
 <script>
 import { ChevronLeftIcon, ChevronRightIcon } from 'vue-tabler-icons'
-import { isSameDay } from 'date-fns'
+import { isSameDay, startOfMonth, endOfMonth } from 'date-fns'
 import { mapGetters, mapMutations } from 'vuex'
 import DayInputItem from '~/components/DayInputItem'
 import BusinessUnitFilter from '~/components/BusinessUnitFilter'
@@ -85,15 +95,10 @@ export default {
   data () {
     const queryWeek = parseInt(this.$route.query.week, 10)
     return {
-      weekOffset: Number.isFinite(queryWeek) ? queryWeek : 0
-    }
-  },
-  watch: {
-    weekOffset (value) {
-      const query = value === 0 ? {} : { week: String(value) }
-      if (this.$route.query.week !== query.week) {
-        this.$router.replace({ query })
-      }
+      weekOffset: Number.isFinite(queryWeek) ? queryWeek : 0,
+      weekTrackedHours: [],
+      monthTrackedHours: [],
+      trackedHoursLoading: false
     }
   },
   computed: {
@@ -116,11 +121,107 @@ export default {
       const start = this.$dateFns.format(monday, 'd MMM')
       const end = this.$dateFns.format(sunday, 'd MMM yyyy')
       return `${start} – ${end}`
+    },
+    weekFrom () {
+      return this.$dateFns.format(this.days[0], 'yyyy-MM-dd')
+    },
+    weekTo () {
+      return this.$dateFns.format(this.days[6], 'yyyy-MM-dd')
+    },
+    monthFrom () {
+      return this.$dateFns.format(startOfMonth(this.days[0]), 'yyyy-MM-dd')
+    },
+    monthTo () {
+      return this.$dateFns.format(endOfMonth(this.days[0]), 'yyyy-MM-dd')
+    },
+    weekTrackedTotal () {
+      return this.weekTrackedHours.reduce((sum, entry) => sum + (entry.value || 0), 0)
+    },
+    monthTrackedTotal () {
+      return this.monthTrackedHours.reduce((sum, entry) => sum + (entry.value || 0), 0)
+    },
+    weekExpectedHours () {
+      return 40
+    },
+    monthExpectedHours () {
+      let workingDays = 0
+      let current = startOfMonth(this.days[0])
+      const end = endOfMonth(this.days[0])
+      while (current <= end) {
+        const dayOfWeek = current.getDay()
+        if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+          workingDays++
+        }
+        current = this.$dateFns.addDays(current, 1)
+      }
+      return workingDays * 8
+    },
+    monthLabel () {
+      return this.$dateFns.format(this.days[0], 'MMMM yyyy')
+    },
+    trackedHoursByDay () {
+      const map = {}
+      for (const entry of this.weekTrackedHours) {
+        map[entry.date] = entry.value
+      }
+      return map
     }
+  },
+  watch: {
+    weekOffset (value) {
+      const query = value === 0 ? {} : { week: String(value) }
+      if (this.$route.query.week !== query.week) {
+        this.$router.replace({ query })
+      }
+      this.fetchTrackedHours()
+    }
+  },
+  mounted () {
+    this.fetchTrackedHours()
+    this.$nuxt.$on('tracked-hours:refresh', this.debouncedRefresh)
+  },
+  beforeDestroy () {
+    this.$nuxt.$off('tracked-hours:refresh', this.debouncedRefresh)
   },
   methods: {
     isToday (day) {
       return isSameDay(day, new Date())
+    },
+    async fetchTrackedHours () {
+      if (!this.$store.getters['user/canMakeRequests']) {
+        return
+      }
+      const snapshotOffset = this.weekOffset
+      this.trackedHoursLoading = true
+      try {
+        const employeeId = this.$store.getters['user/info'].employee_id || ''
+        const [weekResponse, monthResponse] = await Promise.all([
+          this.$axios.$get('tracked-hours', {
+            params: { from: this.weekFrom, to: this.weekTo, employeeId }
+          }),
+          this.$axios.$get('tracked-hours', {
+            params: { from: this.monthFrom, to: this.monthTo, employeeId }
+          })
+        ])
+        if (this.weekOffset !== snapshotOffset) {
+          return
+        }
+        if (Array.isArray(weekResponse?.data)) {
+          this.weekTrackedHours = weekResponse.data
+        }
+        if (Array.isArray(monthResponse?.data)) {
+          this.monthTrackedHours = monthResponse.data
+        }
+      } catch {
+        // API unreachable — tracked hours will remain empty
+      } finally {
+        if (this.weekOffset === snapshotOffset) {
+          this.trackedHoursLoading = false
+        }
+      }
+    },
+    debouncedRefresh () {
+      setTimeout(() => this.fetchTrackedHours(), 800)
     },
     ...mapMutations({
       setRequireSubmitConfirmation: 'preferences/setRequireSubmitConfirmation'
