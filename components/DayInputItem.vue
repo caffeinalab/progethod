@@ -56,33 +56,36 @@
       <div />
       <div />
       <template v-for="(entry, entryIndex) in entries">
-        <time-entry-item
-          :key="`entry_${entry.id}`"
-          :ref="'entry-' + entryIndex"
-          :value="entry.data"
-          :disabled="entry.synced"
-          :highlighted="focused && focusedEntryIndex === entryIndex"
-          @input="handleUpdateEvent(entry.id, $event)"
-          @userSubmit="handleSubmit(entry.id)"
-        />
-        <button
-          :key="`trash_${entry.id}`"
-          class="ml-2 mr-2  focus:text-red-500 p-2 border-transparent border focus:bg-gray-100 dark:focus:bg-gray-800 dark:hover:bg-gray-800 rounded focus:outline-none"
-          :class="{ 'text-gray-300 cursor-default': entry.synced, 'hover:text-red-500 hover:bg-gray-100': !entry.synced }"
-          :disabled="entry.synced"
-          @click="removeEntry(entry.id)"
+        <div
+          :key="`row_${entry.id}`"
+          class="entry-row col-span-full grid grid-cols-subgrid items-center rounded transition-shadow duration-100"
+          :class="focused && focusedEntryIndex === entryIndex ? 'ring-2 ring-indigo-400 ring-offset-1' : ''"
         >
-          <trash-icon
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            stroke-width="1.5"
-            stroke="currentColor"
-            fill="none"
-            stroke-linecap="round"
-            stroke-linejoin="round"
+          <time-entry-item
+            :ref="'entry-' + entryIndex"
+            :value="entry.data"
+            :disabled="entry.synced"
+            @input="handleUpdateEvent(entry.id, $event)"
+            @userSubmit="handleSubmit(entry.id)"
           />
-        </button>
+          <button
+            class="ml-2 mr-2 focus:text-red-500 p-2 border-transparent border focus:bg-gray-100 dark:focus:bg-gray-800 dark:hover:bg-gray-800 rounded focus:outline-none"
+            :class="{ 'text-gray-300 cursor-default': entry.synced, 'hover:text-red-500 hover:bg-gray-100': !entry.synced }"
+            :disabled="entry.synced"
+            @click="removeEntry(entry.id)"
+          >
+            <trash-icon
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              fill="none"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </button>
+        </div>
       </template>
     </div>
     <div class="ml-10">
@@ -364,6 +367,14 @@ export default {
     grid-template-rows: auto;
     place-items: center;
     grid-gap: 0.5rem 0.5rem;
+  }
+
+  .entry-row {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: subgrid;
+    place-items: center;
+    padding: 0.25rem 0;
   }
 
   .entries-th {

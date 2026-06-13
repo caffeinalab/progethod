@@ -83,7 +83,8 @@
     "keyboard_title": "Navigazione da Tastiera",
     "keyboard_desc": "Progethod supporta la navigazione completa da tastiera. Premi ? in qualsiasi momento per vedere tutte le scorciatoie disponibili (frecce per navigare, Enter per entrare, Esc per uscire, e molto altro).",
     "backup_title": "Backup e Ripristino",
-    "backup_desc": "I dati sono salvati nel browser (localStorage). Usa il Backup dal menu profilo per esportare un file JSON con tutti i tuoi dati. Puoi ripristinarlo su un altro browser o dispositivo con la funzione Ripristina."
+    "backup_desc": "I dati sono salvati nel browser (localStorage). Usa il Backup dal menu profilo per esportare un file JSON con tutti i tuoi dati. Puoi ripristinarlo su un altro browser o dispositivo con la funzione Ripristina.",
+    "support": "Se riscontri problemi scrivi a"
   },
   "guide_button": "Guida",
   "keyboard_shortcuts_button": "Scorciatoie Tastiera",

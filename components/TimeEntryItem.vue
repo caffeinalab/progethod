@@ -1,10 +1,7 @@
 <template>
   <div class="contents">
     <!-- Status icon -->
-    <div
-      class="warning-container w-8 h-8 flex justify-center items-center"
-      :class="{ 'bg-indigo-50 rounded-l': highlighted }"
-    >
+    <div class="warning-container w-8 h-8 flex justify-center items-center">
       <NuxtLink
         v-if="selection && selection.type === 'local'"
         :to="localeLocation({ name: 'projects-id', params: { id: selection.localProject.id } })"
@@ -16,7 +13,7 @@
     </div>
 
     <!-- Unified project search -->
-    <div class="w-full h-full relative" :class="{ 'bg-indigo-50': highlighted }" @keydown.escape="escapeField">
+    <div class="w-full h-full relative" @keydown.escape="escapeField">
       <!-- Search input (visible when editing or nothing selected) -->
       <input
         v-if="editing"
@@ -137,7 +134,7 @@
     </div>
 
     <!-- Duration -->
-    <div :class="{ 'bg-indigo-50': highlighted }">
+    <div>
       <duration-input
         ref="duration"
         v-model="duration"
@@ -148,7 +145,7 @@
     </div>
 
     <!-- Notes -->
-    <div class="w-full" :class="{ 'bg-indigo-50': highlighted }">
+    <div class="w-full">
       <input
         ref="notes"
         v-model="notes"
@@ -163,7 +160,7 @@
     </div>
 
     <!-- Location -->
-    <div class="flex justify-center items-center" :class="{ 'bg-indigo-50 rounded-r': highlighted }" :title="$t('work_location')">
+    <div class="flex justify-center items-center" :title="$t('work_location')">
       <location-input v-model="location" :disabled="disabled" @input="hasUpdated" />
     </div>
   </div>
@@ -212,10 +209,6 @@ export default {
       default: () => ({})
     },
     disabled: {
-      type: Boolean,
-      default: false
-    },
-    highlighted: {
       type: Boolean,
       default: false
     }

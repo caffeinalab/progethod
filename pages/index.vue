@@ -74,7 +74,7 @@
         <day-input-item
           :ref="'day-' + index"
           :day="day"
-          :focused="focusedDayIndex === index"
+          :focused="navigating && insideDay && focusedDayIndex === index"
           :wethod-hours="trackedHoursByDay[$dateFns.format(day, 'yyyy-MM-dd')]"
         />
       </div>
@@ -105,7 +105,8 @@ export default {
       monthTrackedHours: [],
       trackedHoursLoading: false,
       focusedDayIndex: null,
-      insideDay: false
+      insideDay: false,
+      navigating: false
     }
   },
   computed: {
@@ -195,6 +196,7 @@ export default {
     this.$nuxt.$on('shortcut:import-gcal', this.importGcalToFocused)
     this.$nuxt.$on('shortcut:enter-day', this.enterDay)
     this.$nuxt.$on('shortcut:exit-day', this.exitDay)
+    document.addEventListener('mousedown', this.deactivateNav)
   },
   beforeDestroy () {
     this.$nuxt.$off('tracked-hours:refresh', this.debouncedRefresh)
@@ -207,6 +209,7 @@ export default {
     this.$nuxt.$off('shortcut:import-gcal', this.importGcalToFocused)
     this.$nuxt.$off('shortcut:enter-day', this.enterDay)
     this.$nuxt.$off('shortcut:exit-day', this.exitDay)
+    document.removeEventListener('mousedown', this.deactivateNav)
   },
   methods: {
     isToday (day) {
@@ -219,10 +222,18 @@ export default {
       } else {
         classes.push('border-gray-300')
       }
-      if (this.focusedDayIndex === index) {
+      if (this.navigating && this.focusedDayIndex === index && !this.insideDay) {
         classes.push('ring-2 ring-indigo-500 ring-offset-2')
       }
       return classes
+    },
+    deactivateNav () {
+      this.navigating = false
+      this.insideDay = false
+    },
+    activateNav () {
+      this.navigating = true
+      if (this.focusedDayIndex === null) { this.focusedDayIndex = 0 }
     },
     prevWeek () {
       this.weekOffset--
@@ -234,7 +245,7 @@ export default {
       this.weekOffset = 0
     },
     enterDay () {
-      if (this.focusedDayIndex === null) { this.focusedDayIndex = 0 }
+      this.activateNav()
       if (!this.insideDay) {
         this.insideDay = true
         const dayComponent = this.getFocusedDayComponent()
@@ -245,31 +256,33 @@ export default {
       }
     },
     exitDay () {
-      this.insideDay = false
-      document.activeElement?.blur()
+      if (this.insideDay) {
+        this.insideDay = false
+        document.activeElement?.blur()
+      } else {
+        this.navigating = false
+      }
     },
     focusPrev () {
+      this.activateNav()
       if (this.insideDay) {
         const dayComponent = this.getFocusedDayComponent()
         if (dayComponent) { dayComponent.focusPrevEntry() }
         return
       }
-      if (this.focusedDayIndex === null) {
-        this.focusedDayIndex = 0
-      } else if (this.focusedDayIndex > 0) {
+      if (this.focusedDayIndex > 0) {
         this.focusedDayIndex--
       }
       this.scrollFocusedIntoView()
     },
     focusNext () {
+      this.activateNav()
       if (this.insideDay) {
         const dayComponent = this.getFocusedDayComponent()
         if (dayComponent) { dayComponent.focusNextEntry() }
         return
       }
-      if (this.focusedDayIndex === null) {
-        this.focusedDayIndex = 0
-      } else if (this.focusedDayIndex < this.days.length - 1) {
+      if (this.focusedDayIndex < this.days.length - 1) {
         this.focusedDayIndex++
       }
       this.scrollFocusedIntoView()
