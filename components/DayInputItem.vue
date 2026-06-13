@@ -55,11 +55,13 @@
       </div>
       <div />
       <div />
-      <template v-for="entry in entries">
+      <template v-for="(entry, entryIndex) in entries">
         <time-entry-item
           :key="`entry_${entry.id}`"
+          :ref="'entry-' + entryIndex"
           :value="entry.data"
           :disabled="entry.synced"
+          :highlighted="focused && focusedEntryIndex === entryIndex"
           @input="handleUpdateEvent(entry.id, $event)"
           @userSubmit="handleSubmit(entry.id)"
         />
@@ -138,6 +140,10 @@ export default {
     wethodHours: {
       type: Number,
       default: null
+    },
+    focused: {
+      type: Boolean,
+      default: false
     }
   },
   data: () => ({
@@ -145,7 +151,8 @@ export default {
     location: 'home',
     showNukeModal: false,
     showSubmitModal: false,
-    timesheetData: []
+    timesheetData: [],
+    focusedEntryIndex: 0
   }),
   computed: {
     dayId () {
@@ -194,6 +201,13 @@ export default {
 
       return acc
     }, this.location)
+
+    this.$nuxt.$on('shortcut:submit-day', this.handleShortcutSubmit)
+    this.$nuxt.$on('shortcut:nuke-day', this.handleShortcutNuke)
+  },
+  beforeDestroy () {
+    this.$nuxt.$off('shortcut:submit-day', this.handleShortcutSubmit)
+    this.$nuxt.$off('shortcut:nuke-day', this.handleShortcutNuke)
   },
   methods: {
     addEntry () {
@@ -209,10 +223,8 @@ export default {
 
       this.adjustDecimals()
     },
-    handleSubmit (entryId) {
-      if (this.entries.findIndex(e => e.id === entryId) === this.entries.length - 1) {
-        this.addEntry()
-      }
+    handleSubmit () {
+      this.addEntry()
     },
     adjustDecimals () {
       const totalDuration = this.totalDuration
@@ -286,21 +298,54 @@ export default {
       }
     },
     async fetchGCal () {
-      const userProjects = this.$store.getters['projects/projects']
-      const events = await getEvents(this.day)
+      try {
+        const userProjects = this.$store.getters['projects/projects']
+        const events = await getEvents(this.day)
 
-      const entriesFromCalendar = mapEventsToTimesheetEntries(events, this.entries, userProjects)
-      entriesFromCalendar.forEach(entry =>
-        this.addEntryForDay({ day: this.dayId, data: { location: this.location, ...entry } })
-      )
+        const entriesFromCalendar = mapEventsToTimesheetEntries(events, this.entries, userProjects)
+        entriesFromCalendar.forEach(entry =>
+          this.addEntryForDay({ day: this.dayId, data: { location: this.location, ...entry } })
+        )
 
-      if (entriesFromCalendar.length) {
-        this.adjustDecimals()
+        if (entriesFromCalendar.length) {
+          this.adjustDecimals()
+        }
+      } catch (error) {
+        console.error('GCal import failed:', error)
+        alert(this.$t('error') + ': ' + (error.message || 'Google Calendar non raggiungibile'))
       }
     },
     ...mapActions({
       addEntryForDay: 'entries/add'
     }),
+    focusFirstEntry () {
+      this.focusedEntryIndex = 0
+    },
+    focusPrevEntry () {
+      if (this.focusedEntryIndex > 0) {
+        this.focusedEntryIndex--
+      }
+    },
+    focusNextEntry () {
+      if (this.focusedEntryIndex < this.entries.length - 1) {
+        this.focusedEntryIndex++
+      }
+    },
+    editCurrentEntry () {
+      this.$nextTick(() => {
+        const ref = this.$refs['entry-' + this.focusedEntryIndex]
+        const component = Array.isArray(ref) ? ref[0] : ref
+        if (component) { component.focusProject() }
+      })
+    },
+    handleShortcutSubmit () {
+      if (!this.focused) { return }
+      this.submitDay()
+    },
+    handleShortcutNuke () {
+      if (!this.focused) { return }
+      this.nukeDay()
+    },
     ...mapMutations({
       removeEntry: 'entries/remove',
       updateEntry: 'entries/update',

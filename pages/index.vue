@@ -66,12 +66,17 @@
       <!-- Remove class [ h-64 ] when adding a card block -->
       <!-- Remove class [ border-dashed border-2 border-gray-300 ] to remove dotted border -->
       <div
-        v-for="day of days"
+        v-for="(day, index) of days"
         :key="day.toString()"
-        class="w-full rounded border-2 mb-5 p-2"
-        :class="isToday(day) ? 'border-indigo-400 bg-indigo-50' : 'border-gray-300'"
+        class="w-full rounded border-2 mb-5 p-2 transition-shadow duration-150"
+        :class="dayCardClasses(day, index)"
       >
-        <day-input-item :day="day" :wethod-hours="trackedHoursByDay[$dateFns.format(day, 'yyyy-MM-dd')]" />
+        <day-input-item
+          :ref="'day-' + index"
+          :day="day"
+          :focused="focusedDayIndex === index"
+          :wethod-hours="trackedHoursByDay[$dateFns.format(day, 'yyyy-MM-dd')]"
+        />
       </div>
     </div>
   </div>
@@ -98,7 +103,9 @@ export default {
       weekOffset: Number.isFinite(queryWeek) ? queryWeek : 0,
       weekTrackedHours: [],
       monthTrackedHours: [],
-      trackedHoursLoading: false
+      trackedHoursLoading: false,
+      focusedDayIndex: null,
+      insideDay: false
     }
   },
   computed: {
@@ -179,13 +186,120 @@ export default {
   mounted () {
     this.fetchTrackedHours()
     this.$nuxt.$on('tracked-hours:refresh', this.debouncedRefresh)
+    this.$nuxt.$on('shortcut:prev-week', this.prevWeek)
+    this.$nuxt.$on('shortcut:next-week', this.nextWeek)
+    this.$nuxt.$on('shortcut:current-week', this.goCurrentWeek)
+    this.$nuxt.$on('shortcut:focus-prev', this.focusPrev)
+    this.$nuxt.$on('shortcut:focus-next', this.focusNext)
+    this.$nuxt.$on('shortcut:add-entry', this.addEntryToFocused)
+    this.$nuxt.$on('shortcut:import-gcal', this.importGcalToFocused)
+    this.$nuxt.$on('shortcut:enter-day', this.enterDay)
+    this.$nuxt.$on('shortcut:exit-day', this.exitDay)
   },
   beforeDestroy () {
     this.$nuxt.$off('tracked-hours:refresh', this.debouncedRefresh)
+    this.$nuxt.$off('shortcut:prev-week', this.prevWeek)
+    this.$nuxt.$off('shortcut:next-week', this.nextWeek)
+    this.$nuxt.$off('shortcut:current-week', this.goCurrentWeek)
+    this.$nuxt.$off('shortcut:focus-prev', this.focusPrev)
+    this.$nuxt.$off('shortcut:focus-next', this.focusNext)
+    this.$nuxt.$off('shortcut:add-entry', this.addEntryToFocused)
+    this.$nuxt.$off('shortcut:import-gcal', this.importGcalToFocused)
+    this.$nuxt.$off('shortcut:enter-day', this.enterDay)
+    this.$nuxt.$off('shortcut:exit-day', this.exitDay)
   },
   methods: {
     isToday (day) {
       return isSameDay(day, new Date())
+    },
+    dayCardClasses (day, index) {
+      const classes = []
+      if (this.isToday(day)) {
+        classes.push('border-indigo-400 bg-indigo-50')
+      } else {
+        classes.push('border-gray-300')
+      }
+      if (this.focusedDayIndex === index) {
+        classes.push('ring-2 ring-indigo-500 ring-offset-2')
+      }
+      return classes
+    },
+    prevWeek () {
+      this.weekOffset--
+    },
+    nextWeek () {
+      this.weekOffset++
+    },
+    goCurrentWeek () {
+      this.weekOffset = 0
+    },
+    enterDay () {
+      if (this.focusedDayIndex === null) { this.focusedDayIndex = 0 }
+      if (!this.insideDay) {
+        this.insideDay = true
+        const dayComponent = this.getFocusedDayComponent()
+        if (dayComponent) { dayComponent.focusFirstEntry() }
+      } else {
+        const dayComponent = this.getFocusedDayComponent()
+        if (dayComponent) { dayComponent.editCurrentEntry() }
+      }
+    },
+    exitDay () {
+      this.insideDay = false
+      document.activeElement?.blur()
+    },
+    focusPrev () {
+      if (this.insideDay) {
+        const dayComponent = this.getFocusedDayComponent()
+        if (dayComponent) { dayComponent.focusPrevEntry() }
+        return
+      }
+      if (this.focusedDayIndex === null) {
+        this.focusedDayIndex = 0
+      } else if (this.focusedDayIndex > 0) {
+        this.focusedDayIndex--
+      }
+      this.scrollFocusedIntoView()
+    },
+    focusNext () {
+      if (this.insideDay) {
+        const dayComponent = this.getFocusedDayComponent()
+        if (dayComponent) { dayComponent.focusNextEntry() }
+        return
+      }
+      if (this.focusedDayIndex === null) {
+        this.focusedDayIndex = 0
+      } else if (this.focusedDayIndex < this.days.length - 1) {
+        this.focusedDayIndex++
+      }
+      this.scrollFocusedIntoView()
+    },
+    scrollFocusedIntoView () {
+      this.$nextTick(() => {
+        const ref = this.$refs['day-' + this.focusedDayIndex]
+        const element = Array.isArray(ref) ? ref[0]?.$el : ref?.$el
+        if (!element) { return }
+        const navHeight = 64
+        const rect = element.getBoundingClientRect()
+        if (rect.top < navHeight) {
+          window.scrollBy({ top: rect.top - navHeight - 8, behavior: 'smooth' })
+        } else if (rect.bottom > window.innerHeight) {
+          element.scrollIntoView({ block: 'end', behavior: 'smooth' })
+        }
+      })
+    },
+    addEntryToFocused () {
+      const dayComponent = this.getFocusedDayComponent()
+      if (dayComponent) { dayComponent.addEntry() }
+    },
+    importGcalToFocused () {
+      const dayComponent = this.getFocusedDayComponent()
+      if (dayComponent) { dayComponent.fetchGCal() }
+    },
+    getFocusedDayComponent () {
+      if (this.focusedDayIndex === null) { this.focusedDayIndex = 0 }
+      const ref = this.$refs['day-' + this.focusedDayIndex]
+      return Array.isArray(ref) ? ref[0] : ref
     },
     async fetchTrackedHours () {
       if (!this.$store.getters['user/canMakeRequests']) {

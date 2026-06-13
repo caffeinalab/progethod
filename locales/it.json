@@ -63,5 +63,23 @@
   "wethod_tracked": "Tracciate su Wethod",
   "tracked_hours": "Ore tracciate:",
   "week_short": "Sett.",
-  "work_location": "Da dove hai lavorato?"
+  "work_location": "Da dove hai lavorato?",
+  "keyboard_shortcuts": {
+    "title": "Scorciatoie da Tastiera",
+    "navigation": "Navigazione",
+    "actions": "Azioni",
+    "other": "Altro",
+    "week_nav": "Settimana precedente / successiva",
+    "day_nav": "Giorno precedente / successivo",
+    "enter_day": "Entra nel giorno (modifica righe)",
+    "exit_day": "Esci dal giorno",
+    "current_week": "Vai alla settimana corrente",
+    "go_timesheet": "Vai al Timesheet",
+    "go_projects": "Vai ai Progetti",
+    "add_entry": "Aggiungi riga al giorno selezionato (anche Enter da note)",
+    "import_gcal": "Importa da Google Calendar",
+    "submit_day": "Invia il giorno selezionato",
+    "nuke_day": "Ripristina il giorno selezionato",
+    "show_help": "Mostra questa guida"
+  }
 }

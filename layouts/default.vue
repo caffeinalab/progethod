@@ -295,6 +295,7 @@
     </nav>
     <!-- Navigation ends -->
     <Nuxt />
+    <keyboard-shortcuts-help />
   </div>
 </template>
 

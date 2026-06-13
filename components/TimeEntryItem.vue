@@ -1,7 +1,10 @@
 <template>
   <div class="contents">
     <!-- Status icon -->
-    <div class="warning-container w-8 h-8 flex justify-center items-center">
+    <div
+      class="warning-container w-8 h-8 flex justify-center items-center"
+      :class="{ 'bg-indigo-50 rounded-l': highlighted }"
+    >
       <NuxtLink
         v-if="selection && selection.type === 'local'"
         :to="localeLocation({ name: 'projects-id', params: { id: selection.localProject.id } })"
@@ -13,7 +16,7 @@
     </div>
 
     <!-- Unified project search -->
-    <div class="w-full h-full relative" @keydown.escape="closeDropdown">
+    <div class="w-full h-full relative" :class="{ 'bg-indigo-50': highlighted }" @keydown.escape="escapeField">
       <!-- Search input (visible when editing or nothing selected) -->
       <input
         v-if="editing"
@@ -134,7 +137,7 @@
     </div>
 
     <!-- Duration -->
-    <div>
+    <div :class="{ 'bg-indigo-50': highlighted }">
       <duration-input
         ref="duration"
         v-model="duration"
@@ -145,7 +148,7 @@
     </div>
 
     <!-- Notes -->
-    <div class="w-full">
+    <div class="w-full" :class="{ 'bg-indigo-50': highlighted }">
       <input
         ref="notes"
         v-model="notes"
@@ -155,11 +158,12 @@
         :disabled="disabled"
         @input="hasUpdated"
         @keyup.enter="handleSubmit"
+        @keydown.escape="escapeField"
       >
     </div>
 
     <!-- Location -->
-    <div class="flex justify-center items-center" :title="$t('work_location')">
+    <div class="flex justify-center items-center" :class="{ 'bg-indigo-50 rounded-r': highlighted }" :title="$t('work_location')">
       <location-input v-model="location" :disabled="disabled" @input="hasUpdated" />
     </div>
   </div>
@@ -208,6 +212,10 @@ export default {
       default: () => ({})
     },
     disabled: {
+      type: Boolean,
+      default: false
+    },
+    highlighted: {
       type: Boolean,
       default: false
     }
@@ -326,9 +334,6 @@ export default {
     }
   },
   mounted () {
-    if (!this.value.project && !this.value.directWethodProjectId) {
-      this.$nextTick(() => this.$refs.searchInput?.focus())
-    }
     document.addEventListener('click', this.handleClickOutside)
   },
   beforeDestroy () {
@@ -444,6 +449,20 @@ export default {
 
       const project = await this.addProject(name)
       this.selectLocalProject(project)
+    },
+    escapeField () {
+      this.closeDropdown()
+      if (this.editing && this.selection) {
+        this.editing = false
+      }
+      document.activeElement?.blur()
+    },
+    focusProject () {
+      if (this.selection && !this.editing) {
+        this.startEditing()
+      } else {
+        this.$nextTick(() => this.$refs.searchInput?.focus())
+      }
     },
     handleClickOutside (event) {
       if (!event.target.isConnected) { return }

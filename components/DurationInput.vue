@@ -12,6 +12,7 @@
       @input="handleUserInput"
       @blur="onBlur"
       @keyup.enter="enterKey"
+      @keydown.escape="$refs.input.blur()"
     >
   </div>
 </template>
