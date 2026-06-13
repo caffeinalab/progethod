@@ -228,6 +228,13 @@ export default {
     },
     handleSubmit () {
       this.addEntry()
+      this.$nextTick(() => {
+        const newIndex = this.entries.length - 1
+        this.focusedEntryIndex = newIndex
+        const ref = this.$refs['entry-' + newIndex]
+        const component = Array.isArray(ref) ? ref[0] : ref
+        if (component) { component.focusProject() }
+      })
     },
     adjustDecimals () {
       const totalDuration = this.totalDuration
