@@ -1,0 +1,26 @@
+---
+description: Project context and architecture decisions
+alwaysApply: true
+---
+
+# Progethod
+
+A fast timesheet entry wrapper around Wethod. Users log daily time in a minimal UI, then submit to Wethod via a Cloudflare Pages proxy.
+
+## Tech Stack
+
+- Nuxt 2.15 + Vue 2.6 SPA (SSR disabled, static target)
+- Tailwind CSS 4, PostCSS
+- Vuex + vuex-persist → localStorage (offline-first)
+- @nuxtjs/axios, @nuxtjs/i18n (Italian only), @nuxtjs/date-fns
+- Cloudflare Pages Functions as API proxy to Wethod
+- Chrome MV3 extension for auth (reads Wethod session cookie)
+- Google Calendar integration via OAuth + Magic Tags
+
+## Key Decisions
+
+- **Offline-first**: entries are stored in localStorage; synced to Wethod only on explicit submit.
+- **Entries older than 30 days** are auto-pruned from localStorage.
+- **Wethod decimal rounding**: hours are stored in 0.1h (6-minute) steps; adjustment logic redistributes residuals.
+- **Components are auto-imported** (`components: true` in nuxt.config.js).
+- **Monthly calendar popover**: the month label in the weekly header is clickable and opens a calendar grid showing green (8h tracked) / amber (<8h) / gray (untracked) per weekday, using Wethod tracked-hours data.
