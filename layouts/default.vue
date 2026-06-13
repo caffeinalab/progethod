@@ -77,56 +77,41 @@
                 />
               </div>
               <div aria-haspopup="true" class="w-full flex items-center justify-end relative" @click.stop="dropdownHandler($event)">
-                <ul v-show="showDropdown" class="p-2 w-40 border-r bg-white absolute rounded z-40 left-0 shadow mt-64">
+                <ul v-show="showDropdown" class="p-2 w-48 border-r bg-white absolute rounded z-40 left-0 shadow mt-80">
+                  <li
+                    class="cursor-pointer text-gray-600 text-sm leading-3 tracking-normal mt-2 py-2 hover:text-indigo-700 flex items-center focus:text-indigo-700 focus:outline-none"
+                    @click="showGuide = true"
+                  >
+                    <info-circle-icon width="20" height="20" stroke-width="1.5" />
+                    <span class="ml-2">{{ $t('guide_button') }}</span>
+                  </li>
+                  <li
+                    class="cursor-pointer text-gray-600 text-sm leading-3 tracking-normal mt-2 py-2 hover:text-indigo-700 flex items-center focus:text-indigo-700 focus:outline-none"
+                    @click="$nuxt.$emit('shortcut:show-help')"
+                  >
+                    <keyboard-icon width="20" height="20" stroke-width="1.5" />
+                    <span class="ml-2">{{ $t('keyboard_shortcuts_button') }}</span>
+                  </li>
+                  <li class="border-t border-gray-200 my-2" />
                   <li
                     class="cursor-pointer text-gray-600 text-sm leading-3 tracking-normal mt-2 py-2 hover:text-indigo-700 flex items-center focus:text-indigo-700 focus:outline-none"
                     @click="backup()"
                   >
-                    <database-export-icon
-                      class="icon icon-tabler icon-tabler-settings"
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      stroke-width="1.5"
-                      stroke="currentColor"
-                      fill="none"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
+                    <database-export-icon width="20" height="20" stroke-width="1.5" />
                     <span class="ml-2">{{ $t('backup') }}</span>
                   </li>
                   <li
                     class="cursor-pointer text-gray-600 text-sm leading-3 tracking-normal mt-2 py-2 hover:text-indigo-700 flex items-center focus:text-indigo-700 focus:outline-none"
                     @click="restore()"
                   >
-                    <database-import-icon
-                      class="icon icon-tabler icon-tabler-settings"
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      stroke-width="1.5"
-                      stroke="currentColor"
-                      fill="none"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
+                    <database-import-icon width="20" height="20" stroke-width="1.5" />
                     <span class="ml-2">{{ $t('restore') }}</span>
                   </li>
                   <li
                     class="cursor-pointer text-gray-600 text-sm leading-3 tracking-normal mt-2 py-2 hover:text-indigo-700 flex items-center focus:text-indigo-700 focus:outline-none"
                     @click="updateProjects()"
                   >
-                    <refresh-icon
-                      class="icon icon-tabler icon-tabler-settings"
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      stroke-width="1.5"
-                      stroke="currentColor"
-                      fill="none"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
+                    <refresh-icon width="20" height="20" stroke-width="1.5" />
                     <span class="ml-2">{{ $t('update_projects') }}</span>
                   </li>
                 </ul>
@@ -201,20 +186,29 @@
             </li>
             <li
               class="ml-2 cursor-pointer text-gray-600 text-base leading-3 tracking-normal py-2 hover:text-indigo-700 focus:text-indigo-700 focus:outline-none"
+              @click="showGuide = true"
+            >
+              <div class="flex items-center">
+                <info-circle-icon width="24" height="24" stroke-width="1.5" />
+                <span class="leading-6 ml-2">{{ $t('guide_button') }}</span>
+              </div>
+            </li>
+            <li
+              class="ml-2 cursor-pointer text-gray-600 text-base leading-3 tracking-normal py-2 hover:text-indigo-700 focus:text-indigo-700 focus:outline-none"
+              @click="$nuxt.$emit('shortcut:show-help')"
+            >
+              <div class="flex items-center">
+                <keyboard-icon width="24" height="24" stroke-width="1.5" />
+                <span class="leading-6 ml-2">{{ $t('keyboard_shortcuts_button') }}</span>
+              </div>
+            </li>
+            <li class="border-t border-gray-200 my-2 ml-2" />
+            <li
+              class="ml-2 cursor-pointer text-gray-600 text-base leading-3 tracking-normal py-2 hover:text-indigo-700 focus:text-indigo-700 focus:outline-none"
               @click="backup()"
             >
               <div class="flex items-center">
-                <database-export-icon
-                  class="icon icon-tabler icon-tabler-user"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  stroke-width="1.5"
-                  stroke="currentColor"
-                  fill="none"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
+                <database-export-icon width="24" height="24" stroke-width="1.5" />
                 <span class="leading-6 ml-2">{{ $t('backup') }}</span>
               </div>
             </li>
@@ -223,17 +217,7 @@
               @click="restore()"
             >
               <div class="flex items-center">
-                <database-import-icon
-                  class="icon icon-tabler icon-tabler-user"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  stroke-width="1.5"
-                  stroke="currentColor"
-                  fill="none"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
+                <database-import-icon width="24" height="24" stroke-width="1.5" />
                 <span class="leading-6 ml-2">{{ $t('restore') }}</span>
               </div>
             </li>
@@ -242,17 +226,7 @@
               @click="updateProjects()"
             >
               <div class="flex items-center">
-                <refresh-icon
-                  class="icon icon-tabler icon-tabler-user"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  stroke-width="1.5"
-                  stroke="currentColor"
-                  fill="none"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
+                <refresh-icon width="24" height="24" stroke-width="1.5" />
                 <span class="leading-6 ml-2">{{ $t('update_projects') }}</span>
               </div>
             </li>
@@ -296,6 +270,7 @@
     <!-- Navigation ends -->
     <Nuxt />
     <keyboard-shortcuts-help />
+    <app-guide-modal v-model="showGuide" />
   </div>
 </template>
 
@@ -307,6 +282,8 @@ import {
   CircleXIcon,
   DatabaseExportIcon,
   DatabaseImportIcon,
+  InfoCircleIcon,
+  KeyboardIcon,
   MenuIcon,
   LoaderIcon,
   RefreshIcon,
@@ -323,6 +300,8 @@ export default {
     CircleXIcon,
     DatabaseExportIcon,
     DatabaseImportIcon,
+    InfoCircleIcon,
+    KeyboardIcon,
     LoaderIcon,
     MenuIcon,
     RefreshIcon,
@@ -333,7 +312,8 @@ export default {
     return {
       xmlns: 'http://www.w3.org/2000/svg',
       xlink: 'http://www.w3.org/1999/xlink',
-      showDropdown: false
+      showDropdown: false,
+      showGuide: false
     }
   },
   computed: {
