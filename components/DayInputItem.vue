@@ -5,22 +5,19 @@
         {{ $dateFns.format(day, 'EEEE do') }}
       </h2>
       <location-input v-model="location" @input="handleLocationChange" />
-      <div class="text-xl font-bold text-gray-500">
-        I: {{ printableDuration.hours }}h {{ printableDuration.minutes }}m
-      </div>
-      <div class="text-xl font-bold">
-        W: {{ printableDecimalDuration.hours }}h {{ printableDecimalDuration.minutes }}m
+      <div class="text-xl font-bold text-gray-700 tabular-nums">
+        {{ printableDuration.hours }}h<span v-if="printableDuration.minutes"> {{ printableDuration.minutes }}m</span>
       </div>
       <div
-        class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold"
-        :class="wethodHours > 0 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'"
+        class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold"
+        :class="trackedBadgeClasses"
         :title="$t('wethod_tracked')"
       >
         <template v-if="wethodHours != null">
-          ✓ {{ wethodHours }}h
+          {{ $t('tracked_hours') }} {{ formattedTrackedHours }}
         </template>
         <template v-else>
-          –
+          {{ $t('tracked_hours') }} –
         </template>
       </div>
       <div>
@@ -56,8 +53,6 @@
       <div class="entries-th">
         {{ $t('notes') }}
       </div>
-      <div />
-      <div />
       <div />
       <div />
       <template v-for="entry in entries">
@@ -168,14 +163,27 @@ export default {
     totalDecimalDuration () {
       return this.entries.reduce((sum, e) => ((sum * 10) + (e.data.decimal_duration || 0) * 10) / 10, 0)
     },
+    formattedTrackedHours () {
+      if (this.wethodHours == null) { return '–' }
+      const hours = Math.floor(this.wethodHours)
+      const minutes = Math.round((this.wethodHours - hours) * 60)
+      if (minutes === 0) { return `${hours}h` }
+      return `${hours}h ${minutes}m`
+    },
+    trackedBadgeClasses () {
+      if (this.wethodHours == null || this.wethodHours === 0) {
+        return 'bg-gray-100 text-gray-400'
+      }
+      if (this.wethodHours === 8) {
+        return 'bg-green-100 text-green-700'
+      }
+      return 'bg-amber-100 text-amber-700'
+    },
     totalNotAdjustable () {
       return this.totalDuration >= dayDuration && this.totalDuration % 60
     },
     printableDuration () {
       return getPrintableDuration(this.totalDuration)
-    },
-    printableDecimalDuration () {
-      return getPrintableDuration(this.totalDecimalDuration * 60)
     }
   },
   mounted () {
@@ -307,7 +315,7 @@ export default {
 <style lang="postcss">
   .entries-table {
     display: grid;
-    grid-template-columns: [warn] 2rem [project] 14rem [duration] 4rem [notes] auto [decimal] 2rem [adjustment] 1.5rem [location] 5rem [delete] 3rem;
+    grid-template-columns: [warn] 2rem [project] 14rem [duration] 4rem [notes] auto [location] 5rem [delete] 3rem;
     grid-template-rows: auto;
     place-items: center;
     grid-gap: 0.5rem 0.5rem;

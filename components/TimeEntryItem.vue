@@ -158,18 +158,6 @@
       >
     </div>
 
-    <!-- Decimal -->
-    <div>
-      <span class="text-gray-600">
-        {{ value.decimal_duration }}
-      </span>
-    </div>
-
-    <!-- Adjustment icon -->
-    <div class="flex justify-center items-center" :title="$t('requires_adjustment')">
-      <adjustments-horizontal-icon v-if="value.requires_adjustment" class="text-gray-300" />
-    </div>
-
     <!-- Location -->
     <div class="flex justify-center items-center" :title="$t('work_location')">
       <location-input v-model="location" :disabled="disabled" @input="hasUpdated" />
@@ -179,7 +167,7 @@
 
 <script>
 import { mapActions, mapGetters } from 'vuex'
-import { AlertTriangleIcon, ExternalLinkIcon, CheckIcon, AdjustmentsHorizontalIcon, PlusIcon } from 'vue-tabler-icons'
+import { AlertTriangleIcon, ExternalLinkIcon, CheckIcon, PlusIcon } from 'vue-tabler-icons'
 import DurationInput from './DurationInput'
 import LocationInput from './LocationInput'
 
@@ -212,7 +200,6 @@ export default {
     AlertTriangleIcon,
     ExternalLinkIcon,
     CheckIcon,
-    AdjustmentsHorizontalIcon,
     PlusIcon
   },
   props: {
