@@ -5,7 +5,7 @@ import { differenceInDays, parse } from 'date-fns'
 export default ({ store }) => {
   new VuexPersistence({
     storage: window.localStorage,
-    reducer ({ projects, entries, user, apiData, preferences }) {
+    reducer ({ projects, entries, user, apiData, preferences, pills }) {
       const today = new Date()
       return {
         projects: {
@@ -27,7 +27,12 @@ export default ({ store }) => {
           projects: apiData.projects,
           lastUpdatedAt: apiData.lastUpdatedAt
         },
-        preferences
+        preferences,
+        pills: {
+          updatedAt: pills.updatedAt,
+          pills: pills.pills
+            .filter(pill => !pill.deleted || differenceInDays(today, new Date(pill.deletedAt)) < 40)
+        }
       }
     }
   }).plugin(store)

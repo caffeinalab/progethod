@@ -82,6 +82,11 @@
     "submission_desc": "Quando invii un giorno, i dati su Wethod vengono SOVRASCRITTI per i progetti coinvolti. Se il giorno è in uno stato inconsistente, puoi usare il tasto \"Ripristina\" (icona radioattiva) per cancellare i dati ufficiali e re-inviarli da Progethod.",
     "keyboard_title": "Navigazione da Tastiera",
     "keyboard_desc": "Progethod supporta la navigazione completa da tastiera. Premi ? in qualsiasi momento per vedere tutte le scorciatoie disponibili (frecce per navigare, Enter per entrare, Esc per uscire, e molto altro).",
+    "pills_title": "Suggerimenti Nota (Pills)",
+    "pills_desc": "Puoi creare dei suggerimenti rapidi (\"pills\") che appaiono quando il campo note è vuoto e attivo. Sono comodi per compilare velocemente note ripetitive.",
+    "pills_1": "Vai alla pagina Pills dalla barra di navigazione per crearne di nuove",
+    "pills_2": "Quando il campo note è vuoto, premi ↓ per entrare nei suggerimenti",
+    "pills_3": "Usa ←/→ per navigare e Enter per selezionare",
     "backup_title": "Backup e Ripristino",
     "backup_desc": "I dati sono salvati nel browser (localStorage). Usa il Backup dal menu profilo per esportare un file JSON con tutti i tuoi dati. Puoi ripristinarlo su un altro browser o dispositivo con la funzione Ripristina.",
     "support": "Se riscontri problemi contatta il team di sviluppo."
@@ -104,10 +109,22 @@
     "current_week": "Vai alla settimana corrente",
     "go_timesheet": "Vai al Timesheet",
     "go_projects": "Vai ai Progetti",
+    "go_pills": "Vai ai Suggerimenti (Pills)",
     "add_entry": "Aggiungi riga al giorno selezionato (anche Enter da note)",
     "import_gcal": "Importa da Google Calendar",
+    "enter_pills": "Apri suggerimenti nota (se campo vuoto)",
+    "navigate_pills": "Naviga tra i suggerimenti",
     "submit_day": "Invia il giorno selezionato",
     "nuke_day": "Ripristina il giorno selezionato",
     "show_help": "Mostra questa guida"
+  },
+  "pills": {
+    "nav": "Pills",
+    "title": "Suggerimenti Nota",
+    "description": "Crea suggerimenti rapidi che appariranno quando il campo note è vuoto. Clicca o usa la tastiera per inserirli.",
+    "new_placeholder": "Nuovo suggerimento...",
+    "empty": "Nessun suggerimento creato. Aggiungine uno qui sopra!",
+    "cancel": "Annulla",
+    "reorder_hint": "Trascina le righe per riordinare i suggerimenti."
   }
 }

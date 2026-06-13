@@ -91,6 +91,22 @@
             </p>
           </section>
 
+          <!-- Pills -->
+          <section>
+            <h3 class="text-sm font-bold text-gray-800 mb-2 flex items-center gap-1.5">
+              <tag-icon size="16" class="text-indigo-500" />
+              {{ $t('guide.pills_title') }}
+            </h3>
+            <p class="text-sm text-gray-600 mb-2">
+              {{ $t('guide.pills_desc') }}
+            </p>
+            <ul class="text-sm text-gray-600 space-y-1 ml-4 list-disc">
+              <li>{{ $t('guide.pills_1') }}</li>
+              <li>{{ $t('guide.pills_2') }}</li>
+              <li>{{ $t('guide.pills_3') }}</li>
+            </ul>
+          </section>
+
           <!-- Backup -->
           <section>
             <h3 class="text-sm font-bold text-gray-800 mb-2 flex items-center gap-1.5">
@@ -122,7 +138,8 @@ import {
   AlertTriangleIcon,
   SendIcon,
   KeyboardIcon,
-  DatabaseExportIcon
+  DatabaseExportIcon,
+  TagIcon
 } from 'vue-tabler-icons'
 
 export default {
@@ -133,7 +150,8 @@ export default {
     AlertTriangleIcon,
     SendIcon,
     KeyboardIcon,
-    DatabaseExportIcon
+    DatabaseExportIcon,
+    TagIcon
   },
   props: {
     value: {

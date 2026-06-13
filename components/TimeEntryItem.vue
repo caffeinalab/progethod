@@ -145,7 +145,7 @@
     </div>
 
     <!-- Notes -->
-    <div class="w-full">
+    <div class="w-full relative">
       <input
         ref="notes"
         v-model="notes"
@@ -153,10 +153,54 @@
         :class="{ 'text-gray-300': disabled, 'text-gray-600': !disabled }"
         placeholder="Notes"
         :disabled="disabled"
-        @input="hasUpdated"
-        @keyup.enter="handleSubmit"
+        @input="onNotesInput"
+        @keydown.enter="handleNotesEnter"
         @keydown.escape="escapeField"
+        @focus="notesFocused = true"
+        @blur="handleNotesBlur"
+        @keydown.down.prevent="enterPillsSelector"
+        @keydown="handleNotesKeydown"
       >
+      <!-- Pills suggestions -->
+      <div
+        v-if="showPills || quickCreateActive"
+        ref="pillsContainer"
+        class="absolute z-40 left-0 top-full mt-1 flex flex-wrap items-center gap-1.5 p-2 bg-white border border-gray-200 rounded-lg shadow-md max-w-md"
+      >
+        <button
+          v-for="(pill, pillIndex) in visiblePills"
+          :key="pill.id"
+          class="px-2.5 py-1 text-xs font-medium rounded-full transition-colors border whitespace-nowrap"
+          :class="pillsNavigating && highlightedPillIndex === pillIndex
+            ? 'bg-indigo-100 text-indigo-700 border-indigo-300'
+            : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200'"
+          @mousedown.prevent="selectPill(pill)"
+        >
+          {{ pill.label }}
+        </button>
+        <!-- Quick create -->
+        <div v-if="quickCreateActive" class="flex items-center gap-1">
+          <input
+            ref="quickCreateInput"
+            v-model="quickCreateLabel"
+            class="px-2 py-0.5 text-xs border border-indigo-300 rounded-full w-24 focus:outline-none focus:border-indigo-500"
+            placeholder="..."
+            @keydown.enter.prevent="confirmQuickCreate"
+            @keydown.escape.prevent="cancelQuickCreate"
+            @blur="cancelQuickCreate"
+          >
+        </div>
+        <button
+          v-else
+          class="px-2.5 py-1 text-xs font-medium rounded-full border border-dashed transition-colors whitespace-nowrap"
+          :class="pillsNavigating && highlightedPillIndex >= visiblePills.length
+            ? 'border-indigo-300 text-indigo-500 bg-indigo-50'
+            : 'border-gray-300 text-gray-400 hover:border-indigo-300 hover:text-indigo-500'"
+          @mousedown.prevent="startQuickCreate"
+        >
+          +
+        </button>
+      </div>
     </div>
 
     <!-- Location -->
@@ -222,14 +266,23 @@ export default {
       editing: true,
       dropdownOpen: false,
       highlightedIndex: 0,
-      selection: null
+      selection: null,
+      notesFocused: false,
+      pillsNavigating: false,
+      highlightedPillIndex: 0,
+      quickCreateActive: false,
+      quickCreateLabel: ''
     }
   },
   computed: {
     ...mapGetters({
       visibleProjects: 'projects/visibleProjects',
-      wethodProjects: 'apiData/projects'
+      wethodProjects: 'apiData/projects',
+      visiblePills: 'pills/visiblePills'
     }),
+    showPills () {
+      return this.notesFocused && !this.notes && this.visiblePills.length > 0 && !this.disabled
+    },
     isSelectionLinked () {
       return this.selection?.type === 'local' && this.selection.localProject.linkedProjectId
     },
@@ -444,6 +497,10 @@ export default {
       this.selectLocalProject(project)
     },
     escapeField () {
+      if (this.pillsNavigating) {
+        this.pillsNavigating = false
+        return
+      }
       this.closeDropdown()
       if (this.editing && this.selection) {
         this.editing = false
@@ -521,8 +578,78 @@ export default {
       }
       this.$emit('userSubmit', event)
     },
+    handleNotesEnter (event) {
+      if (this.pillsNavigating) {
+        event.preventDefault()
+        if (this.highlightedPillIndex >= this.visiblePills.length) {
+          this.startQuickCreate()
+        } else {
+          this.selectPill(this.visiblePills[this.highlightedPillIndex])
+        }
+        return
+      }
+      this.handleSubmit(event)
+    },
+    selectPill (pill) {
+      this.notes = pill.label
+      this.pillsNavigating = false
+      this.hasUpdated()
+    },
+    enterPillsSelector () {
+      if (!this.showPills) { return }
+      this.pillsNavigating = true
+      this.highlightedPillIndex = 0
+    },
+    onNotesInput () {
+      this.notesFocused = true
+      this.hasUpdated()
+    },
+    handleNotesBlur () {
+      setTimeout(() => {
+        if (this.quickCreateActive) { return }
+        this.notesFocused = false
+        this.pillsNavigating = false
+      }, 150)
+    },
+    handleNotesKeydown (event) {
+      if (!this.pillsNavigating) { return }
+
+      if (event.key === 'ArrowRight') {
+        event.preventDefault()
+        const totalItems = this.visiblePills.length + 1
+        this.highlightedPillIndex = (this.highlightedPillIndex + 1) % totalItems
+      } else if (event.key === 'ArrowLeft') {
+        event.preventDefault()
+        const totalItems = this.visiblePills.length + 1
+        this.highlightedPillIndex = (this.highlightedPillIndex - 1 + totalItems) % totalItems
+      } else if (event.key === 'ArrowUp') {
+        event.preventDefault()
+        this.pillsNavigating = false
+      }
+    },
+    startQuickCreate () {
+      this.quickCreateActive = true
+      this.quickCreateLabel = ''
+      this.$nextTick(() => this.$refs.quickCreateInput?.focus())
+    },
+    async confirmQuickCreate () {
+      const label = this.quickCreateLabel.trim()
+      if (!label) {
+        this.cancelQuickCreate()
+        return
+      }
+      await this.addPill(label)
+      this.quickCreateActive = false
+      this.quickCreateLabel = ''
+      this.$refs.notes?.focus()
+    },
+    cancelQuickCreate () {
+      this.quickCreateActive = false
+      this.quickCreateLabel = ''
+    },
     ...mapActions({
-      addProject: 'projects/add'
+      addProject: 'projects/add',
+      addPill: 'pills/add'
     })
   }
 }

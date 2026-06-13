@@ -42,6 +42,7 @@ export default {
     { src: '~/plugins/vuex-persist', ssr: false },
     { src: '~/plugins/axios', ssr: false },
     { src: '~/plugins/projects-sync.js', ssr: false },
+    { src: '~/plugins/pills-sync.js', ssr: false },
     { src: '~/plugins/keyboard-shortcuts.js', ssr: false },
     ...(process.env.NODE_ENV === 'development' ? [{ src: '~/plugins/dev-bypass-auth.js', ssr: false }] : [])
   ],

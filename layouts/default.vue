@@ -30,6 +30,11 @@
                 {{ $t('projects') }}
               </li>
             </NuxtLink>
+            <NuxtLink to="/pills" class="h-full flex items-center">
+              <li class="hover:text-indigo-700 cursor-pointer h-full flex items-center text-sm tracking-normal mx-5 capitalize">
+                {{ $t('pills.nav') }}
+              </li>
+            </NuxtLink>
           </ul>
         </div>
 
@@ -138,6 +143,13 @@
               <li class="flex xl:hidden cursor-pointer text-gray-600 text-base leading-3 tracking-normal mt-2 py-3 hover:text-indigo-700 focus:text-indigo-700 focus:outline-none capitalize">
                 <div class="flex items-center">
                   <span class="leading-6 ml-2 font-bold"> {{ $t('projects') }} </span>
+                </div>
+              </li>
+            </NuxtLink>
+            <NuxtLink to="/pills" class="h-full flex items-center">
+              <li class="flex xl:hidden cursor-pointer text-gray-600 text-base leading-3 tracking-normal mt-2 py-3 hover:text-indigo-700 focus:text-indigo-700 focus:outline-none capitalize">
+                <div class="flex items-center">
+                  <span class="leading-6 ml-2 font-bold"> {{ $t('pills.nav') }} </span>
                 </div>
               </li>
             </NuxtLink>

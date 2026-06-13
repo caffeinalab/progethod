@@ -77,6 +77,10 @@ export default () => {
         event.preventDefault()
         nuxt.$router.push('/projects')
         break
+      case 's':
+        event.preventDefault()
+        nuxt.$router.push('/pills')
+        break
       case '?':
         event.preventDefault()
         nuxt.$emit('shortcut:show-help')
