@@ -38,7 +38,12 @@
           <template v-else>
             <span>{{ $t('week_short') }} <strong class="text-gray-700">{{ weekTrackedHours.length ? weekTrackedTotal + '/' + weekExpectedHours + 'h' : '–' }}</strong></span>
             <span class="text-gray-300">|</span>
-            <span class="capitalize">{{ monthLabel }}: <strong class="text-gray-700">{{ monthTrackedHours.length ? monthTrackedTotal + '/' + monthExpectedHours + 'h' : '–' }}</strong></span>
+            <month-calendar
+              :reference-date="days[0]"
+              :tracked-hours="monthTrackedHours"
+              :label="monthLabel"
+            />
+            <strong class="text-gray-700">{{ monthTrackedHours.length ? monthTrackedTotal + '/' + monthExpectedHours + 'h' : '–' }}</strong>
           </template>
         </div>
       </div>

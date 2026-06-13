@@ -86,6 +86,9 @@
     "backup_desc": "I dati sono salvati nel browser (localStorage). Usa il Backup dal menu profilo per esportare un file JSON con tutti i tuoi dati. Puoi ripristinarlo su un altro browser o dispositivo con la funzione Ripristina.",
     "support": "Se riscontri problemi contatta il team di sviluppo."
   },
+  "month_calendar": {
+    "no_data": "Non tracciato"
+  },
   "guide_button": "Guida",
   "keyboard_shortcuts_button": "Scorciatoie Tastiera",
   "support_issues": "Se riscontri problemi scrivi a",
