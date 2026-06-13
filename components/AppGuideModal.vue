@@ -106,7 +106,6 @@
           <div class="border-t border-gray-200 pt-4">
             <p class="text-xs text-gray-400 text-center">
               {{ $t('guide.support') }}
-              <a href="mailto:devops@caffeina.com" class="text-indigo-500 hover:underline">devops@caffeina.com</a>
             </p>
           </div>
         </div>
