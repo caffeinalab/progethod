@@ -79,8 +79,22 @@
           </button>
         </div>
 
+        <!-- Create new (when no exact local match) -->
+        <div v-if="showCreateOption" class="p-1">
+          <button
+            :ref="'option-' + createOptionIndex"
+            class="w-full text-left px-3 py-2 text-sm rounded flex items-center gap-2 transition-colors"
+            :class="highlightedIndex === createOptionIndex ? 'bg-indigo-50 dark:bg-gray-700' : 'hover:bg-gray-50 dark:hover:bg-gray-700'"
+            @click="createLocalProject"
+            @mouseenter="highlightedIndex = createOptionIndex"
+          >
+            <plus-icon size="14" class="text-indigo-500" />
+            <span class="text-indigo-600 dark:text-indigo-400">{{ $t('create_project_inline', { name: searchQuery.trim() }) }}</span>
+          </button>
+        </div>
+
         <!-- Divider -->
-        <div v-if="filteredLocalProjects.length && filteredWethodEntries.length" class="border-t border-gray-100 dark:border-gray-700 my-1" />
+        <div v-if="(filteredLocalProjects.length || showCreateOption) && filteredWethodEntries.length" class="border-t border-gray-100 dark:border-gray-700 my-1" />
 
         <!-- Wethod projects + areas -->
         <div v-if="filteredWethodEntries.length" class="p-1">
@@ -110,20 +124,6 @@
               <span class="text-gray-700 dark:text-gray-300">{{ item.area.name || 'Generico' }}</span>
             </button>
           </template>
-        </div>
-
-        <!-- Create new (when no exact local match) -->
-        <div v-if="showCreateOption" class="border-t border-gray-100 dark:border-gray-700 p-1">
-          <button
-            :ref="'option-' + createOptionIndex"
-            class="w-full text-left px-3 py-2 text-sm rounded flex items-center gap-2 transition-colors"
-            :class="highlightedIndex === createOptionIndex ? 'bg-indigo-50 dark:bg-gray-700' : 'hover:bg-gray-50 dark:hover:bg-gray-700'"
-            @click="createLocalProject"
-            @mouseenter="highlightedIndex = createOptionIndex"
-          >
-            <plus-icon size="14" class="text-indigo-500" />
-            <span class="text-indigo-600 dark:text-indigo-400">{{ $t('create_project_inline', { name: searchQuery.trim() }) }}</span>
-          </button>
         </div>
 
         <!-- No results at all -->
@@ -251,9 +251,15 @@ export default {
         project => fuzzyMatch(project.name, query)
       )
     },
+    createOptionIndex () {
+      return this.filteredLocalProjects.length
+    },
+    wethodFlatIndexStart () {
+      return this.filteredLocalProjects.length + (this.showCreateOption ? 1 : 0)
+    },
     filteredWethodEntries () {
       const entries = []
-      let flatIndex = this.filteredLocalProjects.length
+      let flatIndex = this.wethodFlatIndexStart
 
       for (const project of this.filteredWethodWithAreas) {
         entries.push({ isHeader: true, project })
@@ -266,7 +272,7 @@ export default {
     },
     totalSelectableCount () {
       const wethodAreaCount = this.filteredWethodEntries.filter(entry => !entry.isHeader).length
-      return this.filteredLocalProjects.length + wethodAreaCount + (this.showCreateOption ? 1 : 0)
+      return this.filteredLocalProjects.length + (this.showCreateOption ? 1 : 0) + wethodAreaCount
     },
     hasExactLocalMatch () {
       if (!this.normalizedQuery) { return false }
@@ -277,9 +283,6 @@ export default {
     },
     showCreateOption () {
       return this.normalizedQuery.length > 0 && !this.hasExactLocalMatch
-    },
-    createOptionIndex () {
-      return this.totalSelectableCount - 1
     }
   },
   watch: {
