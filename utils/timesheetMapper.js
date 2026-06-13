@@ -47,30 +47,55 @@ export function prepareForSubmission (dayEntries, userProjects, linkedProjects, 
     .reduce((acc, day) => acc.concat(day), [])
 }
 
+function resolveEntryIds (data, userProjects, linkedProjects) {
+  if (data.directWethodProjectId) {
+    const linkedProject = linkedProjects.find(project => project.id === data.directWethodProjectId)
+    const displayName = linkedProject?.name || `#${data.directWethodProjectId}`
+
+    if (!linkedProject) {
+      throw new TranslatableError('errors.linked_project_not_found', { project: displayName })
+    }
+    if (linkedProject.isAutomatic) {
+      return null
+    }
+
+    const areaId = data.directWethodAreaId || 'null'
+    if (!linkedProject.areas.find(area => area.id === areaId)) {
+      throw new TranslatableError('errors.linked_area_not_found', { project: displayName })
+    }
+
+    return { linkedProjectId: data.directWethodProjectId, linkedAreaId: areaId, name: displayName }
+  }
+
+  const { linkedProjectId, linkedAreaId = 'null', name } = userProjects.find(project => project.id === data.project?.id) || {}
+  if (!linkedProjectId) {
+    throw new TranslatableError('errors.linked_project_not_found', { project: name })
+  }
+
+  const linkedProject = linkedProjects.find(project => project.id === linkedProjectId)
+  if (!linkedProject) {
+    throw new TranslatableError('errors.linked_project_not_found', { project: name })
+  }
+  if (linkedProject.isAutomatic) {
+    return null
+  }
+  if (!linkedProject.areas.find(area => area.id === linkedAreaId)) {
+    throw new TranslatableError('errors.linked_area_not_found', { project: name })
+  }
+
+  return { linkedProjectId, linkedAreaId, name }
+}
+
 function mergeEntries (entries, userProjects, linkedProjects) {
   const projects = {}
 
   entries
     .filter(({ data }) => data.duration > 0)
     .forEach(({ id, data }) => {
-      const { linkedProjectId, linkedAreaId = 'null', name } = userProjects.find(p => p.id === data.project?.id) || {}
-      if (!linkedProjectId) {
-        throw new TranslatableError('errors.linked_project_not_found', { project: name })
-      }
+      const resolved = resolveEntryIds(data, userProjects, linkedProjects)
+      if (!resolved) { return }
 
-      const linkedProject = linkedProjects.find(p => p.id === linkedProjectId)
-
-      if (!linkedProject) {
-        throw new TranslatableError('errors.linked_project_not_found', { project: name })
-      }
-
-      if (linkedProject.isAutomatic) {
-        return
-      }
-
-      if (!linkedProject.areas.find(a => a.id === linkedAreaId)) {
-        throw new TranslatableError('errors.linked_area_not_found', { project: name })
-      }
+      const { linkedProjectId, linkedAreaId, name } = resolved
 
       if (!projects[linkedProjectId]) {
         projects[linkedProjectId] = {}

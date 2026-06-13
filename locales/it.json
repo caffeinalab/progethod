@@ -49,6 +49,7 @@
   "reset_day": "Ripristina Giorno",
   "restore": "Ripristina",
   "save": "Salva",
+  "create_project_inline": "Crea \"{name}\"",
   "select_project": "Scegli Progetto",
   "sent": "Inviato",
   "session_expired": "Sessione Scaduta. Segui le istruzioni <a href=\"/login\" class=\"underline\">nella pagina di login</a>.",
