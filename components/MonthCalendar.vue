@@ -2,7 +2,7 @@
   <div v-click-outside="close" class="relative inline-block">
     <button
       class="capitalize hover:text-indigo-600 hover:underline underline-offset-2 cursor-pointer transition-colors"
-      @click="open = !open"
+      @click="toggle"
     >
       {{ label }}:
     </button>
@@ -10,8 +10,26 @@
       v-if="open"
       class="absolute left-0 top-full mt-2 z-50 bg-white rounded-lg shadow-xl border border-gray-200 p-4 w-72"
     >
-      <div class="text-sm font-semibold text-gray-700 mb-3 capitalize text-center">
-        {{ label }}
+      <div class="flex items-center justify-between mb-3">
+        <button
+          class="p-1 rounded hover:bg-gray-100 transition-colors text-gray-500 hover:text-gray-700"
+          @click="monthOffset--"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <div class="text-sm font-semibold text-gray-700 capitalize">
+          {{ displayedMonthLabel }}
+        </div>
+        <button
+          class="p-1 rounded hover:bg-gray-100 transition-colors text-gray-500 hover:text-gray-700"
+          @click="monthOffset++"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
       </div>
       <div class="grid grid-cols-7 gap-1 text-center text-xs">
         <div
@@ -25,8 +43,9 @@
           <div
             :key="cell.key"
             class="w-8 h-8 flex items-center justify-center rounded-md text-xs font-medium mx-auto"
-            :class="cellClasses(cell)"
+            :class="[cellClasses(cell), isClickable(cell) ? 'cursor-pointer hover:ring-2 hover:ring-indigo-300 transition-shadow' : '']"
             :title="cellTitle(cell)"
+            @click="onCellClick(cell)"
           >
             <span v-if="cell.dayNumber">{{ cell.dayNumber }}</span>
           </div>
@@ -86,9 +105,19 @@ export default {
     }
   },
   data: () => ({
-    open: false
+    open: false,
+    monthOffset: 0
   }),
   computed: {
+    displayedMonth () {
+      if (this.monthOffset === 0) {
+        return this.referenceDate
+      }
+      return this.$dateFns.addMonths(startOfMonth(this.referenceDate), this.monthOffset)
+    },
+    displayedMonthLabel () {
+      return this.$dateFns.format(this.displayedMonth, 'MMMM yyyy')
+    },
     weekdayHeaders () {
       return ['Lu', 'Ma', 'Me', 'Gi', 'Ve', 'Sa', 'Do']
     },
@@ -100,8 +129,8 @@ export default {
       return map
     },
     calendarCells () {
-      const monthStart = startOfMonth(this.referenceDate)
-      const monthEnd = endOfMonth(this.referenceDate)
+      const monthStart = startOfMonth(this.displayedMonth)
+      const monthEnd = endOfMonth(this.displayedMonth)
 
       const startDow = getDay(monthStart)
       const leadingBlanks = startDow === 0 ? 6 : startDow - 1
@@ -136,9 +165,63 @@ export default {
       return cells
     }
   },
+  watch: {
+    monthOffset () {
+      const month = this.displayedMonth
+      this.$emit('month-changed', {
+        from: this.$dateFns.format(startOfMonth(month), 'yyyy-MM-dd'),
+        to: this.$dateFns.format(endOfMonth(month), 'yyyy-MM-dd')
+      })
+    },
+    open (isOpen) {
+      if (isOpen) {
+        document.addEventListener('keydown', this.handleKeydown, true)
+      } else {
+        document.removeEventListener('keydown', this.handleKeydown, true)
+      }
+    }
+  },
+  beforeDestroy () {
+    document.removeEventListener('keydown', this.handleKeydown, true)
+  },
   methods: {
+    handleKeydown (event) {
+      if (!this.open) { return }
+      switch (event.key) {
+        case 'ArrowLeft':
+          event.preventDefault()
+          event.stopImmediatePropagation()
+          this.monthOffset--
+          break
+        case 'ArrowRight':
+          event.preventDefault()
+          event.stopImmediatePropagation()
+          this.monthOffset++
+          break
+        case 'Escape':
+          event.preventDefault()
+          event.stopImmediatePropagation()
+          this.close()
+          break
+      }
+    },
+    toggle () {
+      this.open = !this.open
+      if (this.open) {
+        this.monthOffset = 0
+      }
+    },
     close () {
       this.open = false
+    },
+    isClickable (cell) {
+      return cell.dayNumber && !cell.isWeekend
+    },
+    onCellClick (cell) {
+      if (this.isClickable(cell)) {
+        this.$emit('day-click', cell.dateKey)
+        this.close()
+      }
     },
     cellClasses (cell) {
       if (!cell.dayNumber) {

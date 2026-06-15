@@ -40,8 +40,10 @@
             <span class="text-gray-300">|</span>
             <month-calendar
               :reference-date="days[0]"
-              :tracked-hours="monthTrackedHours"
+              :tracked-hours="calendarTrackedHours"
               :label="monthLabel"
+              @day-click="onCalendarDayClick"
+              @month-changed="onCalendarMonthChanged"
             />
             <strong class="text-gray-700">{{ monthTrackedHours.length ? monthTrackedTotal + '/' + monthExpectedHours + 'h' : '–' }}</strong>
           </template>
@@ -108,6 +110,7 @@ export default {
       weekOffset: Number.isFinite(queryWeek) ? queryWeek : 0,
       weekTrackedHours: [],
       monthTrackedHours: [],
+      calendarTrackedHours: [],
       trackedHoursLoading: false,
       focusedDayIndex: null,
       insideDay: false,
@@ -343,6 +346,7 @@ export default {
         }
         if (Array.isArray(monthResponse?.data)) {
           this.monthTrackedHours = monthResponse.data
+          this.calendarTrackedHours = monthResponse.data
         }
       } catch {
         // API unreachable — tracked hours will remain empty
@@ -354,6 +358,35 @@ export default {
     },
     debouncedRefresh () {
       setTimeout(() => this.fetchTrackedHours(), 800)
+    },
+    onCalendarDayClick (dateKey) {
+      const targetDate = new Date(dateKey)
+      const targetMonday = this.$dateFns.startOfWeek(targetDate, { weekStartsOn: 1 })
+      const todayMonday = this.$dateFns.startOfWeek(new Date(), { weekStartsOn: 1 })
+      const diffMs = targetMonday.getTime() - todayMonday.getTime()
+      const diffWeeks = Math.round(diffMs / (7 * 24 * 60 * 60 * 1000))
+      this.weekOffset = diffWeeks
+    },
+    async onCalendarMonthChanged ({ from, to }) {
+      if (from === this.monthFrom && to === this.monthTo) {
+        this.calendarTrackedHours = this.monthTrackedHours
+        return
+      }
+      if (!this.$store.getters['user/canMakeRequests']) {
+        this.calendarTrackedHours = []
+        return
+      }
+      try {
+        const employeeId = this.$store.getters['user/info'].employee_id || ''
+        const response = await this.$axios.$get('tracked-hours', {
+          params: { from, to, employeeId }
+        })
+        if (Array.isArray(response?.data)) {
+          this.calendarTrackedHours = response.data
+        }
+      } catch {
+        this.calendarTrackedHours = []
+      }
     },
     ...mapMutations({
       setRequireSubmitConfirmation: 'preferences/setRequireSubmitConfirmation'

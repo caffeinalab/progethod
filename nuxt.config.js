@@ -114,7 +114,7 @@ export default {
     defaultLocale: 'it',
     fallbackLocale: 'it',
     methods: [
-      'format', 'addDays', 'addWeeks', 'startOfWeek', 'intervalToDuration'
+      'format', 'addDays', 'addWeeks', 'addMonths', 'startOfWeek', 'intervalToDuration'
     ]
   },
   tailwindcss: {
