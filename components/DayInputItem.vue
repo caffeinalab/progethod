@@ -4,7 +4,7 @@
       <h2 class="capitalize text-xl font-bold leading-tight text-gray-800">
         {{ $dateFns.format(day, 'EEEE do') }}
       </h2>
-      <location-input v-model="location" @input="handleLocationChange" />
+      <location-input v-model="location" variant="text" @input="handleLocationChange" />
       <div class="text-xl font-bold text-gray-700 tabular-nums">
         {{ printableDuration.hours }}h<span v-if="printableDuration.minutes"> {{ printableDuration.minutes }}m</span>
       </div>

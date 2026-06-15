@@ -1,44 +1,44 @@
 <template>
   <div class="flex justify-center ml-2 mr-2">
-    <div id="filters" class="bg-transparent border-2 border-gray-200 dark:border-gray-800 rounded flex items-center">
+    <div
+      class="flex items-center gap-1"
+      :class="variant === 'text' ? 'p-0.5 bg-gray-100 dark:bg-gray-800 rounded-full' : ''"
+    >
       <button
-        class="p-2 rounded border-transparent border focus:outline-none focus:text-indigo-700 dark:focus:text-indigo-700 dark:text-gray-50 flex justify-center items-center focus:bg-gray-100 dark:focus:bg-gray-800 disabled:cursor-default"
-        :class="{
-          'text-indigo-700 bg-white cursor-default': value === 'home' && !disabled,
-          'text-white bg-gray-300 cursor-default': value === 'home' && disabled,
-          'hover:text-indigo-700 dark:hover:text-indigo-700 hover:bg-gray-100 dark:hover:bg-gray-800': !disabled
-        }"
+        class="focus:outline-none flex justify-center items-center disabled:cursor-default transition-colors duration-150"
+        :class="[
+          variant === 'text' ? 'px-2.5 py-1 text-xs font-semibold gap-1 rounded-full' : 'p-2 rounded',
+          homeClasses
+        ]"
         :disabled="disabled"
         :title="$t('home')"
         @click="select('home')"
       >
         <home-icon
-          class="icon icon-tabler icon-tabler-home"
-          width="20"
-          height="20"
+          width="14"
+          height="14"
           fill="none"
           stroke="currentColor"
         />
+        <span v-if="variant === 'text'">{{ $t('home') }}</span>
       </button>
       <button
-        class="p-2 rounded border-transparent border focus:outline-none focus:text-indigo-700 dark:focus:text-indigo-700 dark:text-gray-50 flex justify-center items-center focus:bg-gray-100 dark:focus:bg-gray-800 disabled:cursor-default"
-        :class="{
-          'text-indigo-700 bg-white cursor-default': value === 'office' && !disabled,
-          'text-white bg-gray-300 cursor-default': value === 'office' && disabled,
-          'text-gray-300 cursor-default': value !== 'office' && disabled,
-          'hover:text-indigo-700 dark:hover:text-indigo-700 hover:bg-gray-100 dark:hover:bg-gray-800': !disabled
-        }"
+        class="focus:outline-none flex justify-center items-center disabled:cursor-default transition-colors duration-150"
+        :class="[
+          variant === 'text' ? 'px-2.5 py-1 text-xs font-semibold gap-1 rounded-full' : 'p-2 rounded',
+          officeClasses
+        ]"
         :disabled="disabled"
         :title="$t('office')"
         @click="select('office')"
       >
         <building-icon
-          class="icon icon-tabler icon-tabler-building"
-          width="20"
-          height="20"
+          width="14"
+          height="14"
           fill="none"
           stroke="currentColor"
         />
+        <span v-if="variant === 'text'">{{ $t('office') }}</span>
       </button>
     </div>
   </div>
@@ -63,6 +63,35 @@ export default {
     disabled: {
       type: Boolean,
       default: false
+    },
+    variant: {
+      type: String,
+      default: 'icon',
+      validator: val => ['icon', 'text'].includes(val)
+    }
+  },
+  computed: {
+    homeClasses () {
+      if (this.disabled) {
+        return this.value === 'home'
+          ? 'text-white bg-gray-300 cursor-default'
+          : 'text-gray-300 cursor-default'
+      }
+      if (this.value === 'home') {
+        return 'text-amber-700 bg-amber-100 dark:bg-amber-900 dark:text-amber-300 cursor-default'
+      }
+      return 'text-gray-400 dark:text-gray-500 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-gray-800'
+    },
+    officeClasses () {
+      if (this.disabled) {
+        return this.value === 'office'
+          ? 'text-white bg-gray-300 cursor-default'
+          : 'text-gray-300 cursor-default'
+      }
+      if (this.value === 'office') {
+        return 'text-blue-700 bg-blue-100 dark:bg-blue-900 dark:text-blue-300 cursor-default'
+      }
+      return 'text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-800'
     }
   },
   methods: {
