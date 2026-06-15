@@ -23,10 +23,16 @@
   "linked_project": "Commessa",
   "login_instructions": "Come fare il login",
   "login_tutorial": {
-    "step_1": "1. Installa l'estensione per Chrome ",
-    "step_1_cta": "dallo store",
-    "step_2": "2. Clicca sull'icona con la P di Progethod in alto a destra (potrebbe essere nascosta sotto l'icona del puzzle)",
-    "step_3": "3. Magic ✨"
+    "step_1": "Installa l'estensione per Chrome ",
+    "step_1_cta_store": "dallo store",
+    "step_1_alt": " oppure ",
+    "step_1_cta_download": "scaricala da qui",
+    "step_2": "Se hai scaricato il file zip:",
+    "step_2a": "Decomprimi il file zip",
+    "step_2b": "Apri <strong>chrome://extensions</strong> e attiva la <strong>Modalità sviluppatore</strong> (in alto a destra)",
+    "step_2c": "Clicca <strong>Carica estensione non pacchettizzata</strong> e seleziona la cartella decompressa",
+    "step_3": "Clicca sull'icona con la P di Progethod in alto a destra (potrebbe essere nascosta sotto l'icona del puzzle)",
+    "step_4": "Magic ✨"
   },
   "magic_tag": "Magic Tag™️",
   "magic_tag_for_everybody": "Il meeting è con più persone? Questo tag funziona per tutti! (se hanno creato un progetto sulla stessa commessa/area)",
