@@ -1,8 +1,8 @@
 <template>
   <transition name="fade">
-    <div v-if="value" class="fixed inset-0 z-50 flex items-center justify-center" @click.self="close">
-      <div class="absolute inset-0 bg-black bg-opacity-40" @click="close" />
-      <div class="relative bg-white rounded-xl shadow-2xl max-w-lg w-full mx-4 max-h-[85vh] flex flex-col">
+    <div v-if="value" class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto" @click.self="close">
+      <div class="fixed inset-0 bg-black bg-opacity-40" @click="close" />
+      <div class="relative bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[85vh] min-h-0 flex flex-col my-auto">
         <div class="flex items-center justify-between p-6 pb-0">
           <div class="flex items-center gap-2">
             <img src="/progethod.svg" width="28" height="28" alt="Progethod">
@@ -16,7 +16,7 @@
           </button>
         </div>
 
-        <div class="overflow-y-auto p-6 space-y-6">
+        <div ref="scrollArea" class="overflow-y-auto p-6 space-y-6" @scroll="onScroll">
           <!-- Intro -->
           <p class="text-sm text-gray-600">
             {{ $t('guide.intro') }}
@@ -125,6 +125,9 @@
             </p>
           </div>
         </div>
+        <div v-show="!scrolledToBottom" class="flex items-center justify-center py-2 border-t border-gray-100">
+          <chevron-down-icon size="16" class="text-gray-300 animate-bounce" />
+        </div>
       </div>
     </div>
   </transition>
@@ -139,7 +142,8 @@ import {
   SendIcon,
   KeyboardIcon,
   DatabaseExportIcon,
-  TagIcon
+  TagIcon,
+  ChevronDownIcon
 } from 'vue-tabler-icons'
 
 export default {
@@ -151,7 +155,8 @@ export default {
     SendIcon,
     KeyboardIcon,
     DatabaseExportIcon,
-    TagIcon
+    TagIcon,
+    ChevronDownIcon
   },
   props: {
     value: {
@@ -159,9 +164,28 @@ export default {
       default: false
     }
   },
+  data: () => ({ scrolledToBottom: false }),
+  watch: {
+    value (isVisible) {
+      if (isVisible) {
+        this.$nextTick(() => this.checkScroll())
+      } else {
+        this.scrolledToBottom = false
+      }
+    }
+  },
   methods: {
     close () {
       this.$emit('input', false)
+    },
+    onScroll () {
+      this.checkScroll()
+    },
+    checkScroll () {
+      const element = this.$refs.scrollArea
+      if (!element) { return }
+      const threshold = 4
+      this.scrolledToBottom = element.scrollHeight - element.scrollTop - element.clientHeight < threshold
     }
   }
 }

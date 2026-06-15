@@ -1,9 +1,9 @@
 <template>
   <transition name="fade">
-    <div v-if="visible" class="fixed inset-0 z-50 flex items-center justify-center" @click.self="close">
-      <div class="absolute inset-0 bg-black bg-opacity-40" @click="close" />
-      <div class="relative bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4">
-        <div class="flex items-center justify-between mb-4">
+    <div v-if="visible" class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto" @click.self="close">
+      <div class="fixed inset-0 bg-black bg-opacity-40" @click="close" />
+      <div class="relative bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[85vh] min-h-0 flex flex-col my-auto">
+        <div class="flex items-center justify-between px-6 pt-6 pb-4">
           <h2 class="text-lg font-bold text-gray-800">
             {{ $t('keyboard_shortcuts.title') }}
           </h2>
@@ -12,7 +12,11 @@
           </button>
         </div>
 
-        <div class="space-y-4">
+        <div
+          ref="scrollArea"
+          class="scroll-area space-y-4 overflow-y-auto px-6 pb-6"
+          @scroll="onScroll"
+        >
           <section>
             <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
               {{ $t('keyboard_shortcuts.navigation') }}
@@ -52,23 +56,35 @@
             </div>
           </section>
         </div>
+        <div v-show="!scrolledToBottom" class="flex items-center justify-center py-2 border-t border-gray-100">
+          <chevron-down-icon size="16" class="text-gray-300 animate-bounce" />
+        </div>
       </div>
     </div>
   </transition>
 </template>
 
 <script>
-import { XIcon } from 'vue-tabler-icons'
+import { XIcon, ChevronDownIcon } from 'vue-tabler-icons'
 import ShortcutRow from './ShortcutRow'
 
 export default {
-  components: { XIcon, ShortcutRow },
-  data: () => ({ visible: false }),
+  components: { XIcon, ChevronDownIcon, ShortcutRow },
+  data: () => ({ visible: false, scrolledToBottom: false }),
   mounted () {
     this.$nuxt.$on('shortcut:show-help', this.toggle)
   },
   beforeDestroy () {
     this.$nuxt.$off('shortcut:show-help', this.toggle)
+  },
+  watch: {
+    visible (isVisible) {
+      if (isVisible) {
+        this.$nextTick(() => this.checkScroll())
+      } else {
+        this.scrolledToBottom = false
+      }
+    }
   },
   methods: {
     toggle () {
@@ -76,6 +92,15 @@ export default {
     },
     close () {
       this.visible = false
+    },
+    onScroll () {
+      this.checkScroll()
+    },
+    checkScroll () {
+      const element = this.$refs.scrollArea
+      if (!element) { return }
+      const threshold = 4
+      this.scrolledToBottom = element.scrollHeight - element.scrollTop - element.clientHeight < threshold
     }
   }
 }
