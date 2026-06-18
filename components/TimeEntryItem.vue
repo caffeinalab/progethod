@@ -33,7 +33,7 @@
       <!-- Selected display (clickable to re-open) -->
       <button
         v-else-if="selection"
-        class="w-full h-10 pl-3 pr-2 text-sm text-left border rounded shadow bg-white dark:bg-gray-800 flex items-center gap-1 transition-colors"
+        class="group relative w-full h-10 pl-3 pr-2 text-sm text-left border rounded shadow bg-white dark:bg-gray-800 flex items-center gap-1 transition-colors"
         :class="disabled
           ? 'border-gray-200 text-gray-300 cursor-default dark:border-gray-700'
           : 'border-gray-300 dark:border-gray-700 hover:border-indigo-400 cursor-text'"
@@ -43,15 +43,30 @@
         <span class="flex-1 min-w-0">
           <template v-if="selection.type === 'local'">
             <span class="flex items-center gap-1 min-w-0">
-              <span class="font-medium truncate" :title="selection.localProject.name">{{ selection.localProject.name }}</span>
-              <span v-if="selection.resolvedLabel" class="text-gray-400 text-xs truncate flex-shrink min-w-0" :title="selection.resolvedLabel">&rarr; {{ selection.resolvedLabel }}</span>
+              <span class="font-medium truncate">{{ selection.localProject.name }}</span>
+              <span v-if="selection.resolvedLabel" class="text-gray-400 text-xs truncate min-w-0" style="flex-shrink: 100">&rarr; {{ selection.resolvedLabel }}</span>
             </span>
           </template>
           <template v-else>
-            <span class="block text-sm font-medium truncate leading-tight" :title="selection.wethodProjectName">{{ selection.wethodProjectName }}</span>
-            <span class="block text-xs text-gray-400 truncate leading-tight" :title="selection.wethodAreaName">{{ selection.wethodAreaName }}</span>
+            <span class="block text-sm font-medium truncate leading-tight">{{ selection.wethodProjectName }}</span>
+            <span class="block text-xs text-gray-400 truncate leading-tight">{{ selection.wethodAreaName }}</span>
           </template>
         </span>
+
+        <div class="selection-tooltip absolute z-50 left-0 top-full mt-1 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg pointer-events-none whitespace-nowrap">
+          <template v-if="selection.type === 'local'">
+            <div class="font-semibold text-sm">{{ selection.localProject.name }}</div>
+            <template v-if="tooltipWethodInfo">
+              <div class="border-t border-gray-700 my-1.5" />
+              <div class="text-gray-300"><span class="text-gray-500">Progetto:</span> {{ tooltipWethodInfo.projectName }}</div>
+              <div class="text-gray-300 mt-0.5"><span class="text-gray-500">Area:</span> {{ tooltipWethodInfo.areaName }}</div>
+            </template>
+          </template>
+          <template v-else-if="selection.type === 'wethod'">
+            <div class="font-semibold text-sm">{{ selection.wethodProjectName }}</div>
+            <div class="text-gray-300 mt-0.5">{{ selection.wethodAreaName }}</div>
+          </template>
+        </div>
       </button>
 
       <!-- Dropdown -->
@@ -337,6 +352,18 @@ export default {
     },
     showCreateOption () {
       return this.normalizedQuery.length > 0 && !this.hasExactLocalMatch
+    },
+    tooltipWethodInfo () {
+      if (this.selection?.type !== 'local' || !this.selection.localProject.linkedProjectId) {
+        return null
+      }
+      const wethodProject = this.wethodProjects.find(wp => wp.id === this.selection.localProject.linkedProjectId)
+      if (!wethodProject) { return null }
+      const area = wethodProject.areas.find(a => a.id === this.selection.localProject.linkedAreaId)
+      return {
+        projectName: wethodProject.name,
+        areaName: area?.name || 'Generico'
+      }
     }
   },
   watch: {
@@ -655,6 +682,13 @@ export default {
 }
 </script>
 
-<style>
-
+<style scoped>
+.selection-tooltip {
+  transition: opacity 0.15s ease;
+  opacity: 0;
+}
+.group:hover .selection-tooltip {
+  opacity: 1;
+  transition-delay: 0.4s;
+}
 </style>
