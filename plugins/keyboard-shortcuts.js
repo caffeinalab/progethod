@@ -30,6 +30,8 @@ export default () => {
 
     if (typing) { return }
 
+    if (event.metaKey || event.ctrlKey || event.altKey) { return }
+
     const key = event.key.toLowerCase()
 
     switch (key) {
