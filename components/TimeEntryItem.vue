@@ -42,14 +42,14 @@
       >
         <span class="flex-1 min-w-0">
           <template v-if="selection.type === 'local'">
-            <span class="flex items-center gap-1">
-              <span class="font-medium flex-shrink-0">{{ selection.localProject.name }}</span>
-              <span v-if="selection.resolvedLabel" class="text-gray-400 text-xs truncate">&rarr; {{ selection.resolvedLabel }}</span>
+            <span class="flex items-center gap-1 min-w-0">
+              <span class="font-medium truncate" :title="selection.localProject.name">{{ selection.localProject.name }}</span>
+              <span v-if="selection.resolvedLabel" class="text-gray-400 text-xs truncate flex-shrink min-w-0" :title="selection.resolvedLabel">&rarr; {{ selection.resolvedLabel }}</span>
             </span>
           </template>
           <template v-else>
-            <span class="block text-sm font-medium truncate leading-tight">{{ selection.wethodProjectName }}</span>
-            <span class="block text-xs text-gray-400 truncate leading-tight">{{ selection.wethodAreaName }}</span>
+            <span class="block text-sm font-medium truncate leading-tight" :title="selection.wethodProjectName">{{ selection.wethodProjectName }}</span>
+            <span class="block text-xs text-gray-400 truncate leading-tight" :title="selection.wethodAreaName">{{ selection.wethodAreaName }}</span>
           </template>
         </span>
       </button>
