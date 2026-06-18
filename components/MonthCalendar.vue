@@ -71,8 +71,10 @@
 
 <script>
 import { startOfMonth, endOfMonth, getDay, isSameDay } from 'date-fns'
+import liveToday from '~/mixins/liveToday'
 
 export default {
+  mixins: [liveToday],
   directives: {
     clickOutside: {
       bind (element, binding) {
@@ -146,8 +148,8 @@ export default {
         const dow = getDay(current)
         const isWeekend = dow === 0 || dow === 6
         const dateKey = this.$dateFns.format(current, 'yyyy-MM-dd')
-        const isToday = isSameDay(current, new Date())
-        const isFuture = current > new Date()
+        const isToday = isSameDay(current, this.today)
+        const isFuture = current > this.today
 
         cells.push({
           key: dateKey,

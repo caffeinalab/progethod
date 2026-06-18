@@ -95,6 +95,7 @@ import { isSameDay, startOfMonth, endOfMonth } from 'date-fns'
 import { mapGetters, mapMutations } from 'vuex'
 import DayInputItem from '~/components/DayInputItem'
 import BusinessUnitFilter from '~/components/BusinessUnitFilter'
+import liveToday from '~/mixins/liveToday'
 
 export default {
   components: {
@@ -103,6 +104,7 @@ export default {
     DayInputItem,
     BusinessUnitFilter
   },
+  mixins: [liveToday],
   middleware: 'auth',
   data () {
     const queryWeek = parseInt(this.$route.query.week, 10)
@@ -124,8 +126,7 @@ export default {
       businessUnitsEnabled: 'user/businessUnitsEnabled'
     }),
     weekAnchor () {
-      const today = new Date()
-      return this.$dateFns.addWeeks(today, this.weekOffset)
+      return this.$dateFns.addWeeks(this.today, this.weekOffset)
     },
     days () {
       const monday = this.$dateFns.startOfWeek(this.weekAnchor, { weekStartsOn: 1 })
@@ -221,7 +222,7 @@ export default {
   },
   methods: {
     isToday (day) {
-      return isSameDay(day, new Date())
+      return isSameDay(day, this.today)
     },
     dayCardClasses (day, index) {
       const classes = []
@@ -362,7 +363,7 @@ export default {
     onCalendarDayClick (dateKey) {
       const targetDate = new Date(dateKey)
       const targetMonday = this.$dateFns.startOfWeek(targetDate, { weekStartsOn: 1 })
-      const todayMonday = this.$dateFns.startOfWeek(new Date(), { weekStartsOn: 1 })
+      const todayMonday = this.$dateFns.startOfWeek(this.today, { weekStartsOn: 1 })
       const diffMs = targetMonday.getTime() - todayMonday.getTime()
       const diffWeeks = Math.round(diffMs / (7 * 24 * 60 * 60 * 1000))
       this.weekOffset = diffWeeks
