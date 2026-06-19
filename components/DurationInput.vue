@@ -11,7 +11,7 @@
       :disabled="disabled"
       @input="handleUserInput"
       @blur="onBlur"
-      @keyup.enter="enterKey"
+      @keydown.enter="enterKey"
       @keydown.escape="$refs.input.blur()"
     >
   </div>
