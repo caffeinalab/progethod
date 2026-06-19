@@ -42,9 +42,9 @@
       >
         <span class="flex-1 min-w-0">
           <template v-if="selection.type === 'local'">
-            <span class="flex items-center gap-1 min-w-0">
-              <span class="font-medium truncate">{{ selection.localProject.name }}</span>
-              <span v-if="selection.resolvedLabel" class="text-gray-400 text-xs truncate min-w-0" style="flex-shrink: 100">&rarr; {{ selection.resolvedLabel }}</span>
+            <span class="flex items-center gap-1 min-w-0 overflow-hidden">
+              <span class="font-medium truncate shrink-0 grow-0 max-w-full">{{ selection.localProject.name }}</span>
+              <span v-if="selection.resolvedLabel" class="text-gray-400 text-xs truncate min-w-0">&rarr; {{ selection.resolvedLabel }}</span>
             </span>
           </template>
           <template v-else>
