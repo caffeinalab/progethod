@@ -213,8 +213,16 @@ export default {
     this.$nuxt.$off('shortcut:nuke-day', this.handleShortcutNuke)
   },
   methods: {
-    addEntry () {
+    addEntry ({ focus = true } = {}) {
       this.addEntryForDay({ day: this.dayId, data: { location: this.location } })
+      if (focus) {
+        this.$nextTick(() => {
+          const newIndex = this.entries.length - 1
+          const ref = this.$refs['entry-' + newIndex]
+          const component = Array.isArray(ref) ? ref[0] : ref
+          if (component) { component.focusProject() }
+        })
+      }
     },
     removeEntry (id) {
       this.removeEntry(id)
@@ -229,11 +237,7 @@ export default {
     handleSubmit () {
       this.addEntry()
       this.$nextTick(() => {
-        const newIndex = this.entries.length - 1
-        this.focusedEntryIndex = newIndex
-        const ref = this.$refs['entry-' + newIndex]
-        const component = Array.isArray(ref) ? ref[0] : ref
-        if (component) { component.focusProject() }
+        this.focusedEntryIndex = this.entries.length - 1
       })
     },
     adjustDecimals () {
