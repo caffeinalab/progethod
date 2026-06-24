@@ -313,13 +313,6 @@ export default {
     nonAutomaticWethodProjects () {
       return this.wethodProjects.filter(project => !project.isAutomatic)
     },
-    filteredWethodWithAreas () {
-      const query = this.normalizedQuery
-      if (!query) { return this.nonAutomaticWethodProjects.slice(0, 15) }
-      return this.nonAutomaticWethodProjects.filter(
-        project => fuzzyMatch(project.name, query)
-      )
-    },
     createOptionIndex () {
       return this.filteredLocalProjects.length
     },
@@ -329,14 +322,31 @@ export default {
     filteredWethodEntries () {
       const entries = []
       let flatIndex = this.wethodFlatIndexStart
+      const query = this.normalizedQuery
+      const projects = query ? this.nonAutomaticWethodProjects : this.nonAutomaticWethodProjects.slice(0, 15)
 
-      for (const project of this.filteredWethodWithAreas) {
+      for (const project of projects) {
+        const projectNameMatches = fuzzyMatch(project.name, query)
+
+        let areasToShow
+        if (!query || projectNameMatches) {
+          areasToShow = project.areas
+        } else {
+          areasToShow = project.areas.filter((area) => {
+            const combinedText = project.name + ' ' + (area.name || '')
+            return fuzzyMatch(combinedText, query)
+          })
+        }
+
+        if (areasToShow.length === 0) { continue }
+
         entries.push({ isHeader: true, project })
-        for (const area of project.areas) {
+        for (const area of areasToShow) {
           entries.push({ isHeader: false, project, area, flatIndex })
           flatIndex++
         }
       }
+
       return entries
     },
     totalSelectableCount () {
