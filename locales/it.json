@@ -132,5 +132,17 @@
     "empty": "Nessun suggerimento creato. Aggiungine uno qui sopra!",
     "cancel": "Annulla",
     "reorder_hint": "Trascina le righe per riordinare i suggerimenti."
+  },
+  "jira": {
+    "login": "Accedi a Jira",
+    "fetch_activity": "Attività Jira del giorno",
+    "modal_title": "Attività Jira",
+    "search_placeholder": "Cerca per ticket, titolo o stato...",
+    "loading": "Caricamento...",
+    "no_activity": "Nessun ticket trovato per questo giorno",
+    "no_results": "Nessun risultato per questa ricerca",
+    "retry": "Riprova",
+    "copy_id": "Copia ID",
+    "copied": "Copiato!"
   }
 }

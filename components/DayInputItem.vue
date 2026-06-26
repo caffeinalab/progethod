@@ -107,20 +107,33 @@
           height="20"
         />
       </button>
+      <button
+        class="mr-2 p-2 text-white focus:outline-none border border-transparent focus:border-gray-800 focus:shadow-outline-gray bg-indigo-700 hover:bg-indigo-600 rounded transition duration-150 ease-in-out disabled:cursor-default disabled:bg-gray-500"
+        :class="{ 'bg-blue-600 hover:bg-blue-500': isJiraConfigured }"
+        :title="isJiraConfigured ? $t('jira.fetch_activity') : $t('jira.login')"
+        @click="handleJiraClick"
+      >
+        <subtask-icon
+          width="20"
+          height="20"
+        />
+      </button>
     </div>
     <nuke-timesheet-modal v-model="showNukeModal" :day-entries="entries" :day="dayId" />
     <submit-timesheet-modal v-model="showSubmitModal" :timesheet-data="timesheetData" />
+    <jira-activity-modal v-model="showJiraModal" :day="dayId" @select="handleJiraIssueSelect" />
   </div>
 </template>
 
 <script>
-import { TrashIcon, PlusIcon, SendIcon, CalendarTimeIcon, TrashXIcon } from 'vue-tabler-icons'
-import { mapActions, mapMutations } from 'vuex'
+import { TrashIcon, PlusIcon, SendIcon, CalendarTimeIcon, TrashXIcon, SubtaskIcon } from 'vue-tabler-icons'
+import { mapActions, mapMutations, mapGetters } from 'vuex'
 import TimeEntryItem from '~/components/TimeEntryItem'
 import Alert from '~/components/Alert'
 import { getPrintableDuration } from '~/utils/duration'
 import { prepareForSubmission } from '~/utils/timesheetMapper'
 import { getEvents, mapEventsToTimesheetEntries } from '~/utils/gCal'
+import { connectJira } from '~/utils/jira'
 import { TranslatableError } from '~/utils/localizableErrors'
 
 const dayDuration = 60 * 8
@@ -133,7 +146,8 @@ export default {
     Alert,
     TrashXIcon,
     SendIcon,
-    CalendarTimeIcon
+    CalendarTimeIcon,
+    SubtaskIcon
   },
   props: {
     day: {
@@ -154,10 +168,14 @@ export default {
     location: 'home',
     showNukeModal: false,
     showSubmitModal: false,
+    showJiraModal: false,
     timesheetData: [],
     focusedEntryIndex: 0
   }),
   computed: {
+    ...mapGetters({
+      isJiraConfigured: 'user/isJiraConfigured'
+    }),
     dayId () {
       return this.$dateFns.format(this.day, 'yyyy-MM-dd')
     },
@@ -310,6 +328,22 @@ export default {
 
         alert(message)
       }
+    },
+    async handleJiraClick () {
+      if (!this.isJiraConfigured) {
+        try {
+          await connectJira()
+        } catch (error) {
+          console.error('Jira login failed:', error)
+          alert('Jira login failed: ' + (error.response?.data?.message || error.message))
+          return
+        }
+      }
+      this.showJiraModal = true
+    },
+    handleJiraIssueSelect (issue) {
+      const notes = `${issue.key} | ${issue.summary}`
+      this.addEntryForDay({ day: this.dayId, data: { location: this.location, notes } })
     },
     async fetchGCal () {
       try {

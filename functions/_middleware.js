@@ -39,11 +39,14 @@ const corsHeaders = async ({ next, env, request }) => {
   return response
 }
 
+function isJiraAuthRoute (request) {
+  return new URL(request.url).pathname === '/api/jira-token'
+}
+
 const auth = ({ next, request, env, data }) => {
   data.authToken = request.headers.get('x-sf-sess-id')
 
-  // require auth token only for /api
-  if (data.authToken || !isApi(request)) {
+  if (data.authToken || !isApi(request) || isJiraAuthRoute(request)) {
     return next()
   }
 

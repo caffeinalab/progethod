@@ -12,7 +12,12 @@ export const state = () => ({
     pic: null
   },
   hasAuthorizedGCal: false,
-  googleTokenExpiration: null
+  googleTokenExpiration: null,
+  jira: {
+    accessToken: null,
+    tokenExpiration: null,
+    cloudId: null
+  }
 })
 
 export const getters = {
@@ -39,6 +44,18 @@ export const getters = {
   },
   businessUnitsEnabled (state) {
     return state.info.business_units_enabled === true
+  },
+  isJiraConfigured (state) {
+    return !!state.jira.accessToken
+  },
+  isJiraTokenValid (state) {
+    return state.jira.accessToken && state.jira.tokenExpiration && isAfter(parseISO(state.jira.tokenExpiration), new Date())
+  },
+  jiraAccessToken (state) {
+    return state.jira.accessToken
+  },
+  jiraCloudId (state) {
+    return state.jira.cloudId
   }
 }
 
@@ -56,5 +73,15 @@ export const mutations = {
   authorizedGoogleToken (state, expiresIn) {
     state.hasAuthorizedGCal = true
     state.googleTokenExpiration = (addSeconds(new Date(), expiresIn)).toISOString()
+  },
+  setJiraAuth (state, { accessToken, expiresIn, cloudId }) {
+    state.jira = {
+      accessToken,
+      tokenExpiration: addSeconds(new Date(), expiresIn).toISOString(),
+      cloudId
+    }
+  },
+  clearJiraAuth (state) {
+    state.jira = { accessToken: null, tokenExpiration: null, cloudId: null }
   }
 }
