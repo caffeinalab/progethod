@@ -50,67 +50,74 @@ export async function onRequestGet ({ request }) {
 
     const events = await eventsResponse.json()
 
-    const projectIds = [...new Set(events.map(event => event.project_id))]
-
-    if (projectIds.length === 0) {
-      return new JSONResponse({ data: [] })
+    const refsByProject = new Map()
+    for (const event of events) {
+      const ref = event.push_data?.ref
+      if (!ref) { continue }
+      if (!refsByProject.has(event.project_id)) {
+        refsByProject.set(event.project_id, new Set())
+      }
+      refsByProject.get(event.project_id).add(ref)
     }
 
-    const projectInfoPromises = projectIds.map(projectId =>
-      fetch(`https://gitlab.com/api/v4/projects/${projectId}?simple=true`, { headers })
-        .then(response => response.ok ? response.json() : null)
-        .catch(() => null)
-    )
+    if (refsByProject.size === 0) {
+      return new JSONResponse({ data: [] })
+    }
 
     const daySince = `${day}T00:00:00Z`
     const dayUntil = `${nextDay}T00:00:00Z`
 
-    const commitsPromises = projectIds.map(projectId => {
-      const commitsUrl = new URL(`https://gitlab.com/api/v4/projects/${projectId}/repository/commits`)
-      commitsUrl.searchParams.set('since', daySince)
-      commitsUrl.searchParams.set('until', dayUntil)
-      commitsUrl.searchParams.set('per_page', '100')
-      return fetch(commitsUrl.toString(), { headers })
-        .then(response => response.ok ? response.json() : [])
-        .catch(() => [])
-    })
+    const commitsQueries = []
+    for (const [projectId, refs] of refsByProject) {
+      for (const ref of refs) {
+        const commitsUrl = new URL(`https://gitlab.com/api/v4/projects/${projectId}/repository/commits`)
+        commitsUrl.searchParams.set('ref_name', ref)
+        commitsUrl.searchParams.set('since', daySince)
+        commitsUrl.searchParams.set('until', dayUntil)
+        commitsUrl.searchParams.set('per_page', '100')
+        commitsQueries.push({
+          ref,
+          promise: fetch(commitsUrl.toString(), { headers })
+            .then(response => response.ok ? response.json() : [])
+            .catch(() => [])
+        })
+      }
+    }
 
-    const [projectInfoResults, commitsResults] = await Promise.all([
-      Promise.all(projectInfoPromises),
-      Promise.all(commitsPromises)
-    ])
-
-    const projectMap = {}
-    projectIds.forEach((projectId, index) => {
-      const info = projectInfoResults[index]
-      projectMap[projectId] = info
-        ? { name: info.name, path: info.path_with_namespace }
-        : { name: `Project #${projectId}`, path: `unknown/${projectId}` }
-    })
+    const commitsResults = await Promise.all(
+      commitsQueries.map(query => query.promise)
+    )
 
     const commits = []
-    const seen = new Set()
+    const commitMap = new Map()
 
-    projectIds.forEach((projectId, index) => {
+    commitsQueries.forEach((query, index) => {
       const projectCommits = commitsResults[index] || []
-      const projectInfo = projectMap[projectId]
 
       for (const commit of projectCommits) {
-        if (seen.has(commit.id)) {
+        if (commitMap.has(commit.id)) {
+          const existing = commitMap.get(commit.id)
+          if (!existing.branches.includes(query.ref)) {
+            existing.branches.push(query.ref)
+          }
           continue
         }
-        seen.add(commit.id)
 
-        commits.push({
+        const { projectPath, projectName } = parseProjectFromWebUrl(commit.web_url)
+
+        const entry = {
           sha: commit.id,
           shortSha: commit.short_id,
           title: commit.title,
           message: commit.message,
-          project: projectInfo.path,
-          projectName: projectInfo.name,
+          project: projectPath,
+          projectName,
+          branches: [query.ref],
           createdAt: commit.created_at,
           webUrl: commit.web_url
-        })
+        }
+        commitMap.set(commit.id, entry)
+        commits.push(entry)
       }
     })
 
@@ -130,4 +137,13 @@ function getOffsetDay (dateString, offset) {
   const date = new Date(dateString)
   date.setDate(date.getDate() + offset)
   return date.toISOString().split('T')[0]
+}
+
+function parseProjectFromWebUrl (webUrl) {
+  try {
+    const path = new URL(webUrl).pathname.split('/-/')[0].substring(1)
+    return { projectPath: path, projectName: path.split('/').pop() }
+  } catch {
+    return { projectPath: 'unknown', projectName: 'Unknown' }
+  }
 }

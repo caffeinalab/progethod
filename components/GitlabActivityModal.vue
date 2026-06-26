@@ -56,8 +56,8 @@
                 >
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2">
-                      <code class="text-xs font-semibold text-amber-700">{{ commit.shortSha || shortSha(commit.sha) }}</code>
-                      <span class="relative">
+                      <code class="text-xs font-semibold text-amber-700 flex-shrink-0">{{ commit.shortSha || shortSha(commit.sha) }}</code>
+                      <span class="relative flex-shrink-0">
                         <button
                           class="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-indigo-600 transition-opacity p-0.5"
                           :title="$t('gitlab.copy_sha')"
@@ -76,6 +76,15 @@
                     <p class="text-sm text-gray-700 mt-0.5 leading-snug">
                       {{ commit.title }}
                     </p>
+                    <div v-if="commit.branches && commit.branches.length" class="flex flex-wrap gap-1 mt-1">
+                      <span
+                        v-for="branch in commit.branches"
+                        :key="branch"
+                        class="text-xs text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded font-medium"
+                      >
+                        {{ branch }}
+                      </span>
+                    </div>
                   </div>
                   <check-icon
                     v-if="addedShas.includes(commit.sha)"
@@ -148,7 +157,8 @@ export default {
             (commit.shortSha || '').toLowerCase().includes(query) ||
             commit.title.toLowerCase().includes(query) ||
             (commit.project || '').toLowerCase().includes(query) ||
-            (commit.projectName || '').toLowerCase().includes(query)
+            (commit.projectName || '').toLowerCase().includes(query) ||
+            (commit.branches || []).some(branch => branch.toLowerCase().includes(query))
           )
         }))
         .filter(group => group.commits.length > 0)
