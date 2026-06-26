@@ -103,7 +103,7 @@ export function mapEventsToTimesheetEntries (events, currentEntries, projects) {
     // remove events that have the progethod ignore tag
     .filter(event => !event.description || !event.description.match(/\[progethod:ignore\]/g))
     .map(event => ({
-      duration: differenceInMinutes(parseISO(event.end.dateTime), parseISO(event.start.dateTime)),
+      duration: Math.ceil(differenceInMinutes(parseISO(event.end.dateTime), parseISO(event.start.dateTime)) / 15) * 15,
       project: matchEventToProject(event.description, projects),
       notes: event.summary,
       gCalId: event.id

@@ -77,7 +77,7 @@ export default {
         return
       }
 
-      this.internalDuration = parsed
+      this.internalDuration = Math.ceil(parsed / 15) * 15
     },
     handleUserInput () {
       this.parseUserInput()
