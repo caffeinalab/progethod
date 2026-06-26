@@ -53,6 +53,8 @@
           </template>
         </span>
 
+        <chevron-down-icon v-if="!disabled" class="flex-shrink-0 text-gray-400" size="16" />
+
         <div class="selection-tooltip absolute z-50 left-0 top-full mt-1 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg pointer-events-none whitespace-nowrap">
           <template v-if="selection.type === 'local'">
             <div class="font-semibold text-sm">{{ selection.localProject.name }}</div>
@@ -260,7 +262,8 @@ export default {
     AlertTriangleIcon,
     ExternalLinkIcon,
     CheckIcon,
-    PlusIcon
+    PlusIcon,
+    ChevronDownIcon
   },
   props: {
     value: {
