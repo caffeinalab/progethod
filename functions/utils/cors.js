@@ -1,6 +1,6 @@
 export function getCorsHeaders (env) {
   const baseCors = {
-    'Access-Control-Allow-Headers': 'Content-Type, x-sf-sess-id, x-jira-cloud-id, x-jira-access-token'
+    'Access-Control-Allow-Headers': 'Content-Type, x-sf-sess-id, x-jira-cloud-id, x-jira-access-token, x-gitlab-access-token'
   }
 
   if (env.NODE_ENV !== 'development') {

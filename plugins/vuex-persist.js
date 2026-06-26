@@ -22,7 +22,8 @@ export default ({ store }) => {
           isTokenExpired: user.isTokenExpired,
           info: user.info,
           hasAuthorizedGCal: user.hasAuthorizedGCal,
-          jira: user.jira
+          jira: user.jira,
+          gitlab: user.gitlab
         },
         apiData: {
           projects: apiData.projects,

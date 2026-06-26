@@ -17,6 +17,10 @@ export const state = () => ({
     accessToken: null,
     tokenExpiration: null,
     cloudId: null
+  },
+  gitlab: {
+    accessToken: null,
+    tokenExpiration: null
   }
 })
 
@@ -56,6 +60,15 @@ export const getters = {
   },
   jiraCloudId (state) {
     return state.jira.cloudId
+  },
+  isGitlabConfigured (state) {
+    return !!state.gitlab.accessToken
+  },
+  isGitlabTokenValid (state) {
+    return state.gitlab.accessToken && state.gitlab.tokenExpiration && isAfter(parseISO(state.gitlab.tokenExpiration), new Date())
+  },
+  gitlabAccessToken (state) {
+    return state.gitlab.accessToken
   }
 }
 
@@ -83,5 +96,14 @@ export const mutations = {
   },
   clearJiraAuth (state) {
     state.jira = { accessToken: null, tokenExpiration: null, cloudId: null }
+  },
+  setGitlabAuth (state, { accessToken, expiresIn }) {
+    state.gitlab = {
+      accessToken,
+      tokenExpiration: addSeconds(new Date(), expiresIn).toISOString()
+    }
+  },
+  clearGitlabAuth (state) {
+    state.gitlab = { accessToken: null, tokenExpiration: null }
   }
 }

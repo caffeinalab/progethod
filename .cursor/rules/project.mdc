@@ -15,6 +15,8 @@ A simplified timesheet interface for Wethod. Data is stored locally (localStorag
 - **i18n**: `@nuxtjs/i18n`, Italian only (`locales/it.json`)
 - **API**: Axios, backend at `/api/`
 - **Calendar**: Google Calendar integration for importing events
+- **Jira**: OAuth 2.0 + PKCE popup flow to fetch daily Jira activity (tickets touched that day)
+- **GitLab**: OAuth 2.0 + PKCE popup flow to fetch daily GitLab commits (push events)
 
 ## Vuex Modules
 
@@ -31,3 +33,4 @@ A simplified timesheet interface for Wethod. Data is stored locally (localStorag
 - **Persistence**: All Vuex modules (including pills) persisted to localStorage. Soft-deleted items pruned after 40 days.
 - **Sync**: Projects and pills sync to backend via PUT on mutation. Entries are local-only until explicitly submitted.
 - **Keyboard navigation**: Full keyboard nav via `plugins/keyboard-shortcuts.js`. Global shortcuts only fire when user is not typing in an input.
+- **External integrations (Jira/GitLab)**: Same pattern — OAuth popup with PKCE, server-side token exchange via Cloudflare Pages Function, activity proxy, modal UI. Tokens stored in `user` Vuex module with expiration. Auth routes bypass the main auth middleware. Both token exchange endpoints use server-side env vars (`*_CLIENT_SECRET`) while client-side only exposes `*_CLIENT_ID` via `nuxt.config.js env`.

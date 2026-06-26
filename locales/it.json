@@ -144,5 +144,17 @@
     "retry": "Riprova",
     "copy_id": "Copia ID",
     "copied": "Copiato!"
+  },
+  "gitlab": {
+    "login": "Accedi a GitLab",
+    "fetch_activity": "Commit GitLab del giorno",
+    "modal_title": "Commit GitLab",
+    "search_placeholder": "Cerca per commit, progetto o branch...",
+    "loading": "Caricamento...",
+    "no_activity": "Nessun commit trovato per questo giorno",
+    "no_results": "Nessun risultato per questa ricerca",
+    "retry": "Riprova",
+    "copy_sha": "Copia SHA",
+    "copied": "Copiato!"
   }
 }

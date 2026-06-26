@@ -88,45 +88,52 @@
         </div>
       </template>
     </div>
-    <div class="ml-10">
+    <div class="ml-10 flex items-center gap-1.5">
       <button
-        class="mr-2 p-2 text-white focus:outline-none border border-transparent focus:border-gray-800 focus:shadow-outline-gray bg-indigo-700 hover:bg-indigo-600 rounded transition duration-150 ease-in-out disabled:cursor-default disabled:bg-gray-500"
+        class="integration-btn text-indigo-600"
+        :title="$t('actions')"
+        aria-label="Aggiungi riga"
         @click="addEntry"
       >
-        <plus-icon
-          width="20"
-          height="20"
-        />
+        <plus-icon width="18" height="18" />
       </button>
+
+      <div class="w-px h-5 bg-gray-200 mx-0.5" aria-hidden="true" />
+
       <button
-        class="mr-2 p-2 text-white focus:outline-none border border-transparent focus:border-gray-800 focus:shadow-outline-gray bg-indigo-700 hover:bg-indigo-600 rounded transition duration-150 ease-in-out disabled:cursor-default disabled:bg-gray-500"
+        class="integration-btn"
+        :title="$t('keyboard_shortcuts.import_gcal')"
+        :aria-label="$t('keyboard_shortcuts.import_gcal')"
         @click="fetchGCal"
       >
-        <calendar-time-icon
-          width="20"
-          height="20"
-        />
+        <icons-google-calendar-icon :size="18" class="text-[#4285F4]" />
       </button>
       <button
-        class="mr-2 p-2 text-white focus:outline-none border border-transparent focus:border-gray-800 focus:shadow-outline-gray bg-indigo-700 hover:bg-indigo-600 rounded transition duration-150 ease-in-out disabled:cursor-default disabled:bg-gray-500"
-        :class="{ 'bg-blue-600 hover:bg-blue-500': isJiraConfigured }"
+        class="integration-btn"
         :title="isJiraConfigured ? $t('jira.fetch_activity') : $t('jira.login')"
+        :aria-label="isJiraConfigured ? $t('jira.fetch_activity') : $t('jira.login')"
         @click="handleJiraClick"
       >
-        <subtask-icon
-          width="20"
-          height="20"
-        />
+        <icons-jira-icon :size="18" class="text-[#0052CC]" />
+      </button>
+      <button
+        class="integration-btn"
+        :title="isGitlabConfigured ? $t('gitlab.fetch_activity') : $t('gitlab.login')"
+        :aria-label="isGitlabConfigured ? $t('gitlab.fetch_activity') : $t('gitlab.login')"
+        @click="handleGitlabClick"
+      >
+        <icons-gitlab-icon :size="18" class="text-[#FC6D26]" />
       </button>
     </div>
     <nuke-timesheet-modal v-model="showNukeModal" :day-entries="entries" :day="dayId" />
     <submit-timesheet-modal v-model="showSubmitModal" :timesheet-data="timesheetData" />
     <jira-activity-modal v-model="showJiraModal" :day="dayId" @select="handleJiraIssueSelect" />
+    <gitlab-activity-modal v-model="showGitlabModal" :day="dayId" @select="handleGitlabCommitSelect" />
   </div>
 </template>
 
 <script>
-import { TrashIcon, PlusIcon, SendIcon, CalendarTimeIcon, TrashXIcon, SubtaskIcon } from 'vue-tabler-icons'
+import { TrashIcon, PlusIcon, SendIcon, TrashXIcon } from 'vue-tabler-icons'
 import { mapActions, mapMutations, mapGetters } from 'vuex'
 import TimeEntryItem from '~/components/TimeEntryItem'
 import Alert from '~/components/Alert'
@@ -134,6 +141,7 @@ import { getPrintableDuration } from '~/utils/duration'
 import { prepareForSubmission } from '~/utils/timesheetMapper'
 import { getEvents, mapEventsToTimesheetEntries } from '~/utils/gCal'
 import { connectJira } from '~/utils/jira'
+import { connectGitlab } from '~/utils/gitlab'
 import { TranslatableError } from '~/utils/localizableErrors'
 
 const dayDuration = 60 * 8
@@ -145,9 +153,7 @@ export default {
     PlusIcon,
     Alert,
     TrashXIcon,
-    SendIcon,
-    CalendarTimeIcon,
-    SubtaskIcon
+    SendIcon
   },
   props: {
     day: {
@@ -169,12 +175,14 @@ export default {
     showNukeModal: false,
     showSubmitModal: false,
     showJiraModal: false,
+    showGitlabModal: false,
     timesheetData: [],
     focusedEntryIndex: 0
   }),
   computed: {
     ...mapGetters({
-      isJiraConfigured: 'user/isJiraConfigured'
+      isJiraConfigured: 'user/isJiraConfigured',
+      isGitlabConfigured: 'user/isGitlabConfigured'
     }),
     dayId () {
       return this.$dateFns.format(this.day, 'yyyy-MM-dd')
@@ -345,6 +353,23 @@ export default {
       const notes = `${issue.key} | ${issue.summary}`
       this.addEntryForDay({ day: this.dayId, data: { location: this.location, notes } })
     },
+    async handleGitlabClick () {
+      if (!this.isGitlabConfigured) {
+        try {
+          await connectGitlab()
+        } catch (error) {
+          console.error('GitLab login failed:', error)
+          alert('GitLab login failed: ' + (error.response?.data?.message || error.message))
+          return
+        }
+      }
+      this.showGitlabModal = true
+    },
+    handleGitlabCommitSelect (commit) {
+      const sha = commit.shortSha || (commit.sha ? commit.sha.substring(0, 8) : '')
+      const notes = `${sha} | ${commit.title}`
+      this.addEntryForDay({ day: this.dayId, data: { location: this.location, notes } })
+    },
     async fetchGCal () {
       try {
         const userProjects = this.$store.getters['projects/projects']
@@ -425,4 +450,12 @@ export default {
   .entries-th {
     @apply w-full text-gray-800 text-sm font-bold leading-tight tracking-normal
   }
+
+  .integration-btn {
+    @apply relative p-2 bg-white border border-gray-200 rounded-lg
+           transition-all duration-150 ease-in-out
+           hover:shadow-md hover:border-gray-300 hover:bg-gray-50
+           focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-1;
+  }
+
 </style>

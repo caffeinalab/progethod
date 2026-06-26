@@ -127,6 +127,7 @@ export default {
     instructionVideoUrl: process.env.INSTRUCTION_VIDEO_URL,
     gCalApiKey: process.env.GCAL_API_KEY,
     gCalClientId: process.env.GCAL_CLIENT_ID,
-    jiraClientId: process.env.JIRA_CLIENT_ID
+    jiraClientId: process.env.JIRA_CLIENT_ID,
+    gitlabClientId: process.env.GITLAB_CLIENT_ID
   }
 }

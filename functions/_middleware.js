@@ -39,14 +39,15 @@ const corsHeaders = async ({ next, env, request }) => {
   return response
 }
 
-function isJiraAuthRoute (request) {
-  return new URL(request.url).pathname === '/api/jira-token'
+function isExternalAuthRoute (request) {
+  const pathname = new URL(request.url).pathname
+  return pathname === '/api/jira-token' || pathname === '/api/gitlab-token'
 }
 
 const auth = ({ next, request, env, data }) => {
   data.authToken = request.headers.get('x-sf-sess-id')
 
-  if (data.authToken || !isApi(request) || isJiraAuthRoute(request)) {
+  if (data.authToken || !isApi(request) || isExternalAuthRoute(request)) {
     return next()
   }
 
