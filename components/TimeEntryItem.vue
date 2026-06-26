@@ -227,7 +227,7 @@
 
 <script>
 import { mapActions, mapGetters } from 'vuex'
-import { AlertTriangleIcon, ExternalLinkIcon, CheckIcon, PlusIcon } from 'vue-tabler-icons'
+import { AlertTriangleIcon, ExternalLinkIcon, CheckIcon, PlusIcon, ChevronDownIcon } from 'vue-tabler-icons'
 import DurationInput from './DurationInput'
 import LocationInput from './LocationInput'
 
@@ -532,6 +532,7 @@ export default {
 
       const project = await this.addProject(name)
       this.selectLocalProject(project)
+      this.$router.push(this.localeLocation({ name: 'projects-id', params: { id: project.id } }))
     },
     escapeField () {
       if (this.pillsNavigating) {
