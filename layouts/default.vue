@@ -282,6 +282,7 @@
     <!-- Navigation ends -->
     <Nuxt />
     <keyboard-shortcuts-help />
+    <integration-hint />
     <app-guide-modal v-model="showGuide" />
   </div>
 </template>

@@ -1,5 +1,24 @@
 const IGNORED_TAGS = new Set(['INPUT', 'TEXTAREA', 'SELECT'])
 
+const INTEGRATION_KEYS = {
+  c: 'shortcut:import-gcal',
+  j: 'shortcut:import-jira',
+  g: 'shortcut:import-gitlab'
+}
+
+let leaderActive = false
+
+function dismissLeader (nuxt) {
+  if (!leaderActive) { return }
+  leaderActive = false
+  nuxt.$emit('shortcut:integration-hint', false)
+}
+
+function activateLeader (nuxt) {
+  leaderActive = true
+  nuxt.$emit('shortcut:integration-hint', true)
+}
+
 function isTyping (event) {
   const tag = event.target.tagName
   if (IGNORED_TAGS.has(tag)) { return true }
@@ -25,6 +44,25 @@ export default () => {
     if (event.ctrlKey && event.key === 'Backspace') {
       event.preventDefault()
       nuxt.$emit('shortcut:nuke-day')
+      return
+    }
+
+    if (!event.repeat && event.ctrlKey && event.key.toLowerCase() === 'i') {
+      event.preventDefault()
+      if (typing) { document.activeElement.blur() }
+      activateLeader(nuxt)
+      return
+    }
+
+    if (leaderActive) {
+      const key = event.key.toLowerCase()
+      if (key === 'control' || key === 'meta') { return }
+      event.preventDefault()
+      const integrationEvent = INTEGRATION_KEYS[key]
+      dismissLeader(nuxt)
+      if (integrationEvent) {
+        nuxt.$emit(integrationEvent)
+      }
       return
     }
 
@@ -67,10 +105,6 @@ export default () => {
         event.preventDefault()
         nuxt.$emit('shortcut:add-entry')
         break
-      case 'c':
-        event.preventDefault()
-        nuxt.$emit('shortcut:import-gcal')
-        break
       case 't':
         event.preventDefault()
         nuxt.$router.push('/')
@@ -88,5 +122,20 @@ export default () => {
         nuxt.$emit('shortcut:show-help')
         break
     }
+  })
+
+  document.addEventListener('keyup', (event) => {
+    if (!leaderActive) { return }
+    if (event.key !== 'Control') { return }
+    const nuxt = window.$nuxt
+    if (!nuxt) { return }
+    dismissLeader(nuxt)
+  })
+
+  window.addEventListener('blur', () => {
+    if (!leaderActive) { return }
+    const nuxt = window.$nuxt
+    if (!nuxt) { return }
+    dismissLeader(nuxt)
   })
 }

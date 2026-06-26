@@ -1,14 +1,17 @@
 <template>
   <div class="flex items-center justify-between py-1">
     <span class="text-sm text-gray-600">{{ label }}</span>
-    <span class="flex gap-1">
-      <kbd
-        v-for="(key, index) in keyParts"
-        :key="index"
-        class="inline-block px-2 py-0.5 text-xs font-mono font-semibold text-gray-700 bg-gray-100 border border-gray-300 rounded shadow-sm"
-      >
-        {{ key }}
-      </kbd>
+    <span class="flex items-center gap-1">
+      <template v-for="(group, groupIndex) in keyGroups">
+        <span v-if="groupIndex > 0" :key="'sep-' + groupIndex" class="text-xs text-gray-400 mx-0.5">then</span>
+        <kbd
+          v-for="(key, keyIndex) in group"
+          :key="groupIndex + '-' + keyIndex"
+          class="inline-block px-2 py-0.5 text-xs font-mono font-semibold text-gray-700 bg-gray-100 border border-gray-300 rounded shadow-sm"
+        >
+          {{ key }}
+        </kbd>
+      </template>
     </span>
   </div>
 </template>
@@ -20,8 +23,10 @@ export default {
     label: { type: String, required: true }
   },
   computed: {
-    keyParts () {
-      return this.keys.split('+').map(part => part.trim())
+    keyGroups () {
+      return this.keys.split('»').map(group =>
+        group.split('+').map(part => part.trim()).filter(Boolean)
+      )
     }
   }
 }

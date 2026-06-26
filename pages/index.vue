@@ -203,6 +203,8 @@ export default {
     this.$nuxt.$on('shortcut:focus-next', this.focusNext)
     this.$nuxt.$on('shortcut:add-entry', this.addEntryToFocused)
     this.$nuxt.$on('shortcut:import-gcal', this.importGcalToFocused)
+    this.$nuxt.$on('shortcut:import-jira', this.importJiraToFocused)
+    this.$nuxt.$on('shortcut:import-gitlab', this.importGitlabToFocused)
     this.$nuxt.$on('shortcut:enter-day', this.enterDay)
     this.$nuxt.$on('shortcut:exit-day', this.exitDay)
     document.addEventListener('mousedown', this.deactivateNav)
@@ -216,6 +218,8 @@ export default {
     this.$nuxt.$off('shortcut:focus-next', this.focusNext)
     this.$nuxt.$off('shortcut:add-entry', this.addEntryToFocused)
     this.$nuxt.$off('shortcut:import-gcal', this.importGcalToFocused)
+    this.$nuxt.$off('shortcut:import-jira', this.importJiraToFocused)
+    this.$nuxt.$off('shortcut:import-gitlab', this.importGitlabToFocused)
     this.$nuxt.$off('shortcut:enter-day', this.enterDay)
     this.$nuxt.$off('shortcut:exit-day', this.exitDay)
     document.removeEventListener('mousedown', this.deactivateNav)
@@ -317,6 +321,14 @@ export default {
     importGcalToFocused () {
       const dayComponent = this.getFocusedDayComponent()
       if (dayComponent) { dayComponent.fetchGCal() }
+    },
+    importJiraToFocused () {
+      const dayComponent = this.getFocusedDayComponent()
+      if (dayComponent) { dayComponent.handleJiraClick() }
+    },
+    importGitlabToFocused () {
+      const dayComponent = this.getFocusedDayComponent()
+      if (dayComponent) { dayComponent.handleGitlabClick() }
     },
     getFocusedDayComponent () {
       if (this.focusedDayIndex === null) { this.focusedDayIndex = 0 }
