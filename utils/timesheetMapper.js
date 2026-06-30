@@ -32,9 +32,9 @@ export function prepareForSubmission (dayEntries, userProjects, linkedProjects, 
             types: {
               internal: project[areaId].decimal_duration.internal || null,
               remote: project[areaId].decimal_duration.remote || null,
-              travel: null,
-              overtime: null,
-              night_shift: null
+              travel: project[areaId].decimal_duration.travel || null,
+              overtime: project[areaId].decimal_duration.overtime || null,
+              night_shift: project[areaId].decimal_duration.night_shift || null
             },
             // eslint-disable-next-line quotes
             notes: project[areaId].notes.join("\n")
@@ -107,7 +107,10 @@ function mergeEntries (entries, userProjects, linkedProjects) {
         project[linkedAreaId] = {
           decimal_duration: {
             internal: 0,
-            remote: 0
+            remote: 0,
+            travel: 0,
+            overtime: 0,
+            night_shift: 0
           },
           notes: [],
           internal_ids: [],
@@ -120,6 +123,15 @@ function mergeEntries (entries, userProjects, linkedProjects) {
       switch (data.location) {
         case 'office':
           area.decimal_duration.internal = decimalAdd(area.decimal_duration.internal, data.decimal_duration)
+          break
+        case 'travel':
+          area.decimal_duration.travel = decimalAdd(area.decimal_duration.travel, data.decimal_duration)
+          break
+        case 'overtime':
+          area.decimal_duration.overtime = decimalAdd(area.decimal_duration.overtime, data.decimal_duration)
+          break
+        case 'night_shift':
+          area.decimal_duration.night_shift = decimalAdd(area.decimal_duration.night_shift, data.decimal_duration)
           break
         case 'home':
         default:
