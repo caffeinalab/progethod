@@ -1,19 +1,18 @@
 <template>
   <div class="contents">
-    <!-- Status icon -->
-    <div class="warning-container w-8 h-8 flex justify-center items-center">
-      <NuxtLink
-        v-if="selection && selection.type === 'local'"
-        :to="localeLocation({ name: 'projects-id', params: { id: selection.localProject.id } })"
-      >
-        <alert-triangle-icon v-if="!isSelectionLinked" class="text-yellow-500" />
-        <external-link-icon v-if="isSelectionLinked" class="text-gray-400" />
-      </NuxtLink>
-      <check-icon v-else-if="selection && selection.type === 'wethod'" class="text-green-500" />
-    </div>
-
     <!-- Unified project search -->
     <div class="w-full h-full relative" @keydown.escape="escapeField">
+      <!-- Status icon -->
+      <div v-if="selection" class="absolute -left-6 top-1/2 -translate-y-1/2 z-10">
+        <NuxtLink
+          v-if="selection.type === 'local'"
+          :to="localeLocation({ name: 'projects-id', params: { id: selection.localProject.id } })"
+        >
+          <alert-triangle-icon v-if="!isSelectionLinked" class="text-yellow-500" size="16" />
+          <external-link-icon v-if="isSelectionLinked" class="text-gray-400" size="16" />
+        </NuxtLink>
+        <check-icon v-else-if="selection.type === 'wethod'" class="text-green-500" size="16" />
+      </div>
       <!-- Search input (visible when editing or nothing selected) -->
       <input
         v-if="editing"

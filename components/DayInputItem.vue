@@ -1,49 +1,28 @@
 <template>
   <div>
-    <div class="flex justify-between items-center">
+    <div class="flex items-center gap-3">
       <h2 class="capitalize text-xl font-bold leading-tight text-gray-800">
         {{ $dateFns.format(day, 'EEEE do') }}
       </h2>
       <location-input v-model="location" variant="text" @input="handleLocationChange" />
-      <div class="text-xl font-bold text-gray-700 tabular-nums">
-        {{ printableDuration.hours }}h<span v-if="printableDuration.minutes"> {{ printableDuration.minutes }}m</span>
+
+      <div class="flex items-center gap-2 ml-auto">
+        <div class="day-stat-box">
+          <span class="day-stat-label">{{ $t('total') }}</span>
+          <span class="day-stat-value">{{ printableDuration.hours }}h<template v-if="printableDuration.minutes"> {{ printableDuration.minutes }}m</template></span>
+        </div>
+        <div class="day-stat-box" :class="trackedBadgeClasses">
+          <span class="day-stat-label">{{ $t('wethod_tracked_short') }}</span>
+          <span class="day-stat-value">{{ formattedTrackedHours }}</span>
+        </div>
       </div>
-      <div
-        class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold"
-        :class="trackedBadgeClasses"
-        :title="$t('wethod_tracked')"
-      >
-        <template v-if="wethodHours != null">
-          {{ $t('tracked_hours') }} {{ formattedTrackedHours }}
-        </template>
-        <template v-else>
-          {{ $t('tracked_hours') }} –
-        </template>
-      </div>
-      <div>
-        <button
-          class="ml-2 mr-1 p-2 text-white focus:outline-none border border-transparent focus:border-gray-800 focus:shadow-outline-gray bg-indigo-700 hover:bg-indigo-600 rounded transition duration-150 ease-in-out disabled:cursor-default disabled:bg-gray-500"
-          :disabled="disableSubmission"
-          :title="$t('submit_daily_timesheet')"
-          @click="submitDay"
-        >
-          <send-icon width="20" height="20" />
-        </button>
-        <button
-          class="ml-1 p-2 border-transparent border focus:bg-yellow-400 hover:bg-yellow-400 dark:focus:bg-gray-800 bg-white dark:hover:bg-gray-800 cursor-pointer rounded focus:outline-none transition duration-150 ease-in-out"
-          :title="$t('reset_day')"
-          @click="nukeDay"
-        >
-          <trash-x-icon width="20" height="20" />
-        </button>
-      </div>
+
     </div>
     <div>
       <alert v-if="totalNotAdjustable" :message="$t('errors.total_not_adjustable')" level="error" />
       <alert v-if="adjustmentWentWrong" :message="$t('errors.error_during_adjustment')" level="error" />
     </div>
-    <div class="entries-table mb-4 mt-2">
-      <div />
+    <div class="entries-table mb-4 mt-4">
       <div class="entries-th">
         {{ $t('project') }}
       </div>
@@ -69,26 +48,19 @@
             @userSubmit="handleSubmit(entry.id)"
           />
           <button
-            class="ml-2 mr-2 focus:text-red-500 p-2 border-transparent border focus:bg-gray-100 dark:focus:bg-gray-800 dark:hover:bg-gray-800 rounded focus:outline-none"
-            :class="{ 'text-gray-300 cursor-default': entry.synced, 'hover:text-red-500 hover:bg-gray-100': !entry.synced }"
+            class="flex items-center justify-center w-10 h-10 rounded border shadow transition-colors duration-150 focus:outline-none"
+            :class="entry.synced
+              ? 'bg-gray-50 border-gray-200 text-gray-300 cursor-default'
+              : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-red-400 hover:text-red-600 hover:border-red-300 hover:bg-red-50 focus:border-red-400'"
             :disabled="entry.synced"
             @click="removeEntry(entry.id)"
           >
-            <trash-icon
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              stroke-width="1.5"
-              stroke="currentColor"
-              fill="none"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
+            <trash-icon width="16" height="16" stroke-width="1.5" />
           </button>
         </div>
       </template>
     </div>
-    <div class="ml-10 flex items-center gap-1.5">
+    <div class="flex items-center gap-2">
       <button
         class="integration-btn text-indigo-600"
         :title="$t('actions')"
@@ -98,7 +70,7 @@
         <plus-icon width="18" height="18" />
       </button>
 
-      <div class="w-px h-5 bg-gray-200 mx-0.5" aria-hidden="true" />
+      <div class="w-px h-6 bg-gray-200" aria-hidden="true" />
 
       <button
         class="integration-btn"
@@ -124,6 +96,29 @@
       >
         <icons-gitlab-icon :size="18" class="text-[#FC6D26]" />
       </button>
+
+      <div class="flex-1" />
+
+      <div class="flex items-center gap-2">
+        <button
+          class="flex items-center justify-center w-10 h-10 rounded border shadow transition-colors duration-150 focus:outline-none"
+          :class="disableSubmission
+            ? 'bg-gray-100 border-gray-200 text-gray-300 cursor-default'
+            : 'bg-indigo-700 border-indigo-700 text-white hover:bg-indigo-600 hover:border-indigo-600 focus:ring-2 focus:ring-indigo-400 focus:ring-offset-1'"
+          :disabled="disableSubmission"
+          :title="$t('submit_daily_timesheet')"
+          @click="submitDay"
+        >
+          <send-icon width="16" height="16" stroke-width="1.5" />
+        </button>
+        <button
+          class="flex items-center justify-center w-10 h-10 rounded border shadow transition-colors duration-150 focus:outline-none bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-red-400 hover:text-red-600 hover:border-red-300 hover:bg-red-50 focus:border-red-400"
+          :title="$t('reset_day')"
+          @click="nukeDay"
+        >
+          <trash-x-icon width="16" height="16" stroke-width="1.5" />
+        </button>
+      </div>
     </div>
     <nuke-timesheet-modal v-model="showNukeModal" :day-entries="entries" :day="dayId" />
     <submit-timesheet-modal v-model="showSubmitModal" :timesheet-data="timesheetData" />
@@ -208,12 +203,12 @@ export default {
     },
     trackedBadgeClasses () {
       if (this.wethodHours == null || this.wethodHours === 0) {
-        return 'bg-gray-100 text-gray-400'
+        return ''
       }
-      if (this.wethodHours === 8) {
-        return 'bg-green-100 text-green-700'
+      if (this.wethodHours >= 8) {
+        return 'day-stat-box--green'
       }
-      return 'bg-amber-100 text-amber-700'
+      return 'day-stat-box--amber'
     },
     totalNotAdjustable () {
       return this.totalDuration >= dayDuration && this.totalDuration % 60
@@ -366,9 +361,7 @@ export default {
       this.showGitlabModal = true
     },
     handleGitlabCommitSelect (commit) {
-      const sha = commit.shortSha || (commit.sha ? commit.sha.substring(0, 8) : '')
-      const notes = `${sha} | ${commit.title}`
-      this.addEntryForDay({ day: this.dayId, data: { location: this.location, notes } })
+      this.addEntryForDay({ day: this.dayId, data: { location: this.location, notes: commit.title } })
     },
     async fetchGCal () {
       try {
@@ -433,7 +426,7 @@ export default {
 <style lang="postcss">
   .entries-table {
     display: grid;
-    grid-template-columns: [warn] 2rem [project] 14rem [duration] 4rem [notes] auto [location] 5rem [delete] 3rem;
+    grid-template-columns: [project] 14rem [duration] 4rem [notes] 1fr [location] 2.5rem [delete] 2.5rem;
     grid-template-rows: auto;
     place-items: center;
     grid-gap: 0.5rem 0.5rem;
@@ -452,10 +445,38 @@ export default {
   }
 
   .integration-btn {
-    @apply relative p-2 bg-white border border-gray-200 rounded-lg
-           transition-all duration-150 ease-in-out
+    @apply relative flex items-center justify-center w-10 h-10 bg-white border border-gray-200 rounded
+           shadow transition-all duration-150 ease-in-out
            hover:shadow-md hover:border-gray-300 hover:bg-gray-50
            focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-1;
+  }
+
+  .day-stat-box {
+    @apply flex items-center gap-1.5 px-3 py-1 bg-white rounded-lg border border-gray-200 text-sm;
+  }
+
+  .day-stat-box--green {
+    @apply border-green-200 bg-green-50;
+  }
+
+  .day-stat-box--green .day-stat-value {
+    @apply text-green-700;
+  }
+
+  .day-stat-box--amber {
+    @apply border-amber-200 bg-amber-50;
+  }
+
+  .day-stat-box--amber .day-stat-value {
+    @apply text-amber-700;
+  }
+
+  .day-stat-label {
+    @apply text-gray-400 text-xs font-medium;
+  }
+
+  .day-stat-value {
+    @apply text-gray-800 font-bold tabular-nums;
   }
 
 </style>
