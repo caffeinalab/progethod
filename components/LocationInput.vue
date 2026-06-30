@@ -79,10 +79,10 @@ import {
 } from 'vue-tabler-icons'
 
 const LOCATION_OPTIONS = [
-  { key: 'home', label: 'home', icon: 'HomeIcon', activeColor: 'amber' },
+  { key: 'home', label: 'home', icon: 'HomeIcon', activeColor: 'purple' },
   { key: 'office', label: 'office', icon: 'BuildingIcon', activeColor: 'blue' },
   { key: 'travel', label: 'travel', icon: 'CarIcon', activeColor: 'cyan' },
-  { key: 'overtime', label: 'overtime', icon: 'ClockIcon', activeColor: 'purple' },
+  { key: 'overtime', label: 'overtime', icon: 'ClockIcon', activeColor: 'amber' },
   { key: 'night_shift', label: 'night_shift', icon: 'MoonIcon', activeColor: 'slate' }
 ]
 

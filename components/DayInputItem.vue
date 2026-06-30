@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="flex items-center gap-3">
-      <h2 class="capitalize text-xl font-bold leading-tight text-gray-800">
+      <h2 class="capitalize text-xl font-bold leading-tight text-gray-800 w-40 shrink-0">
         {{ $dateFns.format(day, 'EEEE do') }}
       </h2>
       <location-input v-model="location" variant="text" @input="handleLocationChange" />
