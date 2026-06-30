@@ -82,7 +82,7 @@
                 />
               </div>
               <div aria-haspopup="true" class="w-full flex items-center justify-end relative" @click.stop="dropdownHandler($event)">
-                <ul v-show="showDropdown" class="p-2 w-48 border-r bg-white absolute rounded z-40 left-0 shadow mt-80">
+                <ul v-show="showDropdown" class="p-2 w-52 border-r bg-white absolute rounded z-40 left-0 shadow mt-80">
                   <li
                     class="cursor-pointer text-gray-600 text-sm leading-3 tracking-normal mt-2 py-2 hover:text-indigo-700 flex items-center focus:text-indigo-700 focus:outline-none"
                     @click="showGuide = true"
@@ -118,6 +118,22 @@
                   >
                     <refresh-icon width="20" height="20" stroke-width="1.5" />
                     <span class="ml-2">{{ $t('update_projects') }}</span>
+                  </li>
+                  <li class="border-t border-gray-200 my-2" />
+                  <li
+                    class="cursor-pointer text-gray-600 text-sm leading-3 tracking-normal py-2 hover:text-indigo-700 flex items-center justify-between focus:text-indigo-700 focus:outline-none"
+                    @click.stop="toggleConfirmOnSubmit"
+                  >
+                    <span>{{ $t('require_confirm_on_submit_short') }}</span>
+                    <span
+                      class="toggle-track relative inline-flex flex-shrink-0 rounded-full transition-colors duration-200"
+                      :class="isConfirmOnSubmitRequired ? 'bg-indigo-600' : 'bg-gray-300'"
+                    >
+                      <span
+                        class="toggle-knob inline-block rounded-full bg-white shadow transform transition-transform duration-200"
+                        :class="isConfirmOnSubmitRequired ? 'translate-x-3' : 'translate-x-0'"
+                      />
+                    </span>
                   </li>
                 </ul>
                 <img v-if="userInfo.pic" class="rounded h-10 w-10 object-cover cursor-pointer" :src="userInfo.pic" alt="logo">
@@ -242,6 +258,24 @@
                 <span class="leading-6 ml-2">{{ $t('update_projects') }}</span>
               </div>
             </li>
+            <li class="border-t border-gray-200 my-2 ml-2" />
+            <li
+              class="ml-2 mr-2 cursor-pointer text-gray-600 text-base leading-3 tracking-normal py-2 hover:text-indigo-700 focus:text-indigo-700 focus:outline-none"
+              @click.stop="toggleConfirmOnSubmit"
+            >
+              <div class="flex items-center justify-between">
+                <span class="leading-6">{{ $t('require_confirm_on_submit_short') }}</span>
+                <span
+                  class="toggle-track relative inline-flex flex-shrink-0 rounded-full transition-colors duration-200"
+                  :class="isConfirmOnSubmitRequired ? 'bg-indigo-600' : 'bg-gray-300'"
+                >
+                  <span
+                    class="toggle-knob inline-block rounded-full bg-white shadow transform transition-transform duration-200"
+                    :class="isConfirmOnSubmitRequired ? 'translate-x-3' : 'translate-x-0'"
+                  />
+                </span>
+              </div>
+            </li>
           </ul>
 
           <menu-icon
@@ -288,7 +322,7 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters, mapMutations } from 'vuex'
 import {
   ChevronDownIcon,
   CircleCheckIcon,
@@ -333,13 +367,20 @@ export default {
     ...mapGetters({
       userInfo: 'user/info',
       isUpdating: 'apiData/isUpdating',
-      isTokenExpired: 'user/isTokenExpired'
+      isTokenExpired: 'user/isTokenExpired',
+      isConfirmOnSubmitRequired: 'preferences/isConfirmOnSubmitRequired'
     }),
     userInitials () {
       const first = (this.userInfo.name || '')[0] || ''
       const last = (this.userInfo.surname || '')[0] || ''
       return (first + last).toUpperCase() || '?'
     }
+  },
+  mounted () {
+    document.addEventListener('click', this.closeDropdown)
+  },
+  beforeDestroy () {
+    document.removeEventListener('click', this.closeDropdown)
   },
   methods: {
     dropdownHandler () {
@@ -373,13 +414,13 @@ export default {
     },
     async updateProjects () {
       await updateApiData(this.$axios, this.$store)
-    }
-  },
-  mounted () {
-    document.addEventListener('click', this.closeDropdown)
-  },
-  beforeDestroy () {
-    document.removeEventListener('click', this.closeDropdown)
+    },
+    toggleConfirmOnSubmit () {
+      this.setRequireSubmitConfirmation(!this.isConfirmOnSubmitRequired)
+    },
+    ...mapMutations({
+      setRequireSubmitConfirmation: 'preferences/setRequireSubmitConfirmation'
+    })
   }
 }
 </script>
@@ -393,5 +434,16 @@ export default {
 
   body {
     @apply bg-gray-200;
+  }
+
+  .toggle-track {
+    width: 1.75rem;
+    height: 1rem;
+    padding: 0.125rem;
+  }
+
+  .toggle-knob {
+    width: 0.75rem;
+    height: 0.75rem;
   }
 </style>
