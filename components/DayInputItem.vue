@@ -61,7 +61,7 @@
         </div>
       </template>
     </div>
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-2" style="padding-left: calc(1.25rem + 0.5rem)">
       <button
         class="integration-btn text-indigo-600"
         :title="$t('actions')"
