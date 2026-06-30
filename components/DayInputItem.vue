@@ -23,6 +23,7 @@
       <alert v-if="adjustmentWentWrong" :message="$t('errors.error_during_adjustment')" level="error" />
     </div>
     <div class="entries-table mb-4 mt-4">
+      <div />
       <div class="entries-th">
         {{ $t('project') }}
       </div>
@@ -426,7 +427,7 @@ export default {
 <style lang="postcss">
   .entries-table {
     display: grid;
-    grid-template-columns: [project] 14rem [duration] 4rem [notes] 1fr [location] 2.5rem [delete] 2.5rem;
+    grid-template-columns: [status] 1.25rem [project] 14rem [duration] 4rem [notes] 1fr [location] 2.5rem [delete] 2.5rem;
     grid-template-rows: auto;
     place-items: center;
     grid-gap: 0.5rem 0.5rem;
