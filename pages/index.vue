@@ -3,69 +3,76 @@
     <!-- Page title starts -->
 
     <alert v-if="isTokenExpired" :message="$t('session_expired')" level="warning" />
-    <div class="my-6 lg:my-12 container px-6 mx-auto flex flex-col lg:flex-row items-start lg:items-center justify-between pb-4 border-b border-gray-300">
-      <div>
-        <div class="flex items-center gap-3">
+    <div class="my-6 lg:my-12 container px-6 mx-auto pb-4 border-b border-gray-300">
+      <div class="flex items-center gap-3">
+        <div class="inline-flex items-center bg-white border border-gray-200 rounded-lg shadow-sm">
           <button
-            class="p-1 rounded hover:bg-gray-200 transition-colors text-gray-600 hover:text-gray-800"
+            class="p-2.5 text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-l-lg transition-colors focus:outline-none"
             :title="$t('previous_week')"
             @click="weekOffset--"
           >
-            <chevron-left-icon size="24" />
+            <chevron-left-icon size="18" />
           </button>
-          <h4 class="text-2xl font-bold leading-tight text-gray-800">
+          <span class="px-4 py-2 text-sm font-semibold text-gray-800 border-l border-r border-gray-200 select-none">
             {{ weekLabel }}
-          </h4>
+          </span>
           <button
-            class="p-1 rounded hover:bg-gray-200 transition-colors text-gray-600 hover:text-gray-800"
+            class="p-2.5 text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-r-lg transition-colors focus:outline-none"
             :title="$t('next_week')"
             @click="weekOffset++"
           >
-            <chevron-right-icon size="24" />
-          </button>
-          <button
-            v-if="weekOffset !== 0"
-            class="ml-1 px-3 py-1 text-sm rounded bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition-colors"
-            @click="weekOffset = 0"
-          >
-            {{ $t('current_week') }}
+            <chevron-right-icon size="18" />
           </button>
         </div>
-        <div class="flex items-center gap-3 mt-1 text-sm text-gray-500">
-          <template v-if="trackedHoursLoading">
-            <span class="inline-block w-32 h-4 bg-gray-200 rounded animate-pulse" />
-          </template>
-          <template v-else>
-            <span>{{ $t('week_short') }} <strong class="text-gray-700">{{ weekTrackedHours.length ? weekTrackedTotal + '/' + weekExpectedHours + 'h' : '–' }}</strong></span>
-            <span class="text-gray-300">|</span>
+        <button
+          v-if="weekOffset !== 0"
+          class="px-3 py-1.5 text-xs font-medium rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors border border-indigo-200"
+          @click="weekOffset = 0"
+        >
+          {{ $t('current_week') }}
+        </button>
+      </div>
+
+      <div class="flex items-stretch gap-3 mt-4">
+        <template v-if="trackedHoursLoading">
+          <div class="stat-card animate-pulse">
+            <span class="inline-block w-20 h-4 bg-gray-200 rounded" />
+          </div>
+          <div class="stat-card animate-pulse">
+            <span class="inline-block w-20 h-4 bg-gray-200 rounded" />
+          </div>
+        </template>
+        <template v-else>
+          <!-- Week stat -->
+          <div class="stat-card">
+            <span class="stat-label">{{ $t('week_short') }}</span>
+            <span class="stat-value">{{ weekTrackedHours.length ? weekTrackedTotal + '/' + weekExpectedHours + 'h' : '–' }}</span>
+          </div>
+
+          <!-- Month stat -->
+          <div class="stat-card cursor-pointer hover:border-gray-300 transition-colors" @click.stop="$refs.monthCalendar.toggle()">
             <month-calendar
+              ref="monthCalendar"
               :reference-date="days[0]"
               :tracked-hours="calendarTrackedHours"
               :label="monthLabel"
               @day-click="onCalendarDayClick"
               @month-changed="onCalendarMonthChanged"
             />
-            <strong class="text-gray-700">{{ monthTrackedHours.length ? monthTrackedTotal + '/' + monthExpectedHours + 'h' : '–' }}</strong>
-          </template>
-        </div>
-      </div>
-      <div class="mt-6 lg:mt-0 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <business-unit-filter v-if="businessUnitsEnabled" />
-        <div class="flex justify-between items-center">
-          <div class="">
-            <label for="toggleConfirmRequired" class="text-sm font-bold text-gray-800 dark:text-gray-100 mr-5">{{ $t('require_confirm_on_submit') }}</label>
+            <span class="stat-value">{{ monthTrackedHours.length ? monthTrackedDays + '/' + monthWorkingDays : '–' }}</span>
           </div>
-          <div class="cursor-pointer rounded-full bg-gray-200 relative shadow-sm">
-            <input
-              id="toggleConfirmRequired"
-              :checked="isConfirmOnSubmitRequired"
-              type="checkbox"
-              class="focus:outline-none checkbox w-6 h-6 rounded-full bg-indigo-700 dark:bg-gray-400 absolute shadow-sm appearance-none cursor-pointer border border-transparent top-0 bottom-0 m-auto"
-              @input="setRequireSubmitConfirmation($event.target.checked)"
-            >
-            <label for="toggleConfirmRequired" class="toggle-label block w-12 h-4 overflow-hidden rounded-full bg-gray-300 dark:bg-gray-800 cursor-pointer" />
+
+          <!-- Office days stat -->
+          <div class="stat-card">
+            <span class="stat-label inline-flex items-center gap-1">
+              <building-icon size="14" class="text-blue-500" />
+              {{ $t('office_days_label') }}
+            </span>
+            <span class="stat-value">{{ officeDaysInMonth }}</span>
           </div>
-        </div>
+        </template>
+
+        <business-unit-filter v-if="businessUnitsEnabled" class="ml-auto" />
       </div>
     </div>
     <!-- Page title ends -->
@@ -90,9 +97,9 @@
 </template>
 
 <script>
-import { ChevronLeftIcon, ChevronRightIcon } from 'vue-tabler-icons'
+import { ChevronLeftIcon, ChevronRightIcon, BuildingIcon } from 'vue-tabler-icons'
 import { isSameDay, startOfMonth, endOfMonth } from 'date-fns'
-import { mapGetters, mapMutations } from 'vuex'
+import { mapGetters } from 'vuex'
 import DayInputItem from '~/components/DayInputItem'
 import BusinessUnitFilter from '~/components/BusinessUnitFilter'
 import liveToday from '~/mixins/liveToday'
@@ -101,6 +108,7 @@ export default {
   components: {
     ChevronLeftIcon,
     ChevronRightIcon,
+    BuildingIcon,
     DayInputItem,
     BusinessUnitFilter
   },
@@ -122,7 +130,6 @@ export default {
   computed: {
     ...mapGetters({
       isTokenExpired: 'user/isTokenExpired',
-      isConfirmOnSubmitRequired: 'preferences/isConfirmOnSubmitRequired',
       businessUnitsEnabled: 'user/businessUnitsEnabled'
     }),
     weekAnchor () {
@@ -154,13 +161,13 @@ export default {
     weekTrackedTotal () {
       return this.weekTrackedHours.reduce((sum, entry) => sum + (entry.value || 0), 0)
     },
-    monthTrackedTotal () {
-      return this.monthTrackedHours.reduce((sum, entry) => sum + (entry.value || 0), 0)
+    monthTrackedDays () {
+      return this.monthTrackedHours.filter(entry => entry.value >= 8).length
     },
     weekExpectedHours () {
       return 40
     },
-    monthExpectedHours () {
+    monthWorkingDays () {
       let workingDays = 0
       let current = startOfMonth(this.days[0])
       const end = endOfMonth(this.days[0])
@@ -171,10 +178,21 @@ export default {
         }
         current = this.$dateFns.addDays(current, 1)
       }
-      return workingDays * 8
+      return workingDays
     },
     monthLabel () {
       return this.$dateFns.format(this.days[0], 'MMMM yyyy')
+    },
+    officeDaysInMonth () {
+      const allEntries = this.$store.getters['entries/entries']
+      const daysWithOffice = new Set()
+      for (const entry of allEntries) {
+        if (entry.day >= this.monthFrom && entry.day <= this.monthTo &&
+            entry.data.location === 'office' && entry.data.duration > 0) {
+          daysWithOffice.add(entry.day)
+        }
+      }
+      return daysWithOffice.size
     },
     trackedHoursByDay () {
       const map = {}
@@ -400,14 +418,21 @@ export default {
       } catch {
         this.calendarTrackedHours = []
       }
-    },
-    ...mapMutations({
-      setRequireSubmitConfirmation: 'preferences/setRequireSubmitConfirmation'
-    })
+    }
   }
 }
 </script>
 
 <style lang="postcss">
+  .stat-card {
+    @apply flex items-center gap-2 px-4 py-2 bg-white rounded-lg border border-gray-200 text-sm;
+  }
 
+  .stat-label {
+    @apply text-gray-500 font-medium;
+  }
+
+  .stat-value {
+    @apply text-gray-800 font-bold tabular-nums;
+  }
 </style>

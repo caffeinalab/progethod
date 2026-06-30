@@ -1,14 +1,15 @@
 <template>
   <div v-click-outside="close" class="relative inline-block">
-    <button
-      class="capitalize hover:text-indigo-600 hover:underline underline-offset-2 cursor-pointer transition-colors"
-      @click="toggle"
+    <span
+      class="stat-label capitalize cursor-pointer hover:text-indigo-600 transition-colors"
+      @click.stop="toggle"
     >
       {{ label }}:
-    </button>
+    </span>
     <div
       v-if="open"
       class="absolute left-0 top-full mt-2 z-50 bg-white rounded-lg shadow-xl border border-gray-200 p-4 w-72"
+      @click.stop
     >
       <div class="flex items-center justify-between mb-3">
         <button
@@ -51,7 +52,7 @@
           </div>
         </template>
       </div>
-      <div class="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
+      <div class="flex items-center gap-3 mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
         <span class="flex items-center gap-1">
           <span class="inline-block w-3 h-3 rounded-sm bg-green-200 border border-green-300" />
           8h
@@ -59,6 +60,10 @@
         <span class="flex items-center gap-1">
           <span class="inline-block w-3 h-3 rounded-sm bg-amber-200 border border-amber-300" />
           &lt; 8h
+        </span>
+        <span class="flex items-center gap-1">
+          <span class="inline-block w-3 h-3 rounded-sm bg-red-200 border border-red-300" />
+          0h
         </span>
         <span class="flex items-center gap-1">
           <span class="inline-block w-3 h-3 rounded-sm bg-gray-100 border border-gray-200" />
@@ -244,6 +249,9 @@ export default {
     trackedColorClasses (tracked) {
       if (tracked === null || tracked === undefined) {
         return 'bg-gray-100 text-gray-500'
+      }
+      if (tracked === 0) {
+        return 'bg-red-200 text-red-800 font-semibold'
       }
       if (tracked >= 8) {
         return 'bg-green-200 text-green-800 font-semibold'
