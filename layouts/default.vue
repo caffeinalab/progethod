@@ -170,7 +170,7 @@
                     </span>
                   </li>
                 </ul>
-                <img v-if="userInfo.pic" class="rounded h-10 w-10 object-cover cursor-pointer" :src="userInfo.pic" alt="logo">
+                <img v-if="userInfo.pic" class="rounded h-10 w-10 object-cover cursor-pointer" :src="userInfo.pic" alt="User avatar">
                 <span v-else class="inline-flex items-center justify-center h-10 w-10 rounded bg-accent text-ink-inverse text-sm font-bold cursor-pointer select-none">{{ userInitials }}</span>
                 <p class="text-ink text-sm ml-2 cursor-pointer">
                   {{ `${userInfo.name} ${userInfo.surname}` }}
@@ -209,7 +209,7 @@
             <li class="ml-2 cursor-pointer text-ink-secondary text-sm leading-3 tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none">
               <div class="flex items-center">
                 <div class="w-12 cursor-pointer flex text-sm border-2 border-transparent rounded focus:outline-none focus:border-white transition duration-150 ease-in-out">
-                  <img v-if="userInfo.pic" class="rounded h-10 w-10 object-cover" :src="userInfo.pic" alt="logo">
+                  <img v-if="userInfo.pic" class="rounded h-10 w-10 object-cover" :src="userInfo.pic" alt="User avatar">
                   <span v-else class="inline-flex items-center justify-center h-10 w-10 rounded bg-accent text-ink-inverse text-sm font-bold select-none">{{ userInitials }}</span>
                 </div>
                 <p class="leading-6 text-base ml-1 cursor-pointer">

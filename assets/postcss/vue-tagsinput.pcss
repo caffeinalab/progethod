@@ -16,27 +16,26 @@
 }
 
 .tags-input input[type="text"] {
-  @apply text-gray-600;
+  color: var(--color-ink-secondary);
 }
 
 .tags-input-wrapper-default {
   width: 100%;
   height: 100%;
 
-  @apply text-gray-600 text-gray-400 bg-white font-normal w-full h-10 flex items-center pl-3 text-sm border-gray-300 rounded border shadow;
+  @apply font-normal w-full h-10 flex items-center pl-3 text-sm rounded border shadow;
+  color: var(--color-ink-secondary);
+  background: var(--color-card);
+  border-color: var(--color-stroke);
 
   padding: .5em .25em;
 
-  background: #fff;
-
-  border: 1px solid transparent;
   border-radius: .25em;
-  border-color: #dbdbdb;
 }
 
 .tags-input-wrapper-default.active {
-  border: 1px solid #8bbafe;
-  box-shadow: 0 0 0 0.2em rgba(13, 110, 253, 0.25);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 0.2em var(--color-focus-ring);
   outline: 0 none;
 }
 
@@ -64,7 +63,7 @@
   position: absolute;
   width: 75%;
   left: 0.15em;
-  background: #5dc282;
+  background: var(--color-success);
 
   height: 2px;
   margin-top: -1px;
@@ -103,13 +102,13 @@
 }
 
 .tags-input-badge-selected-default {
-  color: #212529;
-  background-color: #f0f1f2;
+  color: var(--color-ink);
+  background-color: var(--color-card-hover);
 }
 
 /* Typeahead */
 .typeahead-hide-btn {
-  color: #999 !important;
+  color: var(--color-ink-faint) !important;
   font-style: italic;
 }
 
@@ -140,11 +139,11 @@
 
 /* Typeahead elements style/theme */
 .tags-input-typeahead-item-default {
-  color: #fff;
-  background-color: #343a40;
+  color: var(--color-ink);
+  background-color: var(--color-card-dim);
 }
 
 .tags-input-typeahead-item-highlighted-default {
-  color: #fff;
-  background-color: #007bff !important;
+  color: var(--color-accent-fg);
+  background-color: var(--color-accent-soft) !important;
 }

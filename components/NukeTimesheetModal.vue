@@ -33,7 +33,7 @@
         class="px-6 py-2 bg-danger focus:outline-none hover:opacity-80 mx-2 my-2 rounded"
         @click="submit()"
       >
-        <rocket-icon width="20" height="20" class="text-white" />
+        <rocket-icon width="20" height="20" class="text-ink-inverse" />
       </button>
       <button
         v-if="isSubmitting"

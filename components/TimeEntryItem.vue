@@ -57,18 +57,18 @@
 
         <chevron-down-icon v-if="!disabled" class="flex-shrink-0 text-ink-faint" size="16" />
 
-        <div class="selection-tooltip absolute z-50 left-0 top-full mt-1 px-3 py-2 bg-gray-900 text-gray-100 text-xs rounded-lg shadow-lg pointer-events-none whitespace-nowrap">
+        <div class="selection-tooltip absolute z-50 left-0 top-full mt-1 px-3 py-2 bg-card text-ink text-xs rounded-lg border border-stroke shadow-xl pointer-events-none whitespace-nowrap">
           <template v-if="selection.type === 'local'">
             <div class="font-semibold text-sm">{{ selection.localProject.name }}</div>
             <template v-if="tooltipWethodInfo">
-              <div class="border-t border-gray-700 my-1.5" />
-              <div class="text-gray-300"><span class="text-gray-500">Progetto:</span> {{ tooltipWethodInfo.projectName }}</div>
-              <div class="text-gray-300 mt-0.5"><span class="text-gray-500">Area:</span> {{ tooltipWethodInfo.areaName }}</div>
+              <div class="border-t border-stroke-muted my-1.5" />
+              <div class="text-ink-secondary"><span class="text-ink-faint">Progetto:</span> {{ tooltipWethodInfo.projectName }}</div>
+              <div class="text-ink-secondary mt-0.5"><span class="text-ink-faint">Area:</span> {{ tooltipWethodInfo.areaName }}</div>
             </template>
           </template>
           <template v-else-if="selection.type === 'wethod'">
             <div class="font-semibold text-sm">{{ selection.wethodProjectName }}</div>
-            <div class="text-gray-300 mt-0.5">{{ selection.wethodAreaName }}</div>
+            <div class="text-ink-secondary mt-0.5">{{ selection.wethodAreaName }}</div>
           </template>
         </div>
       </button>

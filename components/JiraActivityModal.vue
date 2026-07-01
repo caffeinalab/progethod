@@ -67,7 +67,7 @@
                         </button>
                         <span
                           v-if="copiedKey === issue.key"
-                          class="absolute -top-6 left-1/2 -translate-x-1/2 text-xs bg-gray-800 text-white px-2 py-0.5 rounded whitespace-nowrap pointer-events-none"
+                          class="absolute -top-6 left-1/2 -translate-x-1/2 text-xs bg-card-dim text-ink border border-stroke px-2 py-0.5 rounded shadow whitespace-nowrap pointer-events-none"
                         >
                           {{ $t('jira.copied') }}
                         </span>
@@ -224,7 +224,7 @@ export default {
         return 'bg-success-soft text-success-text'
       }
       if (lower.includes('progress') || lower.includes('corso') || lower.includes('review')) {
-        return 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
+        return 'bg-accent-soft text-accent-fg'
       }
       if (lower.includes('test')) {
         return 'bg-warning-soft text-warning-text'

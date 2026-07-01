@@ -1,5 +1,5 @@
 <template>
-  <div class="m-10 pt-20">
+  <div class="m-10 pt-20 text-ink">
     <ol class="list-decimal list-inside space-y-2">
       <li>
         {{ $t("login_tutorial.step_1") }}<a class="underline text-accent-fg" target="_blank" :href="loginExtensionUrl">{{ $t("login_tutorial.step_1_cta_store") }}</a>{{ $t("login_tutorial.step_1_alt") }}<a class="underline text-accent-fg" href="/progethod-extension.zip" download>{{ $t("login_tutorial.step_1_cta_download") }}</a>

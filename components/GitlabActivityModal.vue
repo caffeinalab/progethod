@@ -67,7 +67,7 @@
                         </button>
                         <span
                           v-if="copiedSha === commit.sha"
-                          class="absolute -top-6 left-1/2 -translate-x-1/2 text-xs bg-gray-800 text-white px-2 py-0.5 rounded whitespace-nowrap pointer-events-none"
+                          class="absolute -top-6 left-1/2 -translate-x-1/2 text-xs bg-card-dim text-ink border border-stroke px-2 py-0.5 rounded shadow whitespace-nowrap pointer-events-none"
                         >
                           {{ $t('gitlab.copied') }}
                         </span>
