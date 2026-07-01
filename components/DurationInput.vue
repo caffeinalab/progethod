@@ -3,8 +3,8 @@
     <input
       ref="input"
       v-model="inputString"
-      class="dark:text-gray-400 focus:outline-none focus:border focus:border-indigo-700 dark:focus:border-indigo-700 dark:border-gray-700 dark:bg-gray-800 bg-white font-normal w-16 h-10 flex items-center pl-3 text-sm border-gray-300 rounded border shadow"
-      :class="{ 'text-gray-300': disabled, 'text-gray-600': !disabled }"
+      class="text-ink focus:outline-none focus:border focus:border-accent bg-card font-normal w-16 h-10 flex items-center pl-3 text-sm border-stroke rounded border shadow"
+      :class="{ 'text-ink-disabled': disabled, 'text-ink-secondary': !disabled }"
       type="text"
       maxlength="5"
       placeholder="00:00"

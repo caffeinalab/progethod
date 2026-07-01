@@ -1,0 +1,230 @@
+/*
+ * Semantic color tokens for light / dark / high-contrast modes.
+ *
+ * Naming:
+ *   page          – full-page background
+ *   card / card-* – surface backgrounds (cards, nav, inputs, modals)
+ *   ink / ink-*   – text / foreground colors
+ *   stroke / stroke-* – border colors
+ *   accent / accent-* – brand/interactive color (indigo)
+ *   focus-ring    – keyboard focus indicator
+ *   success / warning / danger – status indicators (colorblind-safe)
+ *
+ * All status palettes use emerald instead of pure green so that
+ * success vs danger is distinguishable for deuteranopia / protanopia.
+ */
+
+/* ─── Light (default) ─── */
+:root {
+  --color-page: #e5e7eb;
+  --color-card: #ffffff;
+  --color-card-dim: #f9fafb;
+  --color-card-hover: #f3f4f6;
+
+  --color-ink: #1f2937;
+  --color-ink-secondary: #4b5563;
+  --color-ink-muted: #6b7280;
+  --color-ink-faint: #9ca3af;
+  --color-ink-disabled: #d1d5db;
+  --color-ink-inverse: #ffffff;
+
+  --color-stroke: #d1d5db;
+  --color-stroke-muted: #e5e7eb;
+
+  --color-accent: #4338ca;
+  --color-accent-hover: #4f46e5;
+  --color-accent-soft: #eef2ff;
+  --color-accent-fg: #4338ca;
+
+  --color-focus-ring: #818cf8;
+
+  --color-success: #059669;
+  --color-success-soft: #d1fae5;
+  --color-success-text: #065f46;
+
+  --color-warning: #d97706;
+  --color-warning-soft: #fef3c7;
+  --color-warning-text: #92400e;
+
+  --color-danger: #dc2626;
+  --color-danger-soft: #fee2e2;
+  --color-danger-text: #991b1b;
+}
+
+/* ─── Dark ─── */
+.dark {
+  --color-page: #0f1219;
+  --color-card: #1a2030;
+  --color-card-dim: #252d42;
+  --color-card-hover: #303a52;
+
+  --color-ink: #eef0f6;
+  --color-ink-secondary: #cdd3e0;
+  --color-ink-muted: #b0b8cc;
+  --color-ink-faint: #8d97b0;
+  --color-ink-disabled: #566076;
+  --color-ink-inverse: #1a2030;
+
+  --color-stroke: #515c7e;
+  --color-stroke-muted: #434e6a;
+
+  --color-accent: #a4b0fd;
+  --color-accent-hover: #8b9af7;
+  --color-accent-soft: #272450;
+  --color-accent-fg: #c0caff;
+
+  --color-focus-ring: #a4b0fd;
+
+  --color-success: #5ae8a8;
+  --color-success-soft: #0e3e2e;
+  --color-success-text: #86efb8;
+
+  --color-warning: #fcc63c;
+  --color-warning-soft: #5c3a0a;
+  --color-warning-text: #fcd96a;
+
+  --color-danger: #ff9b9b;
+  --color-danger-soft: #5c1a1a;
+  --color-danger-text: #fdb5b5;
+}
+
+/* ─── High Contrast (light) ─── */
+.high-contrast {
+  --color-page: #f3f4f6;
+  --color-card: #ffffff;
+  --color-card-dim: #f9fafb;
+  --color-card-hover: #e5e7eb;
+
+  --color-ink: #000000;
+  --color-ink-secondary: #111827;
+  --color-ink-muted: #374151;
+  --color-ink-faint: #4b5563;
+  --color-ink-disabled: #6b7280;
+
+  --color-stroke: #6b7280;
+  --color-stroke-muted: #9ca3af;
+
+  --color-accent: #312e81;
+  --color-accent-hover: #3730a3;
+  --color-accent-soft: #e0e7ff;
+  --color-accent-fg: #312e81;
+
+  --color-focus-ring: #4338ca;
+
+  --color-success: #047857;
+  --color-success-soft: #34d399;
+  --color-success-text: #000000;
+
+  --color-warning: #b45309;
+  --color-warning-soft: #facc15;
+  --color-warning-text: #000000;
+
+  --color-danger: #b91c1c;
+  --color-danger-soft: #f87171;
+  --color-danger-text: #000000;
+}
+
+/* ─── High Contrast (dark) ─── */
+.dark.high-contrast {
+  --color-page: #000000;
+  --color-card: #0c1120;
+  --color-card-dim: #1a2236;
+  --color-card-hover: #242e46;
+
+  --color-ink: #ffffff;
+  --color-ink-secondary: #f0f2fa;
+  --color-ink-muted: #d8ddef;
+  --color-ink-faint: #bec5da;
+  --color-ink-disabled: #8d96ad;
+
+  --color-stroke: #8d96ad;
+  --color-stroke-muted: #64708e;
+
+  --color-accent: #c7d2fe;
+  --color-accent-hover: #a5b4fc;
+  --color-accent-soft: #272450;
+  --color-accent-fg: #e0e7ff;
+
+  --color-focus-ring: #a5b4fc;
+
+  --color-success: #4ade80;
+  --color-success-soft: #166534;
+  --color-success-text: #ffffff;
+
+  --color-warning: #facc15;
+  --color-warning-soft: #854d0e;
+  --color-warning-text: #ffffff;
+
+  --color-danger: #fb7185;
+  --color-danger-soft: #9f1239;
+  --color-danger-text: #ffffff;
+}
+
+/* ─── Location accent (unified purple) ─── */
+:root {
+  --color-location: #7c3aed;
+  --color-location-text: #6d28d9;
+  --color-location-soft: #ede9fe;
+}
+
+.dark {
+  --color-location: #c4b5fd;
+  --color-location-text: #c4b5fd;
+  --color-location-soft: #2e1a5e;
+}
+
+.high-contrast {
+  --color-location: #5b21b6;
+  --color-location-text: #4c1d95;
+  --color-location-soft: #ddd6fe;
+}
+
+.dark.high-contrast {
+  --color-location: #d8b4fe;
+  --color-location-text: #ffffff;
+  --color-location-soft: #581c87;
+}
+
+/* Apply page background to body so it covers the full viewport */
+body {
+  background-color: var(--color-page);
+}
+
+/* ─── vue-select dark mode overrides ─── */
+.dark .vs__dropdown-toggle {
+  background-color: var(--color-card);
+  border-color: var(--color-stroke);
+}
+
+.dark .vs__dropdown-menu {
+  background-color: var(--color-card);
+  border-color: var(--color-stroke);
+}
+
+.dark .vs__dropdown-option {
+  color: var(--color-ink);
+}
+
+.dark .vs__dropdown-option--highlight {
+  background-color: var(--color-accent-soft);
+  color: var(--color-accent-fg);
+}
+
+.dark .vs__search,
+.dark .vs__search:focus {
+  color: var(--color-ink);
+}
+
+.dark .vs__selected {
+  color: var(--color-ink);
+}
+
+.dark .vs__clear,
+.dark .vs__open-indicator {
+  fill: var(--color-ink-faint);
+}
+
+.dark .vs__dropdown-option--deselect {
+  background-color: var(--color-danger-soft);
+  color: var(--color-danger-text);
+}

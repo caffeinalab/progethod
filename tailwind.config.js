@@ -8,49 +8,52 @@ module.exports = {
     './plugins/**/*.{js,ts}',
     './nuxt.config.js'
   ],
-  safelist: [
-    // Alert.vue — dynamically constructed via `bg-${color}-*`
-    'bg-red-500',
-    'bg-red-200',
-    'text-red-500',
-    'bg-yellow-500',
-    'bg-yellow-200',
-    'text-yellow-500',
-    // LocationInput.vue — home (amber)
-    'text-amber-700',
-    'bg-amber-100',
-    'dark:bg-amber-900',
-    'dark:text-amber-300',
-    'hover:text-amber-600',
-    'dark:hover:text-amber-400',
-    'hover:bg-amber-50',
-    // LocationInput.vue — office (blue)
-    'text-blue-700',
-    'bg-blue-100',
-    'dark:bg-blue-900',
-    'dark:text-blue-300',
-    'hover:text-blue-600',
-    'dark:hover:text-blue-400',
-    'hover:bg-blue-50',
-    // MonthCalendar.vue
-    'bg-green-200',
-    'text-green-800',
-    'border-green-300',
-    'bg-amber-200',
-    'text-amber-800',
-    'border-amber-300',
-    // DayInputItem.vue — tracked badge
-    'bg-green-100',
-    'text-green-700',
-    'bg-amber-100',
-    'text-amber-700',
-    // AppGuideModal.vue
-    'text-amber-500',
-    'bg-amber-50',
-    'border-amber-200'
-  ],
+  safelist: [],
   theme: {
-    extend: {}
+    extend: {
+      colors: {
+        page: 'var(--color-page)',
+        card: {
+          DEFAULT: 'var(--color-card)',
+          dim: 'var(--color-card-dim)',
+          hover: 'var(--color-card-hover)'
+        },
+        ink: {
+          DEFAULT: 'var(--color-ink)',
+          secondary: 'var(--color-ink-secondary)',
+          muted: 'var(--color-ink-muted)',
+          faint: 'var(--color-ink-faint)',
+          disabled: 'var(--color-ink-disabled)',
+          inverse: 'var(--color-ink-inverse)'
+        },
+        stroke: {
+          DEFAULT: 'var(--color-stroke)',
+          muted: 'var(--color-stroke-muted)'
+        },
+        accent: {
+          DEFAULT: 'var(--color-accent)',
+          hover: 'var(--color-accent-hover)',
+          soft: 'var(--color-accent-soft)',
+          fg: 'var(--color-accent-fg)'
+        },
+        'focus-ring': 'var(--color-focus-ring)',
+        success: {
+          DEFAULT: 'var(--color-success)',
+          soft: 'var(--color-success-soft)',
+          text: 'var(--color-success-text)'
+        },
+        warning: {
+          DEFAULT: 'var(--color-warning)',
+          soft: 'var(--color-warning-soft)',
+          text: 'var(--color-warning-text)'
+        },
+        danger: {
+          DEFAULT: 'var(--color-danger)',
+          soft: 'var(--color-danger-soft)',
+          text: 'var(--color-danger-text)'
+        }
+      }
+    }
   },
   plugins: []
 }

@@ -48,13 +48,13 @@ export default {
   },
   computed: {
     bgColor () {
-      return this.level === 'error' ? 'bg-red-100' : 'bg-yellow-100'
+      return this.level === 'error' ? 'bg-danger-soft' : 'bg-warning-soft'
     },
     iconColor () {
-      return this.level === 'error' ? 'text-red-500' : 'text-yellow-600'
+      return this.level === 'error' ? 'text-danger' : 'text-warning'
     },
     textColor () {
-      return this.level === 'error' ? 'text-red-800' : 'text-yellow-800'
+      return this.level === 'error' ? 'text-danger-text' : 'text-warning-text'
     }
   }
 }

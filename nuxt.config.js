@@ -33,6 +33,7 @@ export default {
 
   // Global CSS: https://go.nuxtjs.dev/config-css
   css: [
+    '~/assets/css/theme.css',
     '~/assets/postcss/vue-tagsinput',
     '~/assets/postcss/checkbox'
   ],
@@ -44,6 +45,7 @@ export default {
     { src: '~/plugins/projects-sync.js', ssr: false },
     { src: '~/plugins/pills-sync.js', ssr: false },
     { src: '~/plugins/keyboard-shortcuts.js', ssr: false },
+    { src: '~/plugins/theme.js', ssr: false },
     ...(process.env.NODE_ENV === 'development' ? [{ src: '~/plugins/dev-bypass-auth.js', ssr: false }] : [])
   ],
 

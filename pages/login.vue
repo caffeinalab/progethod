@@ -2,7 +2,7 @@
   <div class="m-10 pt-20">
     <ol class="list-decimal list-inside space-y-2">
       <li>
-        {{ $t("login_tutorial.step_1") }}<a class="underline text-blue-600" target="_blank" :href="loginExtensionUrl">{{ $t("login_tutorial.step_1_cta_store") }}</a>{{ $t("login_tutorial.step_1_alt") }}<a class="underline text-blue-600" href="/progethod-extension.zip" download>{{ $t("login_tutorial.step_1_cta_download") }}</a>
+        {{ $t("login_tutorial.step_1") }}<a class="underline text-accent-fg" target="_blank" :href="loginExtensionUrl">{{ $t("login_tutorial.step_1_cta_store") }}</a>{{ $t("login_tutorial.step_1_alt") }}<a class="underline text-accent-fg" href="/progethod-extension.zip" download>{{ $t("login_tutorial.step_1_cta_download") }}</a>
       </li>
       <li>
         {{ $t("login_tutorial.step_2") }}

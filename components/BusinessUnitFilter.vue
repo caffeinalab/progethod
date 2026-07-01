@@ -1,15 +1,15 @@
 <template>
   <div class="relative inline-block">
     <button
-      class="flex items-center text-sm font-bold text-gray-800 bg-white border border-gray-300 rounded px-3 py-2 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+      class="flex items-center text-sm font-bold text-ink bg-card border border-stroke rounded shadow px-3 py-2 hover:bg-card-hover focus:outline-none focus:ring-2 focus:ring-focus-ring"
       @click="isOpen = !isOpen"
     >
       <span>{{ $t('business_unit') }}</span>
-      <span class="ml-1 text-gray-500 text-xs font-normal">({{ selectedCount }}/{{ allBusinessUnits.length }})</span>
+      <span class="ml-1 text-ink-muted text-xs font-normal">({{ selectedCount }}/{{ allBusinessUnits.length }})</span>
       <chevron-down-icon
         width="16"
         height="16"
-        class="ml-1 text-gray-400 transition-transform"
+        class="ml-1 text-ink-faint transition-transform"
         :class="{ 'rotate-180': isOpen }"
       />
     </button>
@@ -22,32 +22,32 @@
 
     <div
       v-if="isOpen"
-      class="absolute right-0 mt-1 w-72 bg-white border border-gray-200 rounded-lg shadow-lg z-30"
+      class="absolute right-0 mt-1 w-72 bg-card border border-stroke-muted rounded-lg shadow-lg z-30"
     >
-      <label class="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100">
+      <label class="flex items-center px-3 py-2 hover:bg-card-hover cursor-pointer border-b border-stroke-muted">
         <input
           type="checkbox"
           :checked="allSelected"
           :indeterminate.prop="someSelected"
-          class="form-checkbox h-4 w-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+          class="form-checkbox h-4 w-4 text-accent rounded border-stroke focus:ring-focus-ring"
           @change="toggleAll"
         >
-        <span class="ml-2 text-sm font-medium text-gray-700">{{ $t('select_all') }}</span>
+        <span class="ml-2 text-sm font-medium text-ink">{{ $t('select_all') }}</span>
       </label>
 
       <div class="max-h-64 overflow-y-auto">
         <label
           v-for="businessUnit in allBusinessUnits"
           :key="String(businessUnit.id)"
-          class="flex items-center px-3 py-1.5 hover:bg-gray-50 cursor-pointer"
+          class="flex items-center px-3 py-1.5 hover:bg-card-hover cursor-pointer"
         >
           <input
             type="checkbox"
             :checked="isSelected(businessUnit.id)"
-            class="form-checkbox h-4 w-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+            class="form-checkbox h-4 w-4 text-accent rounded border-stroke focus:ring-focus-ring"
             @change="toggle(businessUnit.id)"
           >
-          <span class="ml-2 text-sm text-gray-700 truncate">{{ businessUnit.name }}</span>
+          <span class="ml-2 text-sm text-ink truncate">{{ businessUnit.name }}</span>
         </label>
       </div>
     </div>

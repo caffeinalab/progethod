@@ -2,12 +2,12 @@
   <transition name="fade">
     <div v-if="visible" class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto" @click.self="close">
       <div class="fixed inset-0 bg-black bg-opacity-40" @click="close" />
-      <div class="relative bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[85vh] min-h-0 flex flex-col my-auto">
+      <div class="relative bg-card rounded-xl shadow-2xl max-w-md w-full max-h-[85vh] min-h-0 flex flex-col my-auto">
         <div class="flex items-center justify-between px-6 pt-6 pb-4">
-          <h2 class="text-lg font-bold text-gray-800">
+          <h2 class="text-lg font-bold text-ink">
             {{ $t('keyboard_shortcuts.title') }}
           </h2>
-          <button class="text-gray-400 hover:text-gray-600 p-1" @click="close">
+          <button class="text-ink-faint hover:text-ink-secondary p-1" @click="close">
             <x-icon size="20" />
           </button>
         </div>
@@ -18,7 +18,7 @@
           @scroll="onScroll"
         >
           <section>
-            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+            <h3 class="text-xs font-bold text-ink-faint uppercase tracking-wider mb-2">
               {{ $t('keyboard_shortcuts.navigation') }}
             </h3>
             <div class="space-y-1">
@@ -34,7 +34,7 @@
           </section>
 
           <section>
-            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+            <h3 class="text-xs font-bold text-ink-faint uppercase tracking-wider mb-2">
               {{ $t('keyboard_shortcuts.actions') }}
             </h3>
             <div class="space-y-1">
@@ -47,7 +47,7 @@
           </section>
 
           <section>
-            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+            <h3 class="text-xs font-bold text-ink-faint uppercase tracking-wider mb-2">
               {{ $t('keyboard_shortcuts.integrations') }}
             </h3>
             <div class="space-y-1">
@@ -58,7 +58,7 @@
           </section>
 
           <section>
-            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+            <h3 class="text-xs font-bold text-ink-faint uppercase tracking-wider mb-2">
               {{ $t('keyboard_shortcuts.other') }}
             </h3>
             <div class="space-y-1">
@@ -66,8 +66,8 @@
             </div>
           </section>
         </div>
-        <div v-show="!scrolledToBottom" class="flex items-center justify-center py-2 border-t border-gray-100">
-          <chevron-down-icon size="16" class="text-gray-300 animate-bounce" />
+        <div v-show="!scrolledToBottom" class="flex items-center justify-center py-2 border-t border-stroke-muted">
+          <chevron-down-icon size="16" class="text-ink-disabled animate-bounce" />
         </div>
       </div>
     </div>

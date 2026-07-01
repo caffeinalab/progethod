@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="flex items-center gap-3">
-      <h2 class="capitalize text-xl font-bold leading-tight text-gray-800 w-40 shrink-0">
+      <h2 class="capitalize text-xl font-bold leading-tight text-ink w-40 shrink-0">
         {{ $dateFns.format(day, 'EEEE do') }}
       </h2>
       <location-input v-model="location" variant="text" @input="handleLocationChange" />
@@ -39,7 +39,7 @@
         <div
           :key="`row_${entry.id}`"
           class="entry-row col-span-full grid grid-cols-subgrid items-center rounded transition-shadow duration-100"
-          :class="focused && focusedEntryIndex === entryIndex ? 'ring-2 ring-indigo-400 ring-offset-1' : ''"
+          :class="focused && focusedEntryIndex === entryIndex ? 'ring-2 ring-focus-ring ring-offset-1 ring-offset-card' : ''"
         >
           <time-entry-item
             :ref="'entry-' + entryIndex"
@@ -51,8 +51,8 @@
           <button
             class="flex items-center justify-center w-10 h-10 rounded border shadow transition-colors duration-150 focus:outline-none"
             :class="entry.synced
-              ? 'bg-gray-50 border-gray-200 text-gray-300 cursor-default'
-              : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-red-400 hover:text-red-600 hover:border-red-300 hover:bg-red-50 focus:border-red-400'"
+              ? 'bg-card-dim border-stroke-muted text-ink-disabled cursor-default'
+              : 'bg-card border-stroke-muted text-ink-muted hover:text-danger hover:border-danger hover:bg-danger-soft focus:text-danger'"
             :disabled="entry.synced"
             @click="removeEntry(entry.id)"
           >
@@ -63,7 +63,7 @@
     </div>
     <div class="flex items-center gap-2" style="padding-left: calc(1.25rem + 0.5rem)">
       <button
-        class="integration-btn text-indigo-600"
+        class="integration-btn text-accent-fg"
         :title="$t('actions')"
         aria-label="Aggiungi riga"
         @click="addEntry"
@@ -71,31 +71,31 @@
         <plus-icon width="18" height="18" />
       </button>
 
-      <div class="w-px h-6 bg-gray-200" aria-hidden="true" />
+      <div class="w-px h-6 bg-stroke-muted" aria-hidden="true" />
 
       <button
-        class="integration-btn"
+        class="integration-btn integration-btn--gcal"
         :title="$t('keyboard_shortcuts.import_gcal')"
         :aria-label="$t('keyboard_shortcuts.import_gcal')"
         @click="fetchGCal"
       >
-        <icons-google-calendar-icon :size="18" class="text-[#4285F4]" />
+        <icons-google-calendar-icon :size="18" />
       </button>
       <button
-        class="integration-btn"
+        class="integration-btn integration-btn--jira"
         :title="isJiraConfigured ? $t('jira.fetch_activity') : $t('jira.login')"
         :aria-label="isJiraConfigured ? $t('jira.fetch_activity') : $t('jira.login')"
         @click="handleJiraClick"
       >
-        <icons-jira-icon :size="18" class="text-[#0052CC]" />
+        <icons-jira-icon :size="18" />
       </button>
       <button
-        class="integration-btn"
+        class="integration-btn integration-btn--gitlab"
         :title="isGitlabConfigured ? $t('gitlab.fetch_activity') : $t('gitlab.login')"
         :aria-label="isGitlabConfigured ? $t('gitlab.fetch_activity') : $t('gitlab.login')"
         @click="handleGitlabClick"
       >
-        <icons-gitlab-icon :size="18" class="text-[#FC6D26]" />
+        <icons-gitlab-icon :size="18" />
       </button>
 
       <div class="flex-1" />
@@ -104,8 +104,8 @@
         <button
           class="flex items-center justify-center w-10 h-10 rounded border shadow transition-colors duration-150 focus:outline-none"
           :class="disableSubmission
-            ? 'bg-gray-100 border-gray-200 text-gray-300 cursor-default'
-            : 'bg-indigo-700 border-indigo-700 text-white hover:bg-indigo-600 hover:border-indigo-600 focus:ring-2 focus:ring-indigo-400 focus:ring-offset-1'"
+            ? 'bg-card-dim border-stroke-muted text-ink-disabled cursor-default'
+            : 'bg-accent border-accent text-ink-inverse hover:bg-accent-hover hover:border-accent-hover focus:ring-2 focus:ring-focus-ring focus:ring-offset-1'"
           :disabled="disableSubmission"
           :title="$t('submit_daily_timesheet')"
           @click="submitDay"
@@ -113,7 +113,7 @@
           <send-icon width="16" height="16" stroke-width="1.5" />
         </button>
         <button
-          class="flex items-center justify-center w-10 h-10 rounded border shadow transition-colors duration-150 focus:outline-none bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-red-400 hover:text-red-600 hover:border-red-300 hover:bg-red-50 focus:border-red-400"
+          class="flex items-center justify-center w-10 h-10 rounded border border-stroke-muted bg-card shadow transition-colors duration-150 focus:outline-none text-ink-muted hover:text-danger hover:border-danger hover:bg-danger-soft focus:text-danger"
           :title="$t('reset_day')"
           @click="nukeDay"
         >
@@ -207,9 +207,9 @@ export default {
         return ''
       }
       if (this.wethodHours >= 8) {
-        return 'day-stat-box--green'
+        return 'day-stat-box--success'
       }
-      return 'day-stat-box--amber'
+      return 'day-stat-box--warning'
     },
     totalNotAdjustable () {
       return this.totalDuration >= dayDuration && this.totalDuration % 60
@@ -442,42 +442,54 @@ export default {
   }
 
   .entries-th {
-    @apply w-full text-gray-800 text-sm font-bold leading-tight tracking-normal
+    @apply w-full text-ink text-sm font-bold leading-tight tracking-normal
   }
 
   .integration-btn {
-    @apply relative flex items-center justify-center w-10 h-10 bg-white border border-gray-200 rounded
-           shadow transition-all duration-150 ease-in-out
-           hover:shadow-md hover:border-gray-300 hover:bg-gray-50
-           focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-1;
+    @apply relative flex items-center justify-center w-10 h-10 rounded
+           border border-stroke-muted bg-card shadow
+           transition-all duration-150 ease-in-out
+           hover:bg-card-hover hover:border-stroke
+           focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-1;
+    color: var(--color-ink-secondary);
   }
+
+  .integration-btn--gcal  { color: #4285F4; }
+  .integration-btn--jira  { color: #0052CC; }
+  .integration-btn--gitlab { color: #FC6D26; }
+
+  .dark .integration-btn--gcal  { color: #6ea8ff; }
+  .dark .integration-btn--jira  { color: #5b9bff; }
+  .dark .integration-btn--gitlab { color: #ff8f56; }
 
   .day-stat-box {
-    @apply flex items-center gap-1.5 px-3 py-1 bg-white rounded-lg border border-gray-200 text-sm;
+    @apply flex items-center gap-1.5 px-3 py-1 bg-card rounded-lg border border-stroke-muted shadow text-sm;
   }
 
-  .day-stat-box--green {
-    @apply border-green-200 bg-green-50;
+  .day-stat-box--success {
+    border-color: var(--color-success);
+    background-color: var(--color-success-soft);
   }
 
-  .day-stat-box--green .day-stat-value {
-    @apply text-green-700;
+  .day-stat-box--success .day-stat-value {
+    color: var(--color-success-text);
   }
 
-  .day-stat-box--amber {
-    @apply border-amber-200 bg-amber-50;
+  .day-stat-box--warning {
+    border-color: var(--color-warning);
+    background-color: var(--color-warning-soft);
   }
 
-  .day-stat-box--amber .day-stat-value {
-    @apply text-amber-700;
+  .day-stat-box--warning .day-stat-value {
+    color: var(--color-warning-text);
   }
 
   .day-stat-label {
-    @apply text-gray-400 text-xs font-medium;
+    @apply text-ink-faint text-xs font-medium;
   }
 
   .day-stat-value {
-    @apply text-gray-800 font-bold tabular-nums;
+    @apply text-ink font-bold tabular-nums;
   }
 
 </style>

@@ -4,24 +4,24 @@
 
     <alert v-if="isTokenExpired" :message="$t('session_expired')" level="warning" />
     <alert v-if="showMonthEndReminder && !monthEndReminderDismissed" :message="$t('month_end_reminder')" level="warning" dismissable @dismiss="dismissMonthEndReminder" />
-    <div class="my-6 lg:my-12 container px-6 mx-auto pb-4 border-b border-gray-300">
+    <div class="my-6 lg:my-12 container px-6 mx-auto pb-4 border-b border-stroke">
       <div class="flex items-center gap-3">
-        <div class="inline-flex items-center bg-white border border-gray-200 rounded-lg shadow-sm">
+        <div class="inline-flex items-center bg-card border border-stroke-muted rounded-lg shadow">
           <button
-            class="p-2.5 text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-l-lg transition-colors focus:outline-none"
+            class="p-2.5 text-ink-muted hover:text-ink hover:bg-card-hover rounded-l-lg transition-colors focus:outline-none"
             :title="$t('previous_week')"
             @click="weekOffset--"
           >
             <chevron-left-icon size="18" />
           </button>
           <span
-            class="px-4 py-2 text-sm font-semibold text-gray-800 border-l border-r border-gray-200 select-none cursor-pointer hover:text-indigo-600 transition-colors"
+            class="px-4 py-2 text-sm font-semibold text-ink border-l border-r border-stroke-muted select-none cursor-pointer hover:text-accent-fg transition-colors"
             @click.stop="$refs.monthCalendar.toggle()"
           >
             {{ weekLabel }}
           </span>
           <button
-            class="p-2.5 text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-r-lg transition-colors focus:outline-none"
+            class="p-2.5 text-ink-muted hover:text-ink hover:bg-card-hover rounded-r-lg transition-colors focus:outline-none"
             :title="$t('next_week')"
             @click="weekOffset++"
           >
@@ -30,7 +30,7 @@
         </div>
         <button
           v-if="weekOffset !== 0"
-          class="px-3 py-1.5 text-xs font-medium rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors border border-indigo-200"
+          class="px-3 py-1.5 text-xs font-medium rounded-lg bg-accent-soft text-accent-fg hover:bg-accent-soft transition-colors border border-accent"
           @click="weekOffset = 0"
         >
           {{ $t('current_week') }}
@@ -40,10 +40,10 @@
       <div class="flex items-stretch gap-3 mt-4">
         <template v-if="trackedHoursLoading">
           <div class="stat-card animate-pulse">
-            <span class="inline-block w-20 h-4 bg-gray-200 rounded" />
+            <span class="inline-block w-20 h-4 bg-stroke-muted rounded" />
           </div>
           <div class="stat-card animate-pulse">
-            <span class="inline-block w-20 h-4 bg-gray-200 rounded" />
+            <span class="inline-block w-20 h-4 bg-stroke-muted rounded" />
           </div>
         </template>
         <template v-else>
@@ -54,7 +54,7 @@
           </div>
 
           <!-- Month stat -->
-          <div class="stat-card cursor-pointer hover:border-gray-300 transition-colors" @click.stop="$refs.monthCalendar.toggle()">
+          <div class="stat-card cursor-pointer hover:border-stroke transition-colors" @click.stop="$refs.monthCalendar.toggle()">
             <month-calendar
               ref="monthCalendar"
               :reference-date="weekAnchor"
@@ -69,7 +69,7 @@
           <!-- Office days stat -->
           <div class="stat-card">
             <span class="stat-label inline-flex items-center gap-1">
-              <building-icon size="14" class="text-blue-500" />
+              <building-icon size="14" class="text-accent" />
               {{ $t('office_days_label') }}
             </span>
             <span class="stat-value">{{ officeDaysInMonth }}</span>
@@ -273,12 +273,12 @@ export default {
     dayCardClasses (day, index) {
       const classes = []
       if (this.isToday(day)) {
-        classes.push('border-indigo-400 bg-indigo-50')
+        classes.push('border-accent bg-accent-soft')
       } else {
-        classes.push('border-gray-300')
+        classes.push('border-stroke')
       }
       if (this.navigating && this.focusedDayIndex === index && !this.insideDay) {
-        classes.push('ring-2 ring-indigo-500 ring-offset-2')
+        classes.push('ring-2 ring-focus-ring ring-offset-2 ring-offset-page')
       }
       return classes
     },
@@ -465,14 +465,14 @@ export default {
 
 <style lang="postcss">
   .stat-card {
-    @apply flex items-center gap-2 px-4 py-2 bg-white rounded-lg border border-gray-200 text-sm;
+    @apply flex items-center gap-2 px-4 py-2 bg-card rounded-lg border border-stroke-muted shadow text-sm;
   }
 
   .stat-label {
-    @apply text-gray-500 font-medium;
+    @apply text-ink-muted font-medium;
   }
 
   .stat-value {
-    @apply text-gray-800 font-bold tabular-nums;
+    @apply text-ink font-bold tabular-nums;
   }
 </style>

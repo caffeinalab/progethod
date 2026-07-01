@@ -1,30 +1,30 @@
 <template>
   <div v-click-outside="close" class="relative inline-block">
     <span
-      class="stat-label capitalize cursor-pointer hover:text-indigo-600 transition-colors"
+      class="stat-label capitalize cursor-pointer hover:text-accent-fg transition-colors"
       @click.stop="toggle"
     >
       {{ label }}:
     </span>
     <div
       v-if="open"
-      class="absolute left-0 top-full mt-2 z-50 bg-white rounded-lg shadow-xl border border-gray-200 p-4 w-72"
+      class="absolute left-0 top-full mt-2 z-50 bg-card rounded-lg shadow-xl border border-stroke-muted p-4 w-72"
       @click.stop
     >
       <div class="flex items-center justify-between mb-3">
         <button
-          class="p-1 rounded hover:bg-gray-100 transition-colors text-gray-500 hover:text-gray-700"
+          class="p-1 rounded hover:bg-card-hover transition-colors text-ink-muted hover:text-ink"
           @click="monthOffset--"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <div class="text-sm font-semibold text-gray-700 capitalize">
+        <div class="text-sm font-semibold text-ink capitalize">
           {{ displayedMonthLabel }}
         </div>
         <button
-          class="p-1 rounded hover:bg-gray-100 transition-colors text-gray-500 hover:text-gray-700"
+          class="p-1 rounded hover:bg-card-hover transition-colors text-ink-muted hover:text-ink"
           @click="monthOffset++"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -36,7 +36,7 @@
         <div
           v-for="dayName in weekdayHeaders"
           :key="dayName"
-          class="font-semibold text-gray-400 pb-1"
+          class="font-semibold text-ink-faint pb-1"
         >
           {{ dayName }}
         </div>
@@ -44,7 +44,7 @@
           <div
             :key="cell.key"
             class="w-8 h-8 flex items-center justify-center rounded-md text-xs font-medium mx-auto"
-            :class="[cellClasses(cell), isClickable(cell) ? 'cursor-pointer hover:ring-2 hover:ring-indigo-300 transition-shadow' : '']"
+            :class="[cellClasses(cell), isClickable(cell) ? 'cursor-pointer hover:ring-2 hover:ring-focus-ring transition-shadow' : '']"
             :title="cellTitle(cell)"
             @click="onCellClick(cell)"
           >
@@ -52,21 +52,21 @@
           </div>
         </template>
       </div>
-      <div class="flex items-center gap-3 mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
+      <div class="flex items-center gap-3 mt-3 pt-3 border-t border-stroke-muted text-xs text-ink-muted">
         <span class="flex items-center gap-1">
-          <span class="inline-block w-3 h-3 rounded-sm bg-green-200 border border-green-300" />
+          <span class="inline-block w-3 h-3 rounded-sm bg-success-soft border border-success" />
           8h
         </span>
         <span class="flex items-center gap-1">
-          <span class="inline-block w-3 h-3 rounded-sm bg-amber-200 border border-amber-300" />
+          <span class="inline-block w-3 h-3 rounded-sm bg-warning-soft border border-warning" />
           &lt; 8h
         </span>
         <span class="flex items-center gap-1">
-          <span class="inline-block w-3 h-3 rounded-sm bg-red-200 border border-red-300" />
+          <span class="inline-block w-3 h-3 rounded-sm bg-danger-soft border border-danger" />
           0h
         </span>
         <span class="flex items-center gap-1">
-          <span class="inline-block w-3 h-3 rounded-sm bg-gray-100 border border-gray-200" />
+          <span class="inline-block w-3 h-3 rounded-sm bg-card-hover border border-stroke-muted" />
           {{ $t('month_calendar.no_data') }}
         </span>
       </div>
@@ -235,28 +235,28 @@ export default {
         return ''
       }
       if (cell.isWeekend) {
-        return 'text-gray-300'
+        return 'text-ink-disabled'
       }
       if (cell.isFuture) {
-        return 'text-gray-400 bg-gray-50'
+        return 'text-ink-faint bg-card-dim'
       }
       if (cell.isToday) {
         const base = this.trackedColorClasses(cell.tracked)
-        return base + ' ring-2 ring-indigo-400 ring-offset-1'
+        return base + ' ring-2 ring-focus-ring ring-offset-1 ring-offset-card'
       }
       return this.trackedColorClasses(cell.tracked)
     },
     trackedColorClasses (tracked) {
       if (tracked === null || tracked === undefined) {
-        return 'bg-gray-100 text-gray-500'
+        return 'bg-card-hover text-ink-muted'
       }
       if (tracked === 0) {
-        return 'bg-red-200 text-red-800 font-semibold'
+        return 'bg-danger-soft text-danger-text font-semibold'
       }
       if (tracked >= 8) {
-        return 'bg-green-200 text-green-800 font-semibold'
+        return 'bg-success-soft text-success-text font-semibold'
       }
-      return 'bg-amber-200 text-amber-800 font-semibold'
+      return 'bg-warning-soft text-warning-text font-semibold'
     },
     cellTitle (cell) {
       if (!cell.dayNumber || cell.isWeekend) {

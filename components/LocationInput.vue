@@ -3,12 +3,12 @@
     <!-- Day header: text toggle buttons -->
     <div
       v-if="variant === 'text'"
-      class="flex items-center gap-1 p-0.5 bg-gray-100 dark:bg-gray-800 rounded-full"
+      class="flex items-center gap-1 p-0.5 bg-card-hover rounded-full"
     >
       <button
         v-for="option in options"
         :key="option.key"
-        class="focus:outline-none flex justify-center items-center disabled:cursor-default transition-colors duration-150 px-2 py-1 text-xs font-semibold gap-1 rounded-full"
+        class="focus:outline-none flex justify-center items-center disabled:cursor-default transition-colors duration-150 pl-2 pr-3 py-1 text-xs font-semibold gap-1.5 rounded-full"
         :class="optionClasses(option)"
         :disabled="disabled"
         :title="$t(option.label)"
@@ -28,10 +28,10 @@
     <!-- Per-row: icon button with dropdown picker -->
     <div v-else class="relative">
       <button
-        class="flex items-center justify-center w-10 h-10 rounded border shadow transition-colors duration-150 focus:outline-none focus:border-indigo-700"
+        class="flex items-center justify-center w-10 h-10 rounded border border-stroke-muted bg-card shadow transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-focus-ring"
         :class="disabled
-          ? 'bg-gray-100 border-gray-200 text-gray-300 cursor-default'
-          : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 cursor-pointer hover:border-gray-400 ' + activeIconColor"
+          ? 'text-ink-disabled cursor-default'
+          : 'cursor-pointer hover:bg-card-hover hover:border-stroke ' + activeIconColor"
         :disabled="disabled"
         :title="$t(selectedOption.label)"
         @click="pickerOpen = !pickerOpen"
@@ -46,13 +46,13 @@
       </button>
       <div
         v-if="pickerOpen && !disabled"
-        class="absolute right-0 top-full mt-1 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-1 w-44"
+        class="absolute right-0 top-full mt-1 z-50 bg-card border border-stroke-muted rounded-lg shadow-lg py-1 w-44"
       >
         <button
           v-for="option in options"
           :key="option.key"
-          class="w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-gray-50 dark:hover:bg-gray-700"
-          :class="value === option.key ? activeClassesFor(option) : 'text-gray-700 dark:text-gray-300'"
+          class="w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-card-hover"
+          :class="value === option.key ? activeClassesFor(option) : 'text-ink-secondary'"
           @click="selectAndClose(option.key)"
         >
           <component
@@ -79,36 +79,12 @@ import {
 } from 'vue-tabler-icons'
 
 const LOCATION_OPTIONS = [
-  { key: 'home', label: 'home', icon: 'HomeIcon', activeColor: 'purple' },
-  { key: 'office', label: 'office', icon: 'BuildingIcon', activeColor: 'blue' },
-  { key: 'travel', label: 'travel', icon: 'CarIcon', activeColor: 'cyan' },
-  { key: 'overtime', label: 'overtime', icon: 'ClockIcon', activeColor: 'amber' },
-  { key: 'night_shift', label: 'night_shift', icon: 'MoonIcon', activeColor: 'slate' }
+  { key: 'home', label: 'home', icon: 'HomeIcon' },
+  { key: 'office', label: 'office', icon: 'BuildingIcon' },
+  { key: 'travel', label: 'travel', icon: 'CarIcon' },
+  { key: 'overtime', label: 'overtime', icon: 'ClockIcon' },
+  { key: 'night_shift', label: 'night_shift', icon: 'MoonIcon' }
 ]
-
-const ACTIVE_CLASSES = {
-  amber: 'text-amber-700 bg-amber-100 dark:bg-amber-900 dark:text-amber-300',
-  blue: 'text-blue-700 bg-blue-100 dark:bg-blue-900 dark:text-blue-300',
-  cyan: 'text-cyan-700 bg-cyan-100 dark:bg-cyan-900 dark:text-cyan-300',
-  purple: 'text-purple-700 bg-purple-100 dark:bg-purple-900 dark:text-purple-300',
-  slate: 'text-slate-700 bg-slate-200 dark:bg-slate-800 dark:text-slate-300'
-}
-
-const ICON_COLOR_CLASSES = {
-  amber: 'text-amber-600 dark:text-amber-400',
-  blue: 'text-blue-600 dark:text-blue-400',
-  cyan: 'text-cyan-600 dark:text-cyan-400',
-  purple: 'text-purple-600 dark:text-purple-400',
-  slate: 'text-slate-600 dark:text-slate-400'
-}
-
-const HOVER_CLASSES = {
-  amber: 'hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-gray-800',
-  blue: 'hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-800',
-  cyan: 'hover:text-cyan-600 dark:hover:text-cyan-400 hover:bg-cyan-50 dark:hover:bg-gray-800',
-  purple: 'hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-gray-800',
-  slate: 'hover:text-slate-600 dark:hover:text-slate-400 hover:bg-slate-50 dark:hover:bg-gray-800'
-}
 
 export default {
   components: {
@@ -146,7 +122,7 @@ export default {
       return LOCATION_OPTIONS.find(option => option.key === this.value) || LOCATION_OPTIONS[0]
     },
     activeIconColor () {
-      return ICON_COLOR_CLASSES[this.selectedOption.activeColor] || ''
+      return 'location-icon-color'
     }
   },
   mounted () {
@@ -168,25 +144,37 @@ export default {
       this.select(place)
       this.pickerOpen = false
     },
-    activeClassesFor (option) {
-      return ACTIVE_CLASSES[option.activeColor] + ' font-medium'
+    activeClassesFor () {
+      return 'location-active font-medium'
     },
     optionClasses (option) {
       const isActive = this.value === option.key
       if (this.disabled) {
         return isActive
-          ? 'text-white bg-gray-300 cursor-default'
-          : 'text-gray-300 cursor-default'
+          ? 'text-ink-inverse bg-ink-disabled cursor-default'
+          : 'text-ink-disabled cursor-default'
       }
       if (isActive) {
-        return ACTIVE_CLASSES[option.activeColor] + ' cursor-default'
+        return 'location-active cursor-default'
       }
-      return 'text-gray-400 dark:text-gray-500 ' + HOVER_CLASSES[option.activeColor]
+      return 'text-ink-faint location-hover'
     }
   }
 }
 </script>
 
 <style scoped>
+.location-icon-color {
+  color: var(--color-location);
+}
 
+.location-active {
+  color: var(--color-location-text);
+  background-color: var(--color-location-soft);
+}
+
+.location-hover:hover {
+  color: var(--color-location-text);
+  background-color: var(--color-location-soft);
+}
 </style>

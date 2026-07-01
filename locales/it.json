@@ -157,6 +157,10 @@
     "copy_id": "Copia ID",
     "copied": "Copiato!"
   },
+  "theme_label": "Tema",
+  "theme_light": "Chiaro",
+  "theme_dark": "Scuro",
+  "high_contrast": "Alto contrasto",
   "gitlab": {
     "login": "Accedi a GitLab",
     "fetch_activity": "Commit GitLab del giorno",

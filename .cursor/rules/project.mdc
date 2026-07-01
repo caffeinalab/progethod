@@ -25,7 +25,7 @@ A simplified timesheet interface for Wethod. Data is stored locally (localStorag
 - `store/entries.js` — Daily timesheet entries
 - `store/user.js` — Auth token, user info
 - `store/apiData.js` — Cached Wethod project data
-- `store/preferences.js` — UI preferences (confirm on submit, business unit filter)
+- `store/preferences.js` — UI preferences (confirm on submit, business unit filter, theme, high contrast)
 
 ## Key Decisions
 
@@ -35,3 +35,4 @@ A simplified timesheet interface for Wethod. Data is stored locally (localStorag
 - **Keyboard navigation**: Full keyboard nav via `plugins/keyboard-shortcuts.js`. Global shortcuts only fire when user is not typing in an input.
 - **External integrations (Jira/GitLab)**: Same pattern — OAuth popup with PKCE, server-side token exchange via Cloudflare Pages Function, activity proxy, modal UI. Tokens stored in `user` Vuex module with expiration. Auth routes bypass the main auth middleware. Both token exchange endpoints use server-side env vars (`*_CLIENT_SECRET`) while client-side only exposes `*_CLIENT_ID` via `nuxt.config.js env`. Refresh tokens are persisted alongside access tokens; when an access token expires, the client silently refreshes via the same server-side endpoint (`grant_type: refresh_token`) before falling back to the full OAuth popup flow. Jira rotates refresh tokens on each use (new one returned and stored).
 - **Month stats reference date**: Month label, tracked days, working days, and office days are computed from `weekAnchor` (= today + weekOffset), not from `days[0]` (Monday of the week). This ensures that when a week spans two months, the stats reflect the month the user is "anchored to" (i.e. today's month for the current week).
+- **Theming**: 4-mode system — light, dark, light+high-contrast, dark+high-contrast. Colors are defined as semantic CSS custom properties in `assets/css/theme.css` and referenced by Tailwind via `tailwind.config.js` color extensions. Palette layers cascade via `.dark` and `.high-contrast` classes on `<html>`. Base themes are colorblind-safe (emerald for success, not pure green). High contrast targets WCAG AAA. Theme preference (`auto`/`light`/`dark`) and `highContrast` boolean are stored in `store/preferences.js`. `plugins/theme.js` applies classes to `<html>` and listens to `prefers-color-scheme` for auto mode. Settings UI lives in the user dropdown menu in `layouts/default.vue`. Per-location identity colors (amber/blue/cyan/purple/slate in `LocationInput.vue`) remain as direct Tailwind classes with `dark:` variants, safelisted in tailwind config. No other component should use hardcoded color classes — always use semantic tokens (`text-ink`, `bg-card`, `border-stroke`, `text-accent-fg`, etc.).

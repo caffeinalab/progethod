@@ -7,10 +7,10 @@
           v-if="selection.type === 'local'"
           :to="localeLocation({ name: 'projects-id', params: { id: selection.localProject.id } })"
         >
-          <alert-triangle-icon v-if="!isSelectionLinked" class="text-yellow-500" size="16" />
-          <external-link-icon v-if="isSelectionLinked" class="text-gray-400" size="16" />
+          <alert-triangle-icon v-if="!isSelectionLinked" class="text-warning" size="16" />
+          <external-link-icon v-if="isSelectionLinked" class="text-ink-faint" size="16" />
         </NuxtLink>
-        <check-icon v-else-if="selection.type === 'wethod'" class="text-green-500" size="16" />
+        <check-icon v-else-if="selection.type === 'wethod'" class="text-success" size="16" />
       </template>
     </div>
 
@@ -21,7 +21,7 @@
         v-if="editing"
         ref="searchInput"
         v-model="searchQuery"
-        class="dark:text-gray-400 focus:outline-none focus:border focus:border-indigo-700 dark:focus:border-indigo-700 dark:border-gray-700 dark:bg-gray-800 bg-white font-normal w-full h-10 flex items-center pl-3 text-sm border-gray-300 rounded border shadow"
+        class="text-ink focus:outline-none focus:border focus:border-accent bg-card font-normal w-full h-10 flex items-center pl-3 text-sm border-stroke rounded border shadow"
         :placeholder="$t('select_project')"
         :disabled="disabled"
         @focus="openDropdown"
@@ -35,10 +35,10 @@
       <!-- Selected display (clickable to re-open) -->
       <button
         v-else-if="selection"
-        class="group relative w-full h-10 pl-3 pr-2 text-sm text-left border rounded shadow bg-white dark:bg-gray-800 flex items-center gap-1 transition-colors"
+        class="group relative w-full h-10 pl-3 pr-2 text-sm text-left text-ink border rounded shadow bg-card flex items-center gap-1 transition-colors"
         :class="disabled
-          ? 'border-gray-200 text-gray-300 cursor-default dark:border-gray-700'
-          : 'border-gray-300 dark:border-gray-700 hover:border-indigo-400 cursor-text'"
+          ? 'border-stroke-muted text-ink-disabled cursor-default'
+          : 'border-stroke hover:border-accent cursor-text'"
         :disabled="disabled"
         @click="startEditing"
       >
@@ -46,18 +46,18 @@
           <template v-if="selection.type === 'local'">
             <span class="flex items-center gap-1 min-w-0 overflow-hidden">
               <span class="font-medium truncate shrink-0 grow-0 max-w-full">{{ selection.localProject.name }}</span>
-              <span v-if="selection.resolvedLabel" class="text-gray-400 text-xs truncate min-w-0">&rarr; {{ selection.resolvedLabel }}</span>
+              <span v-if="selection.resolvedLabel" class="text-ink-faint text-xs truncate min-w-0">&rarr; {{ selection.resolvedLabel }}</span>
             </span>
           </template>
           <template v-else>
             <span class="block text-sm font-medium truncate leading-tight">{{ selection.wethodProjectName }}</span>
-            <span class="block text-xs text-gray-400 truncate leading-tight">{{ selection.wethodAreaName }}</span>
+            <span class="block text-xs text-ink-faint truncate leading-tight">{{ selection.wethodAreaName }}</span>
           </template>
         </span>
 
-        <chevron-down-icon v-if="!disabled" class="flex-shrink-0 text-gray-400" size="16" />
+        <chevron-down-icon v-if="!disabled" class="flex-shrink-0 text-ink-faint" size="16" />
 
-        <div class="selection-tooltip absolute z-50 left-0 top-full mt-1 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg pointer-events-none whitespace-nowrap">
+        <div class="selection-tooltip absolute z-50 left-0 top-full mt-1 px-3 py-2 bg-gray-900 text-gray-100 text-xs rounded-lg shadow-lg pointer-events-none whitespace-nowrap">
           <template v-if="selection.type === 'local'">
             <div class="font-semibold text-sm">{{ selection.localProject.name }}</div>
             <template v-if="tooltipWethodInfo">
@@ -76,12 +76,12 @@
       <!-- Dropdown -->
       <div
         v-if="dropdownOpen && editing && !disabled"
-        class="absolute z-50 left-0 right-0 top-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-72 overflow-y-auto"
+        class="absolute z-50 left-0 right-0 top-full mt-1 bg-card border border-stroke-muted rounded-lg shadow-lg max-h-72 overflow-y-auto"
         style="min-width: 20rem"
       >
         <!-- Local projects -->
         <div v-if="filteredLocalProjects.length" class="p-1">
-          <div class="px-3 py-1.5 text-xs font-bold text-gray-400 uppercase tracking-wider">
+          <div class="px-3 py-1.5 text-xs font-bold text-ink-faint uppercase tracking-wider">
             {{ $t('projects') }}
           </div>
           <button
@@ -89,12 +89,12 @@
             :key="'local-' + localProject.id"
             :ref="'option-' + flatIndexForLocal(localIndex)"
             class="w-full text-left px-3 py-2 text-sm rounded flex items-center gap-2 transition-colors"
-            :class="highlightedIndex === flatIndexForLocal(localIndex) ? 'bg-indigo-50 dark:bg-gray-700' : 'hover:bg-gray-50 dark:hover:bg-gray-700'"
+            :class="highlightedIndex === flatIndexForLocal(localIndex) ? 'bg-accent-soft' : 'hover:bg-card-hover'"
             @click="selectLocalProject(localProject)"
             @mouseenter="highlightedIndex = flatIndexForLocal(localIndex)"
           >
-            <span class="font-medium text-gray-800 dark:text-gray-200 truncate">{{ localProject.name }}</span>
-            <alert-triangle-icon v-if="!localProject.linkedProjectId" class="text-yellow-400 flex-shrink-0" size="14" />
+            <span class="font-medium text-ink truncate">{{ localProject.name }}</span>
+            <alert-triangle-icon v-if="!localProject.linkedProjectId" class="text-warning flex-shrink-0" size="14" />
           </button>
         </div>
 
@@ -103,21 +103,21 @@
           <button
             :ref="'option-' + createOptionIndex"
             class="w-full text-left px-3 py-2 text-sm rounded flex items-center gap-2 transition-colors"
-            :class="highlightedIndex === createOptionIndex ? 'bg-indigo-50 dark:bg-gray-700' : 'hover:bg-gray-50 dark:hover:bg-gray-700'"
+            :class="highlightedIndex === createOptionIndex ? 'bg-accent-soft' : 'hover:bg-card-hover'"
             @click="createLocalProject"
             @mouseenter="highlightedIndex = createOptionIndex"
           >
-            <plus-icon size="14" class="text-indigo-500" />
-            <span class="text-indigo-600 dark:text-indigo-400">{{ $t('create_project_inline', { name: searchQuery.trim() }) }}</span>
+            <plus-icon size="14" class="text-accent-fg" />
+            <span class="text-accent-fg">{{ $t('create_project_inline', { name: searchQuery.trim() }) }}</span>
           </button>
         </div>
 
         <!-- Divider -->
-        <div v-if="(filteredLocalProjects.length || showCreateOption) && filteredWethodEntries.length" class="border-t border-gray-100 dark:border-gray-700 my-1" />
+        <div v-if="(filteredLocalProjects.length || showCreateOption) && filteredWethodEntries.length" class="border-t border-stroke-muted my-1" />
 
         <!-- Wethod projects + areas -->
         <div v-if="filteredWethodEntries.length" class="p-1">
-          <div class="px-3 py-1.5 text-xs font-bold text-gray-400 uppercase tracking-wider">
+          <div class="px-3 py-1.5 text-xs font-bold text-ink-faint uppercase tracking-wider">
             Wethod
           </div>
           <template v-for="item in filteredWethodEntries">
@@ -125,7 +125,7 @@
             <div
               v-if="item.isHeader"
               :key="'wh-' + item.project.id"
-              class="px-3 py-1.5 text-sm font-medium text-gray-500 dark:text-gray-400 truncate"
+              class="px-3 py-1.5 text-sm font-medium text-ink-muted truncate"
             >
               {{ item.project.name }}
             </div>
@@ -135,18 +135,18 @@
               :key="'wha-' + item.project.id + '-' + item.area.id"
               :ref="'option-' + item.flatIndex"
               class="w-full text-left pl-7 pr-3 py-1.5 text-sm rounded flex items-center gap-2 transition-colors"
-              :class="highlightedIndex === item.flatIndex ? 'bg-indigo-50 dark:bg-gray-700' : 'hover:bg-gray-50 dark:hover:bg-gray-700'"
+              :class="highlightedIndex === item.flatIndex ? 'bg-accent-soft' : 'hover:bg-card-hover'"
               @click="selectWethodArea(item.project, item.area)"
               @mouseenter="highlightedIndex = item.flatIndex"
             >
-              <span class="text-gray-400">&bull;</span>
-              <span class="text-gray-700 dark:text-gray-300">{{ item.area.name || 'Generico' }}</span>
+              <span class="text-ink-faint">&bull;</span>
+              <span class="text-ink-secondary">{{ item.area.name || 'Generico' }}</span>
             </button>
           </template>
         </div>
 
         <!-- No results at all -->
-        <div v-if="!filteredLocalProjects.length && !filteredWethodEntries.length && !showCreateOption" class="px-3 py-4 text-sm text-gray-400 text-center">
+        <div v-if="!filteredLocalProjects.length && !filteredWethodEntries.length && !showCreateOption" class="px-3 py-4 text-sm text-ink-faint text-center">
           {{ $t('select_project') }}
         </div>
       </div>
@@ -168,8 +168,8 @@
       <input
         ref="notes"
         v-model="notes"
-        class="dark:text-gray-400 focus:outline-none focus:border focus:border-indigo-700 dark:focus:border-indigo-700 dark:border-gray-700 dark:bg-gray-800 bg-white font-normal w-full h-10 flex items-center pl-3 text-sm border-gray-300 rounded border shadow"
-        :class="{ 'text-gray-300': disabled, 'text-gray-600': !disabled }"
+        class="text-ink focus:outline-none focus:border focus:border-accent bg-card font-normal w-full h-10 flex items-center pl-3 text-sm border-stroke rounded border shadow"
+        :class="{ 'text-ink-disabled': disabled, 'text-ink-secondary': !disabled }"
         placeholder="Notes"
         :disabled="disabled"
         @input="onNotesInput"
@@ -184,15 +184,15 @@
       <div
         v-if="showPills || quickCreateActive"
         ref="pillsContainer"
-        class="absolute z-40 left-0 top-full mt-1 flex flex-wrap items-center gap-1.5 p-2 bg-white border border-gray-200 rounded-lg shadow-md max-w-md"
+        class="absolute z-40 left-0 top-full mt-1 flex flex-wrap items-center gap-1.5 p-2 bg-card border border-stroke-muted rounded-lg shadow-md max-w-md"
       >
         <button
           v-for="(pill, pillIndex) in visiblePills"
           :key="pill.id"
           class="px-2.5 py-1 text-xs font-medium rounded-full transition-colors border whitespace-nowrap"
           :class="pillsNavigating && highlightedPillIndex === pillIndex
-            ? 'bg-indigo-100 text-indigo-700 border-indigo-300'
-            : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200'"
+            ? 'bg-accent-soft text-accent-fg border-accent'
+            : 'bg-card-dim text-ink-secondary border-stroke-muted hover:bg-accent-soft hover:text-accent-fg hover:border-accent'"
           @mousedown.prevent="selectPill(pill)"
         >
           {{ pill.label }}
@@ -202,7 +202,7 @@
           <input
             ref="quickCreateInput"
             v-model="quickCreateLabel"
-            class="px-2 py-0.5 text-xs border border-indigo-300 rounded-full w-24 focus:outline-none focus:border-indigo-500"
+            class="px-2 py-0.5 text-xs border border-accent rounded-full w-24 focus:outline-none focus:border-accent-hover text-ink bg-card"
             placeholder="..."
             @keydown.enter.prevent="confirmQuickCreate"
             @keydown.escape.prevent="cancelQuickCreate"
@@ -213,8 +213,8 @@
           v-else
           class="px-2.5 py-1 text-xs font-medium rounded-full border border-dashed transition-colors whitespace-nowrap"
           :class="pillsNavigating && highlightedPillIndex >= visiblePills.length
-            ? 'border-indigo-300 text-indigo-500 bg-indigo-50'
-            : 'border-gray-300 text-gray-400 hover:border-indigo-300 hover:text-indigo-500'"
+            ? 'border-accent text-accent-fg bg-accent-soft'
+            : 'border-stroke text-ink-faint hover:border-accent hover:text-accent-fg'"
           @mousedown.prevent="startQuickCreate"
         >
           +

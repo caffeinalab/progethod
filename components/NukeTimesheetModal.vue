@@ -15,10 +15,10 @@
         type="video/mp4"
       >
     </video>
-    <p class="text-base sm:text-lg md:text-2xl font-bold md:leading-6 mt-6 text-gray-800 text-center dark:text-gray-100">
+    <p class="text-base sm:text-lg md:text-2xl font-bold md:leading-6 mt-6 text-ink text-center">
       {{ $t('about_to_nuke_timesheet') }}
     </p>
-    <p class="text-xs sm:text-sm leading-5 mt-2 sm:mt-4 text-center text-gray-600 dark:text-gray-300">
+    <p class="text-xs sm:text-sm leading-5 mt-2 sm:mt-4 text-center text-ink-secondary">
       {{ $t('nuke_timesheet_warning') }}
     </p>
     <div>
@@ -30,16 +30,16 @@
     <div v-if="!isExpired" class="flex items-center justify-center mt-4 sm:mt-6 w-full">
       <button
         v-if="!isSubmitting"
-        class="px-6 py-2 bg-red-500 dark:bg-red-600 focus:outline-none hover:bg-opacity-80 mx-2 my-2 rounded"
+        class="px-6 py-2 bg-danger focus:outline-none hover:opacity-80 mx-2 my-2 rounded"
         @click="submit()"
       >
         <rocket-icon width="20" height="20" class="text-white" />
       </button>
       <button
         v-if="isSubmitting"
-        class="mx-2 my-2 bg-gray-100 rounded border border-gray-300 text-gray-600 px-6 py-2 text-xs cursor-default"
+        class="mx-2 my-2 bg-card-hover rounded border border-stroke text-ink-secondary px-6 py-2 text-xs cursor-default"
       >
-        <rocket-icon width="20" height="20" class="text-gray-600" />
+        <rocket-icon width="20" height="20" class="text-ink-secondary" />
       </button>
     </div>
   </modal>

@@ -1,6 +1,8 @@
 export const state = () => ({
   requireConfirmationOnSubmit: true,
-  selectedBusinessUnitIds: null
+  selectedBusinessUnitIds: null,
+  theme: 'auto',
+  highContrast: false
 })
 
 export const getters = {
@@ -9,6 +11,12 @@ export const getters = {
   },
   selectedBusinessUnitIds (state) {
     return state.selectedBusinessUnitIds
+  },
+  theme (state) {
+    return state.theme
+  },
+  highContrast (state) {
+    return state.highContrast
   }
 }
 
@@ -18,5 +26,11 @@ export const mutations = {
   },
   setSelectedBusinessUnitIds (state, ids) {
     state.selectedBusinessUnitIds = ids
+  },
+  setTheme (state, value) {
+    state.theme = value
+  },
+  setHighContrast (state, value) {
+    state.highContrast = value
   }
 }

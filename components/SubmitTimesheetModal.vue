@@ -1,10 +1,10 @@
 <template>
   <modal :value="value" @input="emitChange">
     <img src="https://i.ibb.co/QDMrqK5/Saly-10.png">
-    <p class="text-base sm:text-lg md:text-2xl font-bold md:leading-6 mt-6 text-gray-800 text-center dark:text-gray-100">
+    <p class="text-base sm:text-lg md:text-2xl font-bold md:leading-6 mt-6 text-ink text-center">
       {{ $t('about_to_submit_timesheet') }}
     </p>
-    <p class="text-xs sm:text-sm leading-5 mt-2 sm:mt-4 text-center text-gray-600 dark:text-gray-300">
+    <p class="text-xs sm:text-sm leading-5 mt-2 sm:mt-4 text-center text-ink-secondary">
       {{ $t('submit_timesheet_warning') }}
     </p>
     <div>
@@ -17,7 +17,7 @@
     <div v-if="!isExpired && !isError && isConfirmOnSubmitRequired" class="flex items-center justify-center mt-4 sm:mt-6 w-full">
       <button
         :disabled="isSubmitting"
-        class="px-6 py-2 bg-indigo-700 disabled:bg-gray-500 text-white disabled:text-gray-600 disabled:cursor-default dark:bg-indigo-600 focus:outline-none hover:bg-opacity-80 mx-2 my-2 rounded"
+        class="px-6 py-2 bg-accent disabled:bg-ink-muted text-ink-inverse disabled:text-ink-faint disabled:cursor-default focus:outline-none hover:bg-accent-hover mx-2 my-2 rounded"
         @click="submit()"
       >
         <send-icon width="20" height="20" />
