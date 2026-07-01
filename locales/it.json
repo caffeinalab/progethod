@@ -64,6 +64,7 @@
   "select_project": "Scegli Progetto",
   "sent": "Inviato",
   "session_expired": "Sessione Scaduta. Segui le istruzioni <a href=\"/login\" class=\"underline\">nella pagina di login</a>.",
+  "month_end_reminder": "Ricorda di completare il timesheet entro fine mese!",
   "submit_daily_timesheet": "Invia Timesheet Giornaliero",
   "submit_timesheet_warning": "Quest'operazione sovrascriverà i dati ufficiali per i progetti selezionati. In caso ci si trovi in una situazione incinsistente è possibile cancellare i dati ufficiali (di un singolo giorno) e re-inviarli da Progethod usando il tasto radiattivo.",
   "submit_weekly_timesheet": "Invia Timesheet Settimanale",
