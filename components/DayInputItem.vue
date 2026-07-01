@@ -71,7 +71,7 @@
         <plus-icon width="18" height="18" />
       </button>
 
-      <div class="w-px h-6 bg-stroke-muted" aria-hidden="true" />
+      <div class="w-px h-6 bg-stroke" aria-hidden="true" />
 
       <button
         class="integration-btn integration-btn--gcal"
