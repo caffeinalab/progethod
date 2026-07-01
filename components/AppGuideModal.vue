@@ -16,7 +16,7 @@
           </button>
         </div>
 
-        <div ref="scrollArea" class="overflow-y-auto p-6 space-y-6" @scroll="onScroll">
+        <div ref="scrollArea" class="overflow-y-auto custom-scrollbar p-6 space-y-6" @scroll="onScroll">
           <!-- Intro -->
           <p class="text-sm text-ink-secondary">
             {{ $t('guide.intro') }}
@@ -107,6 +107,49 @@
             </ul>
           </section>
 
+          <!-- Integrations -->
+          <section>
+            <h3 class="text-sm font-bold text-ink mb-2 flex items-center gap-1.5">
+              <plug-icon size="16" class="text-accent" />
+              {{ $t('guide.integrations_title') }}
+            </h3>
+            <p class="text-sm text-ink-secondary mb-2">
+              {{ $t('guide.integrations_desc') }}
+            </p>
+            <ul class="text-sm text-ink-secondary space-y-1 ml-4 list-disc">
+              <li>{{ $t('guide.integrations_1') }}</li>
+              <li>{{ $t('guide.integrations_2') }}</li>
+              <li>{{ $t('guide.integrations_3') }}</li>
+              <li>{{ $t('guide.integrations_4') }}</li>
+            </ul>
+          </section>
+
+          <!-- Work location -->
+          <section>
+            <h3 class="text-sm font-bold text-ink mb-2 flex items-center gap-1.5">
+              <map-pin-icon size="16" class="text-accent" />
+              {{ $t('guide.location_title') }}
+            </h3>
+            <p class="text-sm text-ink-secondary">
+              {{ $t('guide.location_desc') }}
+            </p>
+          </section>
+
+          <!-- Theme -->
+          <section>
+            <h3 class="text-sm font-bold text-ink mb-2 flex items-center gap-1.5">
+              <palette-icon size="16" class="text-accent" />
+              {{ $t('guide.theme_title') }}
+            </h3>
+            <p class="text-sm text-ink-secondary mb-2">
+              {{ $t('guide.theme_desc') }}
+            </p>
+            <ul class="text-sm text-ink-secondary space-y-1 ml-4 list-disc">
+              <li>{{ $t('guide.theme_1') }}</li>
+              <li>{{ $t('guide.theme_2') }}</li>
+            </ul>
+          </section>
+
           <!-- Backup -->
           <section>
             <h3 class="text-sm font-bold text-ink mb-2 flex items-center gap-1.5">
@@ -143,6 +186,9 @@ import {
   KeyboardIcon,
   DatabaseExportIcon,
   TagIcon,
+  PlugIcon,
+  MapPinIcon,
+  PaletteIcon,
   ChevronDownIcon
 } from 'vue-tabler-icons'
 
@@ -156,6 +202,9 @@ export default {
     KeyboardIcon,
     DatabaseExportIcon,
     TagIcon,
+    PlugIcon,
+    MapPinIcon,
+    PaletteIcon,
     ChevronDownIcon
   },
   props: {
