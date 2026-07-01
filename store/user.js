@@ -15,11 +15,13 @@ export const state = () => ({
   googleTokenExpiration: null,
   jira: {
     accessToken: null,
+    refreshToken: null,
     tokenExpiration: null,
     cloudId: null
   },
   gitlab: {
     accessToken: null,
+    refreshToken: null,
     tokenExpiration: null
   }
 })
@@ -50,25 +52,37 @@ export const getters = {
     return state.info.business_units_enabled === true
   },
   isJiraConfigured (state) {
-    return !!state.jira.accessToken
+    return !!(state.jira.accessToken || state.jira.refreshToken)
   },
   isJiraTokenValid (state) {
     return state.jira.accessToken && state.jira.tokenExpiration && isAfter(parseISO(state.jira.tokenExpiration), new Date())
   },
+  isJiraRefreshable (state) {
+    return !!state.jira.refreshToken
+  },
   jiraAccessToken (state) {
     return state.jira.accessToken
+  },
+  jiraRefreshToken (state) {
+    return state.jira.refreshToken
   },
   jiraCloudId (state) {
     return state.jira.cloudId
   },
   isGitlabConfigured (state) {
-    return !!state.gitlab.accessToken
+    return !!(state.gitlab.accessToken || state.gitlab.refreshToken)
   },
   isGitlabTokenValid (state) {
     return state.gitlab.accessToken && state.gitlab.tokenExpiration && isAfter(parseISO(state.gitlab.tokenExpiration), new Date())
   },
+  isGitlabRefreshable (state) {
+    return !!state.gitlab.refreshToken
+  },
   gitlabAccessToken (state) {
     return state.gitlab.accessToken
+  },
+  gitlabRefreshToken (state) {
+    return state.gitlab.refreshToken
   }
 }
 
@@ -87,23 +101,25 @@ export const mutations = {
     state.hasAuthorizedGCal = true
     state.googleTokenExpiration = (addSeconds(new Date(), expiresIn)).toISOString()
   },
-  setJiraAuth (state, { accessToken, expiresIn, cloudId }) {
+  setJiraAuth (state, { accessToken, refreshToken, expiresIn, cloudId }) {
     state.jira = {
       accessToken,
+      refreshToken: refreshToken || state.jira.refreshToken,
       tokenExpiration: addSeconds(new Date(), expiresIn).toISOString(),
-      cloudId
+      cloudId: cloudId || state.jira.cloudId
     }
   },
   clearJiraAuth (state) {
-    state.jira = { accessToken: null, tokenExpiration: null, cloudId: null }
+    state.jira = { accessToken: null, refreshToken: null, tokenExpiration: null, cloudId: null }
   },
-  setGitlabAuth (state, { accessToken, expiresIn }) {
+  setGitlabAuth (state, { accessToken, refreshToken, expiresIn }) {
     state.gitlab = {
       accessToken,
+      refreshToken: refreshToken || state.gitlab.refreshToken,
       tokenExpiration: addSeconds(new Date(), expiresIn).toISOString()
     }
   },
   clearGitlabAuth (state) {
-    state.gitlab = { accessToken: null, tokenExpiration: null }
+    state.gitlab = { accessToken: null, refreshToken: null, tokenExpiration: null }
   }
 }

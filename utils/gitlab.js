@@ -57,9 +57,24 @@ export async function connectGitlab () {
     redirectUri
   })
 
-  const { access_token: accessToken, expires_in: expiresIn } = tokenResponse.data
+  const { access_token: accessToken, refresh_token: refreshToken, expires_in: expiresIn } = tokenResponse.data
 
-  store.commit('user/setGitlabAuth', { accessToken, expiresIn })
+  store.commit('user/setGitlabAuth', { accessToken, refreshToken, expiresIn })
+}
+
+async function refreshGitlabToken () {
+  const store = window.$nuxt.$store
+  const axios = window.$nuxt.$axios
+  const refreshToken = store.getters['user/gitlabRefreshToken']
+
+  const tokenResponse = await axios.$post('gitlab-token', {
+    grant_type: 'refresh_token',
+    refresh_token: refreshToken
+  })
+
+  const { access_token: accessToken, refresh_token: newRefreshToken, expires_in: expiresIn } = tokenResponse.data
+
+  store.commit('user/setGitlabAuth', { accessToken, refreshToken: newRefreshToken, expiresIn })
 }
 
 function waitForCallback (popup) {
@@ -97,7 +112,16 @@ export async function getGitlabActivity (day) {
   const axios = window.$nuxt.$axios
 
   if (!store.getters['user/isGitlabTokenValid']) {
-    await connectGitlab()
+    if (store.getters['user/isGitlabRefreshable']) {
+      try {
+        await refreshGitlabToken()
+      } catch {
+        store.commit('user/clearGitlabAuth')
+        await connectGitlab()
+      }
+    } else {
+      await connectGitlab()
+    }
   }
 
   const accessToken = store.getters['user/gitlabAccessToken']

@@ -59,9 +59,24 @@ export async function connectJira () {
     redirectUri
   })
 
-  const { access_token: accessToken, expires_in: expiresIn, cloud_id: cloudId } = tokenResponse.data
+  const { access_token: accessToken, refresh_token: refreshToken, expires_in: expiresIn, cloud_id: cloudId } = tokenResponse.data
 
-  store.commit('user/setJiraAuth', { accessToken, expiresIn, cloudId })
+  store.commit('user/setJiraAuth', { accessToken, refreshToken, expiresIn, cloudId })
+}
+
+async function refreshJiraToken () {
+  const store = window.$nuxt.$store
+  const axios = window.$nuxt.$axios
+  const refreshToken = store.getters['user/jiraRefreshToken']
+
+  const tokenResponse = await axios.$post('jira-token', {
+    grant_type: 'refresh_token',
+    refresh_token: refreshToken
+  })
+
+  const { access_token: accessToken, refresh_token: newRefreshToken, expires_in: expiresIn } = tokenResponse.data
+
+  store.commit('user/setJiraAuth', { accessToken, refreshToken: newRefreshToken, expiresIn })
 }
 
 function waitForCallback (popup) {
@@ -99,7 +114,16 @@ export async function getJiraActivity (day) {
   const axios = window.$nuxt.$axios
 
   if (!store.getters['user/isJiraTokenValid']) {
-    await connectJira()
+    if (store.getters['user/isJiraRefreshable']) {
+      try {
+        await refreshJiraToken()
+      } catch {
+        store.commit('user/clearJiraAuth')
+        await connectJira()
+      }
+    } else {
+      await connectJira()
+    }
   }
 
   const cloudId = store.getters['user/jiraCloudId']
