@@ -115,7 +115,7 @@ export default () => {
         break
       case 's':
         event.preventDefault()
-        nuxt.$router.push('/pills')
+        nuxt.$router.push('/presets')
         break
       case '?':
         event.preventDefault()

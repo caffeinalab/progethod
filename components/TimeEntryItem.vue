@@ -177,25 +177,25 @@
         @keydown.escape="escapeField"
         @focus="notesFocused = true"
         @blur="handleNotesBlur"
-        @keydown.down.prevent="enterPillsSelector"
+        @keydown.down.prevent="enterPresetsSelector"
         @keydown="handleNotesKeydown"
       >
-      <!-- Pills suggestions -->
+      <!-- Preset suggestions -->
       <div
-        v-if="showPills || quickCreateActive"
-        ref="pillsContainer"
+        v-if="showPresets || quickCreateActive"
+        ref="presetsContainer"
         class="absolute z-40 left-0 top-full mt-1 flex flex-wrap items-center gap-1.5 p-2 bg-card border border-stroke-muted rounded-lg shadow-md max-w-md"
       >
         <button
-          v-for="(pill, pillIndex) in visiblePills"
-          :key="pill.id"
+          v-for="(preset, presetIndex) in visiblePresets"
+          :key="preset.id"
           class="px-2.5 py-1 text-xs font-medium rounded-full transition-colors border whitespace-nowrap"
-          :class="pillsNavigating && highlightedPillIndex === pillIndex
+          :class="presetsNavigating && highlightedPresetIndex === presetIndex
             ? 'bg-accent-soft text-accent-fg border-accent'
             : 'bg-card-dim text-ink-secondary border-stroke-muted hover:bg-accent-soft hover:text-accent-fg hover:border-accent'"
-          @mousedown.prevent="selectPill(pill)"
+          @mousedown.prevent="selectPreset(preset)"
         >
-          {{ pill.label }}
+          {{ preset.label }}
         </button>
         <!-- Quick create -->
         <div v-if="quickCreateActive" class="flex items-center gap-1">
@@ -212,7 +212,7 @@
         <button
           v-else
           class="px-2.5 py-1 text-xs font-medium rounded-full border border-dashed transition-colors whitespace-nowrap"
-          :class="pillsNavigating && highlightedPillIndex >= visiblePills.length
+          :class="presetsNavigating && highlightedPresetIndex >= visiblePresets.length
             ? 'border-accent text-accent-fg bg-accent-soft'
             : 'border-stroke text-ink-faint hover:border-accent hover:text-accent-fg'"
           @mousedown.prevent="startQuickCreate"
@@ -288,8 +288,8 @@ export default {
       highlightedIndex: 0,
       selection: null,
       notesFocused: false,
-      pillsNavigating: false,
-      highlightedPillIndex: 0,
+      presetsNavigating: false,
+      highlightedPresetIndex: 0,
       quickCreateActive: false,
       quickCreateLabel: ''
     }
@@ -298,10 +298,10 @@ export default {
     ...mapGetters({
       visibleProjects: 'projects/visibleProjects',
       wethodProjects: 'apiData/projects',
-      visiblePills: 'pills/visiblePills'
+      visiblePresets: 'presets/visiblePresets'
     }),
-    showPills () {
-      return this.notesFocused && !this.notes && this.visiblePills.length > 0 && !this.disabled
+    showPresets () {
+      return this.notesFocused && !this.notes && this.visiblePresets.length > 0 && !this.disabled
     },
     isSelectionLinked () {
       return this.selection?.type === 'local' && this.selection.localProject.linkedProjectId
@@ -540,8 +540,8 @@ export default {
       this.$router.push(this.localeLocation({ name: 'projects-id', params: { id: project.id } }))
     },
     escapeField () {
-      if (this.pillsNavigating) {
-        this.pillsNavigating = false
+      if (this.presetsNavigating) {
+        this.presetsNavigating = false
         return
       }
       this.closeDropdown()
@@ -622,26 +622,26 @@ export default {
       this.$emit('userSubmit', event)
     },
     handleNotesEnter (event) {
-      if (this.pillsNavigating) {
+      if (this.presetsNavigating) {
         event.preventDefault()
-        if (this.highlightedPillIndex >= this.visiblePills.length) {
+        if (this.highlightedPresetIndex >= this.visiblePresets.length) {
           this.startQuickCreate()
         } else {
-          this.selectPill(this.visiblePills[this.highlightedPillIndex])
+          this.selectPreset(this.visiblePresets[this.highlightedPresetIndex])
         }
         return
       }
       this.handleSubmit(event)
     },
-    selectPill (pill) {
-      this.notes = pill.label
-      this.pillsNavigating = false
+    selectPreset (preset) {
+      this.notes = preset.label
+      this.presetsNavigating = false
       this.hasUpdated()
     },
-    enterPillsSelector () {
-      if (!this.showPills) { return }
-      this.pillsNavigating = true
-      this.highlightedPillIndex = 0
+    enterPresetsSelector () {
+      if (!this.showPresets) { return }
+      this.presetsNavigating = true
+      this.highlightedPresetIndex = 0
     },
     onNotesInput () {
       this.notesFocused = true
@@ -651,23 +651,23 @@ export default {
       setTimeout(() => {
         if (this.quickCreateActive) { return }
         this.notesFocused = false
-        this.pillsNavigating = false
+        this.presetsNavigating = false
       }, 150)
     },
     handleNotesKeydown (event) {
-      if (!this.pillsNavigating) { return }
+      if (!this.presetsNavigating) { return }
 
       if (event.key === 'ArrowRight') {
         event.preventDefault()
-        const totalItems = this.visiblePills.length + 1
-        this.highlightedPillIndex = (this.highlightedPillIndex + 1) % totalItems
+        const totalItems = this.visiblePresets.length + 1
+        this.highlightedPresetIndex = (this.highlightedPresetIndex + 1) % totalItems
       } else if (event.key === 'ArrowLeft') {
         event.preventDefault()
-        const totalItems = this.visiblePills.length + 1
-        this.highlightedPillIndex = (this.highlightedPillIndex - 1 + totalItems) % totalItems
+        const totalItems = this.visiblePresets.length + 1
+        this.highlightedPresetIndex = (this.highlightedPresetIndex - 1 + totalItems) % totalItems
       } else if (event.key === 'ArrowUp') {
         event.preventDefault()
-        this.pillsNavigating = false
+        this.presetsNavigating = false
       }
     },
     startQuickCreate () {
@@ -681,7 +681,7 @@ export default {
         this.cancelQuickCreate()
         return
       }
-      await this.addPill(label)
+      await this.addPreset(label)
       this.quickCreateActive = false
       this.quickCreateLabel = ''
       this.$refs.notes?.focus()
@@ -692,7 +692,7 @@ export default {
     },
     ...mapActions({
       addProject: 'projects/add',
-      addPill: 'pills/add'
+      addPreset: 'presets/add'
     })
   }
 }

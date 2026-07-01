@@ -29,7 +29,7 @@
               <shortcut-row keys="w" :label="$t('keyboard_shortcuts.current_week')" />
               <shortcut-row keys="t" :label="$t('keyboard_shortcuts.go_timesheet')" />
               <shortcut-row keys="p" :label="$t('keyboard_shortcuts.go_projects')" />
-              <shortcut-row keys="s" :label="$t('keyboard_shortcuts.go_pills')" />
+              <shortcut-row keys="s" :label="$t('keyboard_shortcuts.go_presets')" />
             </div>
           </section>
 
@@ -39,8 +39,8 @@
             </h3>
             <div class="space-y-1">
               <shortcut-row keys="n" :label="$t('keyboard_shortcuts.add_entry')" />
-              <shortcut-row keys="↓ (in notes)" :label="$t('keyboard_shortcuts.enter_pills')" />
-              <shortcut-row keys="←/→ (in pills)" :label="$t('keyboard_shortcuts.navigate_pills')" />
+              <shortcut-row keys="↓ (in notes)" :label="$t('keyboard_shortcuts.enter_presets')" />
+              <shortcut-row keys="←/→ (in presets)" :label="$t('keyboard_shortcuts.navigate_presets')" />
               <shortcut-row keys="Ctrl+Enter" :label="$t('keyboard_shortcuts.submit_day')" />
               <shortcut-row keys="Ctrl+⌫" :label="$t('keyboard_shortcuts.nuke_day')" />
             </div>

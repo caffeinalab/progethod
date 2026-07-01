@@ -3,12 +3,12 @@ import format from 'date-fns/format'
 export function getBackupData (store) {
   const projects = store.getters['projects/projects']
   const entries = store.getters['entries/entries']
-  const pills = store.getters['pills/pills']
+  const presets = store.getters['presets/presets']
 
   return {
     projects,
     entries,
-    pills
+    presets
   }
 }
 
@@ -92,8 +92,9 @@ export async function restoreBackup (file, store) {
 
     store.commit('projects/restoreBackup', content.projects)
     store.commit('entries/restoreBackup', content.entries)
-    if (content.pills) {
-      store.commit('pills/restoreBackup', content.pills)
+    const presetsData = content.presets || content.pills
+    if (presetsData) {
+      store.commit('presets/restoreBackup', presetsData)
     }
   } catch (error) {
     console.error(error)

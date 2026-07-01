@@ -91,19 +91,19 @@
             </p>
           </section>
 
-          <!-- Pills -->
+          <!-- Presets -->
           <section>
             <h3 class="text-sm font-bold text-ink mb-2 flex items-center gap-1.5">
               <tag-icon size="16" class="text-accent" />
-              {{ $t('guide.pills_title') }}
+              {{ $t('guide.presets_title') }}
             </h3>
             <p class="text-sm text-ink-secondary mb-2">
-              {{ $t('guide.pills_desc') }}
+              {{ $t('guide.presets_desc') }}
             </p>
             <ul class="text-sm text-ink-secondary space-y-1 ml-4 list-disc">
-              <li>{{ $t('guide.pills_1') }}</li>
-              <li>{{ $t('guide.pills_2') }}</li>
-              <li>{{ $t('guide.pills_3') }}</li>
+              <li>{{ $t('guide.presets_1') }}</li>
+              <li>{{ $t('guide.presets_2') }}</li>
+              <li>{{ $t('guide.presets_3') }}</li>
             </ul>
           </section>
 

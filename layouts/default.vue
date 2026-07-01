@@ -31,9 +31,9 @@
                 {{ $t('projects') }}
               </li>
             </NuxtLink>
-            <NuxtLink to="/pills" class="h-full flex items-center">
+            <NuxtLink to="/presets" class="h-full flex items-center">
               <li class="text-ink-secondary hover:text-accent-fg cursor-pointer h-full flex items-center text-sm tracking-normal mx-5 capitalize">
-                {{ $t('pills.nav') }}
+                {{ $t('presets.nav') }}
               </li>
             </NuxtLink>
           </ul>
@@ -196,10 +196,10 @@
                 </div>
               </li>
             </NuxtLink>
-            <NuxtLink to="/pills" class="h-full flex items-center">
+            <NuxtLink to="/presets" class="h-full flex items-center">
               <li class="flex xl:hidden cursor-pointer text-ink-secondary text-base leading-3 tracking-normal mt-2 py-3 hover:text-accent-fg focus:text-accent-fg focus:outline-none capitalize">
                 <div class="flex items-center">
-                  <span class="leading-6 ml-2 font-bold"> {{ $t('pills.nav') }} </span>
+                  <span class="leading-6 ml-2 font-bold"> {{ $t('presets.nav') }} </span>
                 </div>
               </li>
             </NuxtLink>

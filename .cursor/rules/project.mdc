@@ -21,7 +21,7 @@ A simplified timesheet interface for Wethod. Data is stored locally (localStorag
 ## Vuex Modules
 
 - `store/projects.js` — User-created local project shortcuts (aliases to Wethod projects/areas)
-- `store/pills.js` — User-created note suggestions ("pills") shown when the notes field is empty
+- `store/presets.js` — User-created note presets shown when the notes field is empty
 - `store/entries.js` — Daily timesheet entries
 - `store/user.js` — Auth token, user info
 - `store/apiData.js` — Cached Wethod project data
@@ -29,9 +29,9 @@ A simplified timesheet interface for Wethod. Data is stored locally (localStorag
 
 ## Key Decisions
 
-- **Pills feature**: Global note suggestions (not project-scoped). Appear only when notes field is focused + empty. Keyboard navigation: ArrowDown enters pills mode, ArrowLeft/Right navigates, Enter selects, ArrowUp/Esc exits. Stored same as projects with soft-delete pattern.
-- **Persistence**: All Vuex modules (including pills) persisted to localStorage. Soft-deleted items pruned after 40 days.
-- **Sync**: Projects and pills sync to backend via PUT on mutation. Entries are local-only until explicitly submitted.
+- **Note presets**: Global note presets (not project-scoped). Appear only when notes field is focused + empty. Keyboard navigation: ArrowDown enters presets mode, ArrowLeft/Right navigates, Enter selects, ArrowUp/Esc exits. Stored same as projects with soft-delete pattern. Backend API endpoint remains `pills` for backward compatibility.
+- **Persistence**: All Vuex modules (including presets) persisted to localStorage. Soft-deleted items pruned after 40 days.
+- **Sync**: Projects and presets sync to backend via PUT on mutation. Entries are local-only until explicitly submitted.
 - **Keyboard navigation**: Full keyboard nav via `plugins/keyboard-shortcuts.js`. Global shortcuts only fire when user is not typing in an input.
 - **External integrations (Jira/GitLab)**: Same pattern — OAuth popup with PKCE, server-side token exchange via Cloudflare Pages Function, activity proxy, modal UI. Tokens stored in `user` Vuex module with expiration. Auth routes bypass the main auth middleware. Both token exchange endpoints use server-side env vars (`*_CLIENT_SECRET`) while client-side only exposes `*_CLIENT_ID` via `nuxt.config.js env`. Refresh tokens are persisted alongside access tokens; when an access token expires, the client silently refreshes via the same server-side endpoint (`grant_type: refresh_token`) before falling back to the full OAuth popup flow. Jira rotates refresh tokens on each use (new one returned and stored).
 - **Month stats reference date**: Month label, tracked days, working days, and office days are computed from `weekAnchor` (= today + weekOffset), not from `days[0]` (Monday of the week). This ensures that when a week spans two months, the stats reflect the month the user is "anchored to" (i.e. today's month for the current week).
