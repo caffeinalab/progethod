@@ -3,6 +3,7 @@
     <!-- Page title starts -->
 
     <alert v-if="isTokenExpired" :message="$t('session_expired')" level="warning" />
+    <alert v-if="showMonthEndReminder && !monthEndReminderDismissed" :message="$t('month_end_reminder')" level="warning" dismissable @dismiss="dismissMonthEndReminder" />
     <div class="my-6 lg:my-12 container px-6 mx-auto pb-4 border-b border-gray-300">
       <div class="flex items-center gap-3">
         <div class="inline-flex items-center bg-white border border-gray-200 rounded-lg shadow-sm">
@@ -13,7 +14,10 @@
           >
             <chevron-left-icon size="18" />
           </button>
-          <span class="px-4 py-2 text-sm font-semibold text-gray-800 border-l border-r border-gray-200 select-none">
+          <span
+            class="px-4 py-2 text-sm font-semibold text-gray-800 border-l border-r border-gray-200 select-none cursor-pointer hover:text-indigo-600 transition-colors"
+            @click.stop="$refs.monthCalendar.toggle()"
+          >
             {{ weekLabel }}
           </span>
           <button
@@ -46,20 +50,20 @@
           <!-- Week stat -->
           <div class="stat-card">
             <span class="stat-label">{{ $t('week_short') }}</span>
-            <span class="stat-value">{{ weekTrackedHours.length ? weekTrackedTotal + '/' + weekExpectedHours + 'h' : '–' }}</span>
+            <span class="stat-value">{{ weekTrackedTotal + '/' + weekExpectedHours + 'h' }}</span>
           </div>
 
           <!-- Month stat -->
           <div class="stat-card cursor-pointer hover:border-gray-300 transition-colors" @click.stop="$refs.monthCalendar.toggle()">
             <month-calendar
               ref="monthCalendar"
-              :reference-date="days[0]"
+              :reference-date="weekAnchor"
               :tracked-hours="calendarTrackedHours"
               :label="monthLabel"
               @day-click="onCalendarDayClick"
               @month-changed="onCalendarMonthChanged"
             />
-            <span class="stat-value">{{ monthTrackedHours.length ? monthTrackedDays + '/' + monthWorkingDays : '–' }}</span>
+            <span class="stat-value">{{ monthTrackedDays + '/' + monthWorkingDays }}</span>
           </div>
 
           <!-- Office days stat -->
@@ -98,7 +102,7 @@
 
 <script>
 import { ChevronLeftIcon, ChevronRightIcon, BuildingIcon } from 'vue-tabler-icons'
-import { isSameDay, startOfMonth, endOfMonth } from 'date-fns'
+import { isSameDay, startOfMonth, endOfMonth, subDays, getDay, isAfter, isBefore } from 'date-fns'
 import { mapGetters } from 'vuex'
 import DayInputItem from '~/components/DayInputItem'
 import BusinessUnitFilter from '~/components/BusinessUnitFilter'
@@ -116,6 +120,8 @@ export default {
   middleware: 'auth',
   data () {
     const queryWeek = parseInt(this.$route.query.week, 10)
+    const dismissedAt = localStorage.getItem('monthEndReminderDismissedAt')
+    const isDismissed = dismissedAt && (Date.now() - parseInt(dismissedAt, 10)) < 24 * 60 * 60 * 1000
     return {
       weekOffset: Number.isFinite(queryWeek) ? queryWeek : 0,
       weekTrackedHours: [],
@@ -124,7 +130,8 @@ export default {
       trackedHoursLoading: false,
       focusedDayIndex: null,
       insideDay: false,
-      navigating: false
+      navigating: false,
+      monthEndReminderDismissed: !!isDismissed
     }
   },
   computed: {
@@ -153,10 +160,10 @@ export default {
       return this.$dateFns.format(this.days[6], 'yyyy-MM-dd')
     },
     monthFrom () {
-      return this.$dateFns.format(startOfMonth(this.days[0]), 'yyyy-MM-dd')
+      return this.$dateFns.format(startOfMonth(this.weekAnchor), 'yyyy-MM-dd')
     },
     monthTo () {
-      return this.$dateFns.format(endOfMonth(this.days[0]), 'yyyy-MM-dd')
+      return this.$dateFns.format(endOfMonth(this.weekAnchor), 'yyyy-MM-dd')
     },
     weekTrackedTotal () {
       return this.weekTrackedHours.reduce((sum, entry) => sum + (entry.value || 0), 0)
@@ -169,8 +176,8 @@ export default {
     },
     monthWorkingDays () {
       let workingDays = 0
-      let current = startOfMonth(this.days[0])
-      const end = endOfMonth(this.days[0])
+      let current = startOfMonth(this.weekAnchor)
+      const end = endOfMonth(this.weekAnchor)
       while (current <= end) {
         const dayOfWeek = current.getDay()
         if (dayOfWeek !== 0 && dayOfWeek !== 6) {
@@ -181,7 +188,7 @@ export default {
       return workingDays
     },
     monthLabel () {
-      return this.$dateFns.format(this.days[0], 'MMMM yyyy')
+      return this.$dateFns.format(this.weekAnchor, 'MMMM yyyy')
     },
     officeDaysInMonth () {
       const allEntries = this.$store.getters['entries/entries']
@@ -200,6 +207,22 @@ export default {
         map[entry.date] = entry.value
       }
       return map
+    },
+    showMonthEndReminder () {
+      const monthEnd = endOfMonth(this.today)
+      let cursor = new Date(monthEnd)
+      const lastWorkingDays = []
+
+      while (lastWorkingDays.length < 2) {
+        const dow = getDay(cursor)
+        if (dow !== 0 && dow !== 6) {
+          lastWorkingDays.push(cursor)
+        }
+        cursor = subDays(cursor, 1)
+      }
+
+      const rangeStart = lastWorkingDays[lastWorkingDays.length - 1]
+      return !isBefore(this.today, rangeStart) && !isAfter(this.today, monthEnd)
     }
   },
   watch: {
@@ -213,6 +236,7 @@ export default {
   },
   mounted () {
     this.fetchTrackedHours()
+    this.scrollToToday()
     this.$nuxt.$on('tracked-hours:refresh', this.debouncedRefresh)
     this.$nuxt.$on('shortcut:prev-week', this.prevWeek)
     this.$nuxt.$on('shortcut:next-week', this.nextWeek)
@@ -418,6 +442,22 @@ export default {
       } catch {
         this.calendarTrackedHours = []
       }
+    },
+    dismissMonthEndReminder () {
+      this.monthEndReminderDismissed = true
+      localStorage.setItem('monthEndReminderDismissedAt', String(Date.now()))
+    },
+    scrollToToday () {
+      if (this.weekOffset !== 0) { return }
+      const todayIndex = this.days.findIndex(day => isSameDay(day, this.today))
+      if (todayIndex < 0) { return }
+      this.$nextTick(() => {
+        const ref = this.$refs['day-' + todayIndex]
+        const element = Array.isArray(ref) ? ref[0]?.$el : ref?.$el
+        if (element) {
+          element.scrollIntoView({ block: 'center', behavior: 'smooth' })
+        }
+      })
     }
   }
 }
