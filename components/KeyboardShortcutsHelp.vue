@@ -14,7 +14,7 @@
 
         <div
           ref="scrollArea"
-          class="scroll-area space-y-4 overflow-y-auto px-6 pb-6"
+          class="scroll-area space-y-4 overflow-y-auto custom-scrollbar px-6 pb-6"
           @scroll="onScroll"
         >
           <section>
