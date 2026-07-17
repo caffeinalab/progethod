@@ -1,7 +1,7 @@
 <template>
   <div v-click-outside="close" class="relative inline-block">
     <span
-      class="stat-label capitalize cursor-pointer hover:text-accent-fg transition-colors"
+      class="stat-label capitalize cursor-pointer transition-colors"
       @click.stop="toggle"
     >
       {{ label }}:
@@ -13,7 +13,7 @@
     >
       <div class="flex items-center justify-between mb-3">
         <button
-          class="p-1 rounded hover:bg-card-hover transition-colors text-ink-muted hover:text-ink"
+          class="p-1 rounded hover:bg-card-hover transition-colors text-ink-muted"
           @click="monthOffset--"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -24,7 +24,7 @@
           {{ displayedMonthLabel }}
         </div>
         <button
-          class="p-1 rounded hover:bg-card-hover transition-colors text-ink-muted hover:text-ink"
+          class="p-1 rounded hover:bg-card-hover transition-colors text-ink-muted"
           @click="monthOffset++"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

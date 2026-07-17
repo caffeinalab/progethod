@@ -44,20 +44,20 @@
       <div class="flex items-center gap-3">
         <div class="inline-flex items-center bg-card border border-stroke-muted rounded-lg shadow">
           <button
-            class="p-2.5 text-ink-muted hover:text-ink hover:bg-card-hover rounded-l-lg transition-colors focus:outline-none"
+            class="p-2.5 text-ink-muted hover:bg-card-hover rounded-l-lg transition-colors focus:outline-none"
             :title="$t('previous_week')"
             @click="weekOffset--"
           >
             <chevron-left-icon size="18" />
           </button>
           <span
-            class="px-4 py-2 text-sm font-semibold text-ink border-l border-r border-stroke-muted select-none cursor-pointer hover:text-accent-fg transition-colors"
+            class="px-4 py-2 text-sm font-semibold text-ink border-l border-r border-stroke-muted select-none cursor-pointer hover:bg-card-hover transition-colors"
             @click.stop="$refs.monthCalendar.toggle()"
           >
             {{ weekLabel }}
           </span>
           <button
-            class="p-2.5 text-ink-muted hover:text-ink hover:bg-card-hover rounded-r-lg transition-colors focus:outline-none"
+            class="p-2.5 text-ink-muted hover:bg-card-hover rounded-r-lg transition-colors focus:outline-none"
             :title="$t('next_week')"
             @click="weekOffset++"
           >
@@ -90,7 +90,7 @@
           </div>
 
           <!-- Month stat -->
-          <div class="stat-card cursor-pointer hover:border-stroke transition-colors" @click.stop="$refs.monthCalendar.toggle()">
+          <div class="stat-card cursor-pointer hover:bg-card-hover hover:border-stroke transition-colors" @click.stop="$refs.monthCalendar.toggle()">
             <month-calendar
               ref="monthCalendar"
               :reference-date="weekAnchor"

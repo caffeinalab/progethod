@@ -56,10 +56,7 @@
             @userSubmit="handleSubmit(entry.id)"
           />
           <button
-            class="flex items-center justify-center w-10 h-10 rounded-lg border shadow transition-colors duration-150 focus:outline-none"
-            :class="entry.synced
-              ? 'bg-card-dim border-stroke-muted text-ink-disabled cursor-default'
-              : 'bg-card border-stroke-muted text-ink-muted hover:text-danger hover:border-danger hover:bg-danger-soft focus:text-danger'"
+            class="integration-btn integration-btn--danger"
             :disabled="entry.synced"
             @click="removeEntry(entry.id)"
           >
@@ -70,7 +67,7 @@
     </div>
     <div class="flex items-center gap-2" style="padding-left: calc(1.25rem + 0.5rem)">
       <button
-        class="integration-btn text-accent-fg"
+        class="integration-btn integration-btn--add"
         :title="$t('actions')"
         aria-label="Aggiungi riga"
         @click="addEntry"
@@ -109,10 +106,7 @@
 
       <div class="flex items-center gap-2">
         <button
-          class="flex items-center justify-center w-10 h-10 rounded-lg border shadow transition-colors duration-150 focus:outline-none"
-          :class="disableSubmission
-            ? 'bg-card-dim border-stroke-muted text-ink-disabled cursor-default'
-            : 'bg-accent border-accent text-ink-inverse hover:bg-accent-hover hover:border-accent-hover focus:ring-2 focus:ring-focus-ring focus:ring-offset-1'"
+          class="integration-btn integration-btn--submit"
           :disabled="disableSubmission"
           :title="$t('submit_daily_timesheet')"
           @click="submitDay"
@@ -120,7 +114,7 @@
           <send-icon width="16" height="16" stroke-width="1.5" />
         </button>
         <button
-          class="flex items-center justify-center w-10 h-10 rounded-lg border border-stroke-muted bg-card shadow transition-colors duration-150 focus:outline-none text-ink-muted hover:text-danger hover:border-danger hover:bg-danger-soft focus:text-danger"
+          class="integration-btn integration-btn--danger"
           :title="$t('reset_day')"
           @click="nukeDay"
         >
@@ -483,9 +477,42 @@ export default {
     @apply relative flex items-center justify-center w-10 h-10 rounded-lg
            border border-stroke-muted bg-card shadow
            transition-all duration-150 ease-in-out
-           hover:bg-card-hover hover:border-stroke
            focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-1;
     color: var(--color-ink-secondary);
+  }
+
+  .integration-btn:not(:disabled):hover {
+    background-color: var(--color-card-hover);
+    border-color: var(--color-stroke);
+  }
+
+  .integration-btn:disabled {
+    background-color: var(--color-card-dim);
+    color: var(--color-ink-disabled);
+    cursor: default;
+  }
+
+  .integration-btn--add {
+    color: var(--color-accent-fg);
+  }
+
+  .integration-btn--danger {
+    color: var(--color-ink-muted);
+  }
+
+  .integration-btn--danger:not(:disabled):hover {
+    border-color: var(--color-danger);
+  }
+
+  .integration-btn--submit:not(:disabled) {
+    background-color: var(--color-accent);
+    border-color: var(--color-accent);
+    color: var(--color-ink-inverse);
+  }
+
+  .integration-btn--submit:not(:disabled):hover {
+    background-color: var(--color-accent-hover);
+    border-color: var(--color-accent-hover);
   }
 
   .integration-btn--gcal  { color: #4285F4; }

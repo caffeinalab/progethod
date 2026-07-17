@@ -26,7 +26,7 @@
               </button>
               <div class="inline-flex items-center bg-card border border-stroke-muted rounded-lg shadow">
                 <button
-                  class="p-2 text-ink-muted hover:text-ink hover:bg-card-hover rounded-l-lg transition-colors focus:outline-none"
+                  class="p-2 text-ink-muted hover:bg-card-hover rounded-l-lg transition-colors focus:outline-none"
                   @click="monthOffset--"
                 >
                   <chevron-left-icon size="18" />
@@ -35,7 +35,7 @@
                   {{ displayedMonthLabel }}
                 </span>
                 <button
-                  class="p-2 text-ink-muted hover:text-ink hover:bg-card-hover rounded-r-lg transition-colors focus:outline-none"
+                  class="p-2 text-ink-muted hover:bg-card-hover rounded-r-lg transition-colors focus:outline-none"
                   @click="monthOffset++"
                 >
                   <chevron-right-icon size="18" />
