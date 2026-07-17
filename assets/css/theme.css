@@ -82,7 +82,7 @@
 
   --color-accent: #b4b9f8;
   --color-accent-hover: #9ca2f5;
-  --color-accent-soft: #2d2e42;
+  --color-accent-soft: rgba(180, 185, 248, 0.15);
   --color-accent-fg: #d2d5fc;
 
   --color-focus-ring: #b4b9f8;
