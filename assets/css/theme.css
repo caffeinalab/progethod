@@ -49,43 +49,67 @@
   --color-danger: #dc2626;
   --color-danger-soft: #fee2e2;
   --color-danger-text: #991b1b;
+
+  --color-vacation: #0d9488;
+  --color-vacation-soft: #ccfbf1;
+  --color-vacation-text: #115e59;
+
+  --color-leaves: #d97706;
+  --color-leaves-soft: #fef3c7;
+  --color-leaves-text: #92400e;
+
+  --color-pending: #ea580c;
+  --color-pending-soft: #fff7ed;
+  --color-pending-text: #9a3412;
 }
 
 /* ─── Dark ─── */
 .dark {
-  --color-page: #0f1219;
-  --color-card: #1a2030;
-  --color-card-dim: #252d42;
-  --color-card-hover: #303a52;
+  --color-page: #323339;
+  --color-card: #2c2d32;
+  --color-card-dim: #26272b;
+  --color-card-hover: #36373c;
 
-  --color-ink: #eef0f6;
-  --color-ink-secondary: #cdd3e0;
-  --color-ink-muted: #b0b8cc;
-  --color-ink-faint: #8d97b0;
-  --color-ink-disabled: #566076;
-  --color-ink-inverse: #1a2030;
+  --color-ink: #dbdee1;
+  --color-ink-secondary: #b5bac1;
+  --color-ink-muted: #949ba4;
+  --color-ink-faint: #6d7178;
+  --color-ink-disabled: #4e5058;
+  --color-ink-inverse: #323339;
 
-  --color-stroke: #515c7e;
-  --color-stroke-muted: #434e6a;
+  --color-stroke: #4e4f55;
+  --color-stroke-muted: #47484e;
 
-  --color-accent: #a4b0fd;
-  --color-accent-hover: #8b9af7;
-  --color-accent-soft: #272450;
-  --color-accent-fg: #c0caff;
+  --color-accent: #b4b9f8;
+  --color-accent-hover: #9ca2f5;
+  --color-accent-soft: #2d2e42;
+  --color-accent-fg: #d2d5fc;
 
-  --color-focus-ring: #a4b0fd;
+  --color-focus-ring: #b4b9f8;
 
-  --color-success: #5ae8a8;
-  --color-success-soft: #0e3e2e;
-  --color-success-text: #86efb8;
+  --color-success: #8ee0b8;
+  --color-success-soft: #1a3329;
+  --color-success-text: #b2ecd0;
 
-  --color-warning: #fcc63c;
-  --color-warning-soft: #5c3a0a;
-  --color-warning-text: #fcd96a;
+  --color-warning: #f2c98e;
+  --color-warning-soft: #3d2e14;
+  --color-warning-text: #f5dbb5;
 
-  --color-danger: #ff9b9b;
-  --color-danger-soft: #5c1a1a;
-  --color-danger-text: #fdb5b5;
+  --color-danger: #f0a5a5;
+  --color-danger-soft: #3d1c1c;
+  --color-danger-text: #f5c2c2;
+
+  --color-vacation: #8ad6ca;
+  --color-vacation-soft: #1a3330;
+  --color-vacation-text: #b0e8de;
+
+  --color-leaves: #f0ca82;
+  --color-leaves-soft: #3d2e14;
+  --color-leaves-text: #f5dca5;
+
+  --color-pending: #f0b292;
+  --color-pending-soft: #3d2010;
+  --color-pending-text: #f5ccb2;
 }
 
 /* ─── High Contrast (light) ─── */
@@ -122,6 +146,18 @@
   --color-danger: #b91c1c;
   --color-danger-soft: #f87171;
   --color-danger-text: #000000;
+
+  --color-vacation: #0f766e;
+  --color-vacation-soft: #99f6e4;
+  --color-vacation-text: #000000;
+
+  --color-leaves: #b45309;
+  --color-leaves-soft: #fde68a;
+  --color-leaves-text: #000000;
+
+  --color-pending: #c2410c;
+  --color-pending-soft: #fdba74;
+  --color-pending-text: #000000;
 }
 
 /* ─── High Contrast (dark) ─── */
@@ -158,6 +194,18 @@
   --color-danger: #fb7185;
   --color-danger-soft: #9f1239;
   --color-danger-text: #ffffff;
+
+  --color-vacation: #5eead4;
+  --color-vacation-soft: #134e4a;
+  --color-vacation-text: #ffffff;
+
+  --color-leaves: #fcd34d;
+  --color-leaves-soft: #78350f;
+  --color-leaves-text: #ffffff;
+
+  --color-pending: #fdba74;
+  --color-pending-soft: #7c2d12;
+  --color-pending-text: #ffffff;
 }
 
 /* ─── Location accent (unified purple) ─── */
@@ -168,9 +216,9 @@
 }
 
 .dark {
-  --color-location: #c4b5fd;
-  --color-location-text: #c4b5fd;
-  --color-location-soft: #2e1a5e;
+  --color-location: #b4b9f8;
+  --color-location-text: #323339;
+  --color-location-soft: #b4b9f8;
 }
 
 .high-contrast {
@@ -183,6 +231,87 @@
   --color-location: #d8b4fe;
   --color-location-text: #ffffff;
   --color-location-soft: #581c87;
+}
+
+/* ─── Dark mode: day-card & element overrides ─── */
+.dark:not(.high-contrast) .day-card {
+  background: #3e3f44;
+}
+
+.dark:not(.high-contrast) .day-card .day-stat-box,
+.dark:not(.high-contrast) .day-card .integration-btn,
+.dark:not(.high-contrast) .day-card .bg-card {
+  background-color: #2c2d32;
+}
+
+.dark:not(.high-contrast) .day-card .day-stat-label {
+  color: var(--color-ink-secondary);
+}
+
+.dark:not(.high-contrast) .day-card .day-stat-value {
+  color: var(--color-ink);
+}
+
+.dark:not(.high-contrast) nav .bg-ink-disabled {
+  background-color: var(--color-ink-faint);
+}
+
+.dark:not(.high-contrast) nav .bg-accent-soft.text-accent-fg {
+  background-color: var(--color-accent);
+  color: var(--color-ink-inverse);
+}
+
+.dark:not(.high-contrast) .day-card .location-icon-color {
+  color: var(--color-ink-secondary);
+}
+
+.dark:not(.high-contrast) .day-card .entry-row > button:last-child,
+.dark:not(.high-contrast) .day-card button[title*="Ripristina"] {
+  color: var(--color-danger);
+}
+
+.dark:not(.high-contrast) .project-card {
+  background: #3e3f44;
+}
+
+/* ─── Calendar cells ─── */
+.cal-cell--none {
+  background-color: var(--color-card-hover);
+  color: var(--color-ink-muted);
+}
+.cal-cell--success {
+  background-color: var(--color-success-soft);
+  color: var(--color-success-text);
+  font-weight: 600;
+  border: 1px solid var(--color-success);
+}
+.cal-cell--warning {
+  background-color: var(--color-warning-soft);
+  color: var(--color-warning-text);
+  font-weight: 600;
+  border: 1px solid var(--color-warning);
+}
+.cal-cell--danger {
+  background-color: var(--color-danger-soft);
+  color: var(--color-danger-text);
+  font-weight: 600;
+  border: 1px solid var(--color-danger);
+}
+
+.dark:not(.high-contrast) .cal-cell--success {
+  background-color: rgba(142, 224, 184, 0.1);
+  color: var(--color-success);
+  border-color: rgba(142, 224, 184, 0.35);
+}
+.dark:not(.high-contrast) .cal-cell--warning {
+  background-color: rgba(242, 201, 142, 0.1);
+  color: var(--color-warning);
+  border-color: rgba(242, 201, 142, 0.35);
+}
+.dark:not(.high-contrast) .cal-cell--danger {
+  background-color: rgba(240, 165, 165, 0.1);
+  color: var(--color-danger);
+  border-color: rgba(240, 165, 165, 0.35);
 }
 
 /* ─── Custom scrollbar ─── */

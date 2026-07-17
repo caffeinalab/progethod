@@ -12,9 +12,10 @@ export default ({ store }) => {
     const theme = store.getters['preferences/theme']
     const highContrast = store.getters['preferences/highContrast']
     const effective = resolveEffectiveTheme(theme)
+    const html = document.documentElement
 
-    document.documentElement.classList.toggle('dark', effective === 'dark')
-    document.documentElement.classList.toggle('high-contrast', highContrast)
+    html.classList.toggle('dark', effective === 'dark')
+    html.classList.toggle('high-contrast', highContrast)
   }
 
   applyTheme()
