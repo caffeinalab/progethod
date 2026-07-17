@@ -15,8 +15,15 @@
           <span class="day-stat-label">{{ $t('wethod_tracked_short') }}</span>
           <span class="day-stat-value">{{ formattedTrackedHours }}</span>
         </div>
+        <div v-if="holidayName" class="day-stat-box day-stat-box--holiday">
+          <span class="day-stat-label">{{ $t('calendar_page.holiday_label') }}</span>
+          <span class="day-stat-value">{{ holidayName }}</span>
+        </div>
+        <div class="day-stat-box" :class="leaveBadgeClasses">
+          <span class="day-stat-label">{{ $t('calendar_page.leave_label') }}</span>
+          <span class="day-stat-value">{{ formattedLeaveHours }}</span>
+        </div>
       </div>
-
     </div>
     <div>
       <alert v-if="totalNotAdjustable" :message="$t('errors.total_not_adjustable')" level="error" />
@@ -160,6 +167,14 @@ export default {
       type: Number,
       default: null
     },
+    leaveHours: {
+      type: Number,
+      default: null
+    },
+    holidayName: {
+      type: String,
+      default: ''
+    },
     focused: {
       type: Boolean,
       default: false
@@ -196,9 +211,10 @@ export default {
       return this.entries.reduce((sum, e) => ((sum * 10) + (e.data.decimal_duration || 0) * 10) / 10, 0)
     },
     formattedTrackedHours () {
-      if (this.wethodHours == null) { return '–' }
-      const hours = Math.floor(this.wethodHours)
-      const minutes = Math.round((this.wethodHours - hours) * 60)
+      const value = this.wethodHours || 0
+      let hours = Math.floor(value)
+      let minutes = Math.round((value - hours) * 60)
+      if (minutes >= 60) { hours += 1; minutes = 0 }
       if (minutes === 0) { return `${hours}h` }
       return `${hours}h ${minutes}m`
     },
@@ -210,6 +226,20 @@ export default {
         return 'day-stat-box--success'
       }
       return 'day-stat-box--warning'
+    },
+    formattedLeaveHours () {
+      const value = this.leaveHours || 0
+      let hours = Math.floor(value)
+      let minutes = Math.round((value - hours) * 60)
+      if (minutes >= 60) { hours += 1; minutes = 0 }
+      if (minutes === 0) { return `${hours}h` }
+      return `${hours}h ${minutes}m`
+    },
+    leaveBadgeClasses () {
+      if (this.leaveHours > 0) {
+        return 'day-stat-box--vacation'
+      }
+      return ''
     },
     totalNotAdjustable () {
       return this.totalDuration >= dayDuration && this.totalDuration % 60
@@ -482,6 +512,24 @@ export default {
 
   .day-stat-box--warning .day-stat-value {
     color: var(--color-warning-text);
+  }
+
+  .day-stat-box--vacation {
+    border-color: var(--color-vacation);
+    background-color: var(--color-vacation-soft);
+  }
+
+  .day-stat-box--vacation .day-stat-value {
+    color: var(--color-vacation-text);
+  }
+
+  .day-stat-box--holiday {
+    border-color: var(--color-stroke-muted);
+    background-color: var(--color-card-dim);
+  }
+
+  .day-stat-box--holiday .day-stat-value {
+    @apply text-xs font-medium text-ink-muted;
   }
 
   .day-stat-label {
