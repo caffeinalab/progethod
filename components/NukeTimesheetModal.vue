@@ -1,52 +1,49 @@
 <template>
   <modal :value="value" @input="emitChange">
-    <video
-      ref="explosion"
-      playsinline
-      muted
-      loop
-      preload="none"
-      poster="~/assets/explosion_poster.jpg"
-      width="668"
-      height="500"
-    >
-      <source
-        src="~/assets/explosion.mp4"
-        type="video/mp4"
-      >
-    </video>
-    <p class="text-base sm:text-lg md:text-2xl font-bold md:leading-6 mt-6 text-ink text-center">
+    <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-danger-soft border border-danger border-opacity-20">
+      <alert-triangle-icon width="24" height="24" class="text-danger" />
+    </div>
+    <p class="text-lg font-semibold mt-4 text-ink text-center">
       {{ $t('about_to_nuke_timesheet') }}
     </p>
-    <p class="text-xs sm:text-sm leading-5 mt-2 sm:mt-4 text-center text-ink-secondary">
+    <p class="text-sm leading-relaxed mt-1.5 text-center text-ink-muted max-w-xs">
       {{ $t('nuke_timesheet_warning') }}
     </p>
-    <div>
-      <div class="w-full my-2 h-12 transition-opacity opacity-0" :class="{ 'opacity-100': isSubmitting && !isExpired }">
-        <progress-bar :fill="sentPercentage" />
-      </div>
+    <div v-if="isSubmitting && !isExpired" class="w-full mt-4">
+      <progress-bar :fill="sentPercentage" />
     </div>
-    <alert v-if="isExpired" class="w-full" level="error" :message="$t('session_expired')" />
-    <div v-if="!isExpired" class="flex items-center justify-center mt-4 sm:mt-6 w-full">
+    <alert v-if="isExpired" class="w-full mt-4" level="error" :message="$t('session_expired')" />
+    <div v-if="!isExpired" class="flex items-center gap-3 mt-6 w-full">
       <button
         v-if="!isSubmitting"
-        class="px-6 py-2 bg-danger focus:outline-none hover:opacity-80 mx-2 my-2 rounded"
+        class="flex-1 px-4 py-2.5 rounded-lg border border-stroke bg-card text-sm font-medium text-ink hover:bg-card-hover transition-colors focus:outline-none focus:ring-2 focus:ring-focus-ring"
+        @click="emitChange(false)"
+      >
+        {{ $t('calendar_page.cancel') }}
+      </button>
+      <button
+        v-if="!isSubmitting"
+        class="flex-1 px-4 py-2.5 rounded-lg bg-danger text-sm font-medium text-ink-inverse hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-danger"
         @click="submit()"
       >
-        <rocket-icon width="20" height="20" class="text-ink-inverse" />
+        {{ $t('reset_day') }}
       </button>
       <button
         v-if="isSubmitting"
-        class="mx-2 my-2 bg-card-hover rounded border border-stroke text-ink-secondary px-6 py-2 text-xs cursor-default"
+        class="flex-1 px-4 py-2.5 rounded-lg bg-card-hover border border-stroke text-sm text-ink-muted cursor-default"
+        disabled
       >
-        <rocket-icon width="20" height="20" class="text-ink-secondary" />
+        <span class="inline-flex items-center gap-2">
+          <loader-icon width="16" height="16" class="animate-spin" />
+          {{ $t('please_wait_sending') }}
+        </span>
       </button>
     </div>
   </modal>
 </template>
 
 <script>
-import { RocketIcon } from 'vue-tabler-icons'
+import { AlertTriangleIcon, LoaderIcon } from 'vue-tabler-icons'
 import pLimit from 'p-limit'
 import { mapGetters, mapMutations } from 'vuex'
 import { prepareForCleanup } from '~/utils/timesheetMapper'
@@ -55,7 +52,8 @@ const limit = pLimit(5)
 
 export default {
   components: {
-    RocketIcon
+    AlertTriangleIcon,
+    LoaderIcon
   },
   props: {
     value: {
@@ -92,7 +90,6 @@ export default {
       this.$emit('input', value)
     },
     async submit () {
-      this.$refs.explosion.play()
       const employeeId = this.$store.getters['user/info'].employee_id
       this.isSubmitting = true
       this.sentData = 0
@@ -125,8 +122,6 @@ export default {
 
       this.emitChange(false)
       this.isSubmitting = false
-      this.$refs.explosion.pause()
-      this.$refs.explosion.currentTime = 0
       this.$nuxt.$emit('tracked-hours:refresh')
     },
     ...mapMutations({
