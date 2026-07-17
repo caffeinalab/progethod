@@ -1,6 +1,6 @@
 {
   "about_to_submit_timesheet": "Stai per inviare il tuo Timesheet",
-  "about_to_nuke_timesheet": "Stai per cancellare il tuo Timesheet",
+  "about_to_nuke_timesheet": "Ripristina giornata",
   "actions": "Azioni",
   "backup": "Backup",
   "business_unit": "Business Unit",
@@ -35,7 +35,8 @@
     "step_2b": "Apri <strong>chrome://extensions</strong> e attiva la <strong>Modalità sviluppatore</strong> (in alto a destra)",
     "step_2c": "Clicca <strong>Carica estensione non pacchettizzata</strong> e seleziona la cartella decompressa",
     "step_3": "Clicca sull'icona con la P di Progethod in alto a destra (potrebbe essere nascosta sotto l'icona del puzzle)",
-    "step_4": "Magic ✨"
+    "step_4": "Se non sei già loggato su Wethod, ti verrà chiesto di effettuare il login. Dopo aver effettuato l'accesso, clicca di nuovo l'estensione",
+    "step_5": "Il login avverrà in automatico e verrai reindirizzato a Progethod"
   },
   "magic_tag": "Magic Tag™️",
   "magic_tag_for_everybody": "Il meeting è con più persone? Questo tag funziona per tutti! (se hanno creato un progetto sulla stessa commessa/area)",
@@ -44,7 +45,7 @@
   "next_week": "Settimana successiva",
   "current_week": "Vai a questa settimana",
   "notes": "Note",
-  "nuke_timesheet_warning": "Quest'operazione è irreversibile. Tutti i dati verranno cancellati dall'interfaccia ufficiale per il giorno selezionato. Potrai poi re-inviare i dati che hai inserito su Progethod.",
+  "nuke_timesheet_warning": "I dati ufficiali del giorno verranno cancellati. Potrai re-inviare da Progethod.",
   "office": "Ufficio",
   "office_days_label": "Giornate in ufficio",
   "please_wait_sending": "Attendere mentre i dati vengono inviati...",

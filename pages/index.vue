@@ -2,7 +2,43 @@
   <div class="pt-20">
     <!-- Page title starts -->
 
-    <alert v-if="isTokenExpired" :message="$t('session_expired')" level="warning" />
+    <div v-if="isTokenExpired" class="container px-6 mx-auto mt-4 mb-4">
+      <div class="bg-warning-soft border border-warning rounded-lg p-4">
+        <div class="flex items-start gap-2">
+          <alert-triangle-icon class="text-warning flex-shrink-0 mt-0.5" size="20" />
+          <div class="flex-1">
+            <p class="text-base font-bold text-warning-text">
+              {{ $t('session_expired') }}
+            </p>
+            <p class="text-sm text-warning-text mt-1">
+              {{ $t('session_expired_hint') }}
+            </p>
+            <button
+              class="text-sm text-warning-text underline mt-2 hover:opacity-80 transition-opacity"
+              @click="showExtensionGuide = !showExtensionGuide"
+            >
+              {{ showExtensionGuide ? $t('calendar_page.cancel') : $t('login_instructions') }}
+            </button>
+            <ol v-if="showExtensionGuide" class="list-decimal list-inside space-y-2 mt-3 text-sm text-warning-text">
+              <li>
+                {{ $t('login_tutorial.step_1') }}<a class="underline font-semibold" target="_blank" :href="loginExtensionUrl">{{ $t('login_tutorial.step_1_cta_store') }}</a>{{ $t('login_tutorial.step_1_alt') }}<a class="underline font-semibold" href="/progethod-extension.zip" download>{{ $t('login_tutorial.step_1_cta_download') }}</a>
+              </li>
+              <li>
+                {{ $t('login_tutorial.step_2') }}
+                <ol class="list-[lower-alpha] list-inside ml-4 mt-1 space-y-1">
+                  <li>{{ $t('login_tutorial.step_2a') }}</li>
+                  <li v-html="$t('login_tutorial.step_2b')" />
+                  <li v-html="$t('login_tutorial.step_2c')" />
+                </ol>
+              </li>
+              <li>{{ $t('login_tutorial.step_3') }}</li>
+              <li>{{ $t('login_tutorial.step_4') }}</li>
+              <li>{{ $t('login_tutorial.step_5') }}</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
     <alert v-if="showMonthEndReminder && !monthEndReminderDismissed" :message="$t('month_end_reminder')" level="warning" dismissable @dismiss="dismissMonthEndReminder" />
     <div class="my-6 lg:my-12 container px-6 mx-auto pb-4 border-b border-stroke">
       <div class="flex items-center gap-3">
@@ -59,6 +95,7 @@
               ref="monthCalendar"
               :reference-date="weekAnchor"
               :tracked-hours="calendarTrackedHours"
+              :holidays="holidays"
               :label="monthLabel"
               @day-click="onCalendarDayClick"
               @month-changed="onCalendarMonthChanged"
@@ -86,7 +123,7 @@
       <div
         v-for="(day, index) of days"
         :key="day.toString()"
-        class="w-full rounded border-2 mb-5 p-2 transition-shadow duration-150"
+        class="day-card w-full rounded border-2 mb-5 p-2 transition-shadow duration-150"
         :class="dayCardClasses(day, index)"
       >
         <day-input-item
@@ -94,6 +131,8 @@
           :day="day"
           :focused="navigating && insideDay && focusedDayIndex === index"
           :wethod-hours="trackedHoursByDay[$dateFns.format(day, 'yyyy-MM-dd')]"
+          :leave-hours="leaveHoursByDay[$dateFns.format(day, 'yyyy-MM-dd')]"
+          :holiday-name="holidaysByDate[$dateFns.format(day, 'yyyy-MM-dd')]"
         />
       </div>
     </div>
@@ -101,7 +140,7 @@
 </template>
 
 <script>
-import { ChevronLeftIcon, ChevronRightIcon, BuildingIcon } from 'vue-tabler-icons'
+import { AlertTriangleIcon, ChevronLeftIcon, ChevronRightIcon, BuildingIcon } from 'vue-tabler-icons'
 import { isSameDay, startOfMonth, endOfMonth, subDays, getDay, isAfter, isBefore } from 'date-fns'
 import { mapGetters } from 'vuex'
 import DayInputItem from '~/components/DayInputItem'
@@ -110,6 +149,7 @@ import liveToday from '~/mixins/liveToday'
 
 export default {
   components: {
+    AlertTriangleIcon,
     ChevronLeftIcon,
     ChevronRightIcon,
     BuildingIcon,
@@ -128,10 +168,15 @@ export default {
       monthTrackedHours: [],
       calendarTrackedHours: [],
       trackedHoursLoading: false,
+      officeDaysFromApi: [],
+      weekVacationHours: [],
+      holidays: [],
       focusedDayIndex: null,
       insideDay: false,
       navigating: false,
-      monthEndReminderDismissed: !!isDismissed
+      monthEndReminderDismissed: !!isDismissed,
+      showExtensionGuide: false,
+      loginExtensionUrl: process.env.loginExtensionUrl
     }
   },
   computed: {
@@ -191,20 +236,28 @@ export default {
       return this.$dateFns.format(this.weekAnchor, 'MMMM yyyy')
     },
     officeDaysInMonth () {
-      const allEntries = this.$store.getters['entries/entries']
-      const daysWithOffice = new Set()
-      for (const entry of allEntries) {
-        if (entry.day >= this.monthFrom && entry.day <= this.monthTo &&
-            entry.data.location === 'office' && entry.data.duration > 0) {
-          daysWithOffice.add(entry.day)
-        }
-      }
-      return daysWithOffice.size
+      return this.officeDaysFromApi.length
     },
     trackedHoursByDay () {
       const map = {}
       for (const entry of this.weekTrackedHours) {
         map[entry.date] = entry.value
+      }
+      return map
+    },
+    leaveHoursByDay () {
+      const map = {}
+      for (const entry of this.weekVacationHours) {
+        if (entry.projectId === 83 || entry.projectId === 90) {
+          map[entry.date] = (map[entry.date] || 0) + entry.amount
+        }
+      }
+      return map
+    },
+    holidaysByDate () {
+      const map = {}
+      for (const holiday of this.holidays) {
+        map[holiday.date] = holiday.name
       }
       return map
     },
@@ -232,10 +285,15 @@ export default {
         this.$router.replace({ query })
       }
       this.fetchTrackedHours()
+      this.fetchOfficeDays()
+      this.fetchVacationHours()
     }
   },
   mounted () {
     this.fetchTrackedHours()
+    this.fetchOfficeDays()
+    this.fetchVacationHours()
+    this.fetchHolidays()
     this.scrollToToday()
     this.$nuxt.$on('tracked-hours:refresh', this.debouncedRefresh)
     this.$nuxt.$on('shortcut:prev-week', this.prevWeek)
@@ -411,8 +469,66 @@ export default {
         }
       }
     },
+    async fetchOfficeDays () {
+      if (!this.$store.getters['user/canMakeRequests']) {
+        return
+      }
+      try {
+        const response = await this.$axios.$get('office-days', {
+          params: { from: this.monthFrom, to: this.monthTo }
+        })
+        if (Array.isArray(response?.data)) {
+          this.officeDaysFromApi = response.data
+        }
+      } catch {
+        // API unreachable — office days will remain empty
+      }
+    },
+    async fetchVacationHours () {
+      if (!this.$store.getters['user/canMakeRequests']) {
+        return
+      }
+      const snapshotOffset = this.weekOffset
+      try {
+        const employeeId = this.$store.getters['user/info'].employee_id
+        const response = await this.$axios.$get('planningboard', {
+          params: { from: this.weekFrom, to: this.weekTo }
+        })
+        if (this.weekOffset !== snapshotOffset) {
+          return
+        }
+        const plannings = response?.data?.plannings || {}
+        const entries = []
+        for (const group of Object.values(plannings)) {
+          if (!Array.isArray(group)) { continue }
+          for (const planning of group) {
+            if (
+              planning.employee_id === employeeId &&
+              (planning.project_id === 83 || planning.project_id === 90)
+            ) {
+              entries.push({ date: planning.day, amount: planning.amount, projectId: planning.project_id })
+            }
+          }
+        }
+        this.weekVacationHours = entries
+      } catch {
+        // API unreachable — vacation hours will remain empty
+      }
+    },
+    async fetchHolidays () {
+      try {
+        const response = await this.$axios.$get('holidays')
+        this.holidays = response?.data || []
+      } catch {
+        this.holidays = []
+      }
+    },
     debouncedRefresh () {
-      setTimeout(() => this.fetchTrackedHours(), 800)
+      setTimeout(() => {
+        this.fetchTrackedHours()
+        this.fetchOfficeDays()
+        this.fetchVacationHours()
+      }, 800)
     },
     onCalendarDayClick (dateKey) {
       const targetDate = new Date(dateKey)

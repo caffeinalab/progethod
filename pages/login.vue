@@ -18,6 +18,9 @@
       <li>
         {{ $t("login_tutorial.step_4") }}
       </li>
+      <li>
+        {{ $t("login_tutorial.step_5") }}
+      </li>
     </ol>
   </div>
 </template>
