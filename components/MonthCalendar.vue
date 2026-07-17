@@ -54,19 +54,19 @@
       </div>
       <div class="flex items-center gap-3 mt-3 pt-3 border-t border-stroke-muted text-xs text-ink-muted">
         <span class="flex items-center gap-1">
-          <span class="inline-block w-3 h-3 rounded-sm bg-success-soft border border-success" />
+          <span class="inline-block w-3 h-3 rounded-sm cal-cell--success" />
           8h
         </span>
         <span class="flex items-center gap-1">
-          <span class="inline-block w-3 h-3 rounded-sm bg-warning-soft border border-warning" />
+          <span class="inline-block w-3 h-3 rounded-sm cal-cell--warning" />
           &lt; 8h
         </span>
         <span class="flex items-center gap-1">
-          <span class="inline-block w-3 h-3 rounded-sm bg-danger-soft border border-danger" />
+          <span class="inline-block w-3 h-3 rounded-sm cal-cell--danger" />
           0h
         </span>
         <span class="flex items-center gap-1">
-          <span class="inline-block w-3 h-3 rounded-sm bg-card-hover border border-stroke-muted" />
+          <span class="inline-block w-3 h-3 rounded-sm cal-cell--none border border-stroke-muted" />
           {{ $t('month_calendar.no_data') }}
         </span>
       </div>
@@ -106,6 +106,10 @@ export default {
       type: Array,
       default: () => []
     },
+    holidays: {
+      type: Array,
+      default: () => []
+    },
     label: {
       type: String,
       required: true
@@ -135,6 +139,13 @@ export default {
       }
       return map
     },
+    holidaysByDate () {
+      const map = {}
+      for (const holiday of this.holidays) {
+        map[holiday.date] = holiday.name
+      }
+      return map
+    },
     calendarCells () {
       const monthStart = startOfMonth(this.displayedMonth)
       const monthEnd = endOfMonth(this.displayedMonth)
@@ -155,11 +166,14 @@ export default {
         const dateKey = this.$dateFns.format(current, 'yyyy-MM-dd')
         const isToday = isSameDay(current, this.today)
         const isFuture = current > this.today
+        const holidayName = this.holidaysByDate[dateKey]
 
         cells.push({
           key: dateKey,
           dayNumber: current.getDate(),
           isWeekend,
+          isHoliday: !!holidayName,
+          holidayName: holidayName || '',
           isToday,
           isFuture,
           tracked: this.trackedByDate[dateKey] ?? null,
@@ -222,7 +236,7 @@ export default {
       this.open = false
     },
     isClickable (cell) {
-      return cell.dayNumber && !cell.isWeekend
+      return cell.dayNumber && !cell.isWeekend && !cell.isHoliday
     },
     onCellClick (cell) {
       if (this.isClickable(cell)) {
@@ -234,7 +248,7 @@ export default {
       if (!cell.dayNumber) {
         return ''
       }
-      if (cell.isWeekend) {
+      if (cell.isWeekend || cell.isHoliday) {
         return 'text-ink-disabled'
       }
       if (cell.isFuture) {
@@ -248,19 +262,22 @@ export default {
     },
     trackedColorClasses (tracked) {
       if (tracked === null || tracked === undefined) {
-        return 'bg-card-hover text-ink-muted'
+        return 'cal-cell--none'
       }
       if (tracked === 0) {
-        return 'bg-danger-soft text-danger-text font-semibold'
+        return 'cal-cell--danger'
       }
       if (tracked >= 8) {
-        return 'bg-success-soft text-success-text font-semibold'
+        return 'cal-cell--success'
       }
-      return 'bg-warning-soft text-warning-text font-semibold'
+      return 'cal-cell--warning'
     },
     cellTitle (cell) {
       if (!cell.dayNumber || cell.isWeekend) {
         return ''
+      }
+      if (cell.isHoliday) {
+        return cell.holidayName
       }
       if (cell.tracked === null || cell.tracked === undefined) {
         return this.$t('month_calendar.no_data')
