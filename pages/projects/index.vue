@@ -7,10 +7,24 @@
             {{ $t('projects') }}
           </h1>
           <p class="text-sm text-ink-muted mt-1">
-            {{ $t('projects_description') }}
+            {{ $t('projects_description') }}<br>
+            {{ $t('projects_description_2') }}
           </p>
         </div>
+        <button
+          class="flex items-center gap-1.5 px-3 py-2 rounded text-sm border border-stroke text-ink-secondary hover:border-danger hover:text-danger transition-colors"
+          :title="$t('projects_cleanup_tooltip')"
+          @click="cleanupStale"
+        >
+          <trash-x-icon size="16" />
+          <span class="hidden sm:inline">{{ $t('projects_cleanup') }}</span>
+        </button>
       </div>
+
+      <!-- Cleanup feedback -->
+      <p v-if="cleanupMessage" class="text-sm text-ink-muted mb-4 transition-opacity">
+        {{ cleanupMessage }}
+      </p>
 
       <!-- Add new project -->
       <div class="flex gap-2 mb-6">
@@ -36,17 +50,24 @@
         <div
           v-for="project in projects"
           :key="project.id"
-          class="flex items-center justify-between p-3 rounded border border-stroke hover:border-ink-faint transition-colors"
+          class="flex items-center justify-between p-3 rounded border transition-colors"
+          :class="project.stale ? 'border-warning opacity-75' : 'border-stroke hover:border-ink-faint'"
         >
           <div class="flex flex-col gap-0.5 min-w-0">
-            <span class="self-start inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-accent-soft text-accent-fg">
-              {{ project.name }}
-            </span>
+            <div class="flex items-center gap-1.5">
+              <span class="self-start inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-accent-soft text-accent-fg">
+                {{ project.name }}
+              </span>
+              <alert-triangle-icon v-if="project.stale" size="16" class="text-warning-text flex-shrink-0" :title="$t('projects_stale_hint')" />
+            </div>
             <span v-if="project.linkedProject" class="text-xs text-ink-muted pl-3 truncate">
               {{ project.linkedProject }}
               <template v-if="project.linkedArea">
                 &middot; {{ project.linkedArea }}
               </template>
+            </span>
+            <span v-else-if="project.stale" class="text-xs text-warning-text pl-3">
+              {{ $t('projects_stale_hint') }}
             </span>
           </div>
           <div class="flex items-center gap-1 flex-shrink-0">
@@ -80,20 +101,24 @@
 </template>
 
 <script>
-import { PlusIcon, EditIcon, TrashIcon, BriefcaseIcon } from 'vue-tabler-icons'
+import { PlusIcon, EditIcon, TrashIcon, BriefcaseIcon, AlertTriangleIcon, TrashXIcon } from 'vue-tabler-icons'
 import { mapMutations, mapGetters, mapActions } from 'vuex'
+import { updateApiData } from '~/utils/updateApiData'
 
 export default {
   components: {
     PlusIcon,
     EditIcon,
     TrashIcon,
-    BriefcaseIcon
+    TrashXIcon,
+    BriefcaseIcon,
+    AlertTriangleIcon
   },
   middleware: 'auth',
   data () {
     return {
-      newProjectName: ''
+      newProjectName: '',
+      cleanupMessage: ''
     }
   },
   computed: {
@@ -101,8 +126,8 @@ export default {
       const linkedProjects = this.apiDataProjects
 
       return this.visibleProjects.map((project) => {
-        let linkedProject = { name: '' }
-        let linkedArea = linkedProject
+        let linkedProject = null
+        let linkedArea = null
 
         if (project.linkedProjectId) {
           linkedProject = linkedProjects.find(({ id }) => project.linkedProjectId === id)
@@ -115,9 +140,13 @@ export default {
           name: project.name,
           id: project.id,
           linkedProject: linkedProject?.name || '',
-          linkedArea: linkedArea?.name || ''
+          linkedArea: linkedArea?.name || '',
+          stale: !linkedProject
         }
       }).sort((a, b) => a.name.localeCompare(b.name))
+    },
+    staleProjects () {
+      return this.projects.filter(p => p.stale)
     },
     ...mapGetters({
       visibleProjects: 'projects/visibleProjects',
@@ -135,11 +164,26 @@ export default {
     edit (id) {
       this.$router.push(this.localeLocation({ name: 'projects-id', params: { id } }))
     },
+    async cleanupStale () {
+      this.cleanupMessage = this.$t('projects_cleanup_loading')
+      await updateApiData(this.$axios, this.$store)
+
+      const stale = this.staleProjects
+      if (!stale.length) {
+        this.cleanupMessage = this.$t('projects_no_stale')
+        setTimeout(() => { this.cleanupMessage = '' }, 3000)
+        return
+      }
+      this.removeManyProjects(stale.map(p => p.id))
+      this.cleanupMessage = this.$t('projects_stale_removed', { count: stale.length })
+      setTimeout(() => { this.cleanupMessage = '' }, 3000)
+    },
     ...mapActions({
       addProjectAction: 'projects/add'
     }),
     ...mapMutations({
-      removeProject: 'projects/remove'
+      removeProject: 'projects/remove',
+      removeManyProjects: 'projects/removeMany'
     })
   }
 }

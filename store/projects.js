@@ -48,6 +48,18 @@ export const mutations = {
     state.projects.push(oldProject)
     state.updatedAt = new Date().toISOString()
   },
+  removeMany (state, ids) {
+    const now = new Date().toISOString()
+    for (const id of ids) {
+      const project = state.projects.find(p => p.id === id)
+      if (!project) { continue }
+      state.projects.splice(state.projects.indexOf(project), 1)
+      project.deleted = true
+      project.deletedAt = now
+      state.projects.push(project)
+    }
+    state.updatedAt = now
+  },
   restoreBackup (state, projects) {
     state.projects = projects
     state.updatedAt = new Date().toISOString()
