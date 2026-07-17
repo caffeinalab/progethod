@@ -1,7 +1,7 @@
 import { startOfDay, endOfDay, differenceInMinutes, parseISO } from 'date-fns'
 
 const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'
-const SCOPES = 'https://www.googleapis.com/auth/calendar.readonly'
+const SCOPES = 'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/userinfo.profile'
 
 function connectCalendar () {
   const tokenClient = window.google.accounts.oauth2.initTokenClient({
@@ -18,6 +18,8 @@ function connectCalendar () {
 
       window.$nuxt.$store.commit('user/authorizedGoogleToken', tokenResponse.expires_in)
 
+      fetchGoogleProfilePic(tokenResponse.access_token)
+
       resolve()
     }
   })
@@ -25,6 +27,20 @@ function connectCalendar () {
   tokenClient.requestAccessToken({ prompt: '' })
 
   return authorizedPromise
+}
+
+async function fetchGoogleProfilePic (accessToken) {
+  try {
+    const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    })
+    const data = await response.json()
+    if (data.picture) {
+      window.$nuxt.$store.commit('user/setProfilePicUrl', data.picture)
+    }
+  } catch (error) {
+    console.warn('Could not fetch Google profile picture', error)
+  }
 }
 
 export async function getEvents (day) {
@@ -72,6 +88,36 @@ function loadGApiClient () {
     })
   }
   return loadedPromise
+}
+
+/**
+ * Creates an all-day Out of Office event on the user's primary calendar.
+ * @param {string} dateStr – ISO date like '2026-07-08'
+ * @param {string} nextDateStr – ISO date of the following day like '2026-07-09'
+ */
+export async function createOutOfOfficeEvent (dateStr, nextDateStr) {
+  await loadGApiClient()
+
+  if (!window.$nuxt.$store.getters['user/isGoogleTokenValid']) {
+    await connectCalendar()
+  }
+
+  const response = await window.gapi.client.calendar.events.insert({
+    calendarId: 'primary',
+    resource: {
+      summary: 'OOO',
+      start: { date: dateStr },
+      end: { date: nextDateStr },
+      eventType: 'outOfOffice',
+      outOfOfficeProperties: {
+        autoDeclineMode: 'declineAllConflictingInvitations'
+      },
+      transparency: 'opaque',
+      visibility: 'public'
+    }
+  })
+
+  return response.result
 }
 
 function matchEventToProject (description, projects) {

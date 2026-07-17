@@ -36,29 +36,17 @@
                 {{ $t('presets.nav') }}
               </li>
             </NuxtLink>
+            <NuxtLink to="/ferie" class="h-full flex items-center">
+              <li class="text-ink-secondary hover:text-accent-fg cursor-pointer h-full flex items-center text-sm tracking-normal mx-5 capitalize">
+                {{ $t('calendar_page.nav') }}
+              </li>
+            </NuxtLink>
           </ul>
         </div>
 
         <div class="h-full xl:flex items-center justify-end hidden">
           <div class="w-full h-full flex items-center">
-            <div class="w-full pr-12 h-full flex items-center border-r border-stroke-muted">
-              <div class="invisible relative w-full">
-                <div class="text-ink-muted absolute ml-3 inset-0 m-auto w-4 h-4">
-                  <search-icon
-                    class="icon icon-tabler icon-tabler-search"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    stroke-width="1.5"
-                    stroke="currentColor"
-                    fill="none"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </div>
-                <input class="border border-stroke-muted focus:outline-none focus:border-accent w-56 rounded text-sm text-ink-muted bg-card-hover pl-8 py-2" type="text" placeholder="Search">
-              </div>
-            </div>
+            <div class="h-full flex items-center border-r border-stroke-muted px-4" />
             <div class="w-full h-full flex">
               <div class="w-32 h-full flex items-center justify-center border-r border-stroke-muted cursor-pointer text-ink-secondary">
                 <loader-icon
@@ -83,7 +71,7 @@
                 />
               </div>
               <div aria-haspopup="true" class="w-full flex items-center justify-end relative" @click.stop="dropdownHandler($event)">
-                <ul v-show="showDropdown" class="p-2 w-60 border border-stroke-muted bg-card absolute rounded z-40 right-0 top-full mt-2 shadow-lg">
+                <ul v-show="showDropdown" class="p-2 w-60 border border-stroke-muted bg-card absolute rounded-lg z-40 right-0 top-full mt-2 shadow-lg">
                   <li
                     class="cursor-pointer text-ink-secondary text-sm leading-3 tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none"
                     @click="showGuide = true"
@@ -170,8 +158,8 @@
                     </span>
                   </li>
                 </ul>
-                <img v-if="userInfo.pic" class="rounded h-10 w-10 object-cover cursor-pointer" :src="userInfo.pic" alt="User avatar">
-                <span v-else class="inline-flex items-center justify-center h-10 w-10 rounded bg-accent text-ink-inverse text-sm font-bold cursor-pointer select-none">{{ userInitials }}</span>
+                <img v-if="avatarUrl" class="rounded-full h-10 w-10 object-cover cursor-pointer" :src="avatarUrl" alt="User avatar">
+                <span v-else class="inline-flex items-center justify-center h-10 w-10 rounded-full bg-accent text-ink-inverse text-sm font-bold cursor-pointer select-none">{{ userInitials }}</span>
                 <p class="text-ink text-sm ml-2 cursor-pointer">
                   {{ `${userInfo.name} ${userInfo.surname}` }}
                 </p>
@@ -203,14 +191,21 @@
                 </div>
               </li>
             </NuxtLink>
+            <NuxtLink to="/ferie" class="h-full flex items-center">
+              <li class="flex xl:hidden cursor-pointer text-ink-secondary text-base leading-3 tracking-normal mt-2 py-3 hover:text-accent-fg focus:text-accent-fg focus:outline-none capitalize">
+                <div class="flex items-center">
+                  <span class="leading-6 ml-2 font-bold"> {{ $t('calendar_page.nav') }} </span>
+                </div>
+              </li>
+            </NuxtLink>
             <li>
               <hr class="border-b border-stroke w-full">
             </li>
             <li class="ml-2 cursor-pointer text-ink-secondary text-sm leading-3 tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none">
               <div class="flex items-center">
-                <div class="w-12 cursor-pointer flex text-sm border-2 border-transparent rounded focus:outline-none focus:border-white transition duration-150 ease-in-out">
-                  <img v-if="userInfo.pic" class="rounded h-10 w-10 object-cover" :src="userInfo.pic" alt="User avatar">
-                  <span v-else class="inline-flex items-center justify-center h-10 w-10 rounded bg-accent text-ink-inverse text-sm font-bold select-none">{{ userInitials }}</span>
+                <div class="w-12 cursor-pointer flex text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-white transition duration-150 ease-in-out">
+                  <img v-if="avatarUrl" class="rounded-full h-10 w-10 object-cover" :src="avatarUrl" alt="User avatar">
+                  <span v-else class="inline-flex items-center justify-center h-10 w-10 rounded-full bg-accent text-ink-inverse text-sm font-bold select-none">{{ userInitials }}</span>
                 </div>
                 <p class="leading-6 text-base ml-1 cursor-pointer">
                   {{ `${userInfo.name} ${userInfo.surname}` }}
@@ -386,6 +381,7 @@
     <keyboard-shortcuts-help />
     <integration-hint />
     <app-guide-modal v-model="showGuide" />
+    <dev-auth-bar />
   </div>
 </template>
 
@@ -404,7 +400,6 @@ import {
   MoonIcon,
   LoaderIcon,
   RefreshIcon,
-  SearchIcon,
   SunIcon,
   UserIcon
 } from 'vue-tabler-icons'
@@ -425,7 +420,6 @@ export default {
     MenuIcon,
     MoonIcon,
     RefreshIcon,
-    SearchIcon,
     SunIcon,
     UserIcon
   },
@@ -444,8 +438,12 @@ export default {
       isTokenExpired: 'user/isTokenExpired',
       isConfirmOnSubmitRequired: 'preferences/isConfirmOnSubmitRequired',
       currentTheme: 'preferences/theme',
-      highContrast: 'preferences/highContrast'
+      highContrast: 'preferences/highContrast',
+      profilePicUrl: 'user/profilePicUrl'
     }),
+    avatarUrl () {
+      return this.profilePicUrl || this.userInfo.pic || null
+    },
     userInitials () {
       const first = (this.userInfo.name || '')[0] || ''
       const last = (this.userInfo.surname || '')[0] || ''

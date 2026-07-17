@@ -23,7 +23,8 @@ export const state = () => ({
     accessToken: null,
     refreshToken: null,
     tokenExpiration: null
-  }
+  },
+  profilePicUrl: null
 })
 
 export const getters = {
@@ -83,6 +84,9 @@ export const getters = {
   },
   gitlabRefreshToken (state) {
     return state.gitlab.refreshToken
+  },
+  profilePicUrl (state) {
+    return state.profilePicUrl
   }
 }
 
@@ -121,5 +125,8 @@ export const mutations = {
   },
   clearGitlabAuth (state) {
     state.gitlab = { accessToken: null, refreshToken: null, tokenExpiration: null }
+  },
+  setProfilePicUrl (state, url) {
+    state.profilePicUrl = url
   }
 }
