@@ -41,7 +41,7 @@ const corsHeaders = async ({ next, env, request }) => {
 
 function isExternalAuthRoute (request) {
   const pathname = new URL(request.url).pathname
-  return pathname === '/api/jira-token' || pathname === '/api/gitlab-token'
+  return pathname === '/api/jira-token' || pathname === '/api/gitlab-token' || pathname === '/api/holidays'
 }
 
 const auth = ({ next, request, env, data }) => {

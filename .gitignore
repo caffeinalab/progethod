@@ -92,5 +92,8 @@ sw.*
 # Cloudflare Workers Local KV
 .wrangler
 
+# Cloudflare Pages local env vars
+.dev.vars
+
 # Dev-only auth bypass
 plugins/dev-bypass-auth.js

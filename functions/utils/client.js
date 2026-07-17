@@ -54,3 +54,11 @@ export function getRequest (endpoint, queryParams, authToken, env) {
 export function postRequest (endpoint, body, authToken, env) {
   return baseRequest('POST', endpoint, null, body, authToken, env)
 }
+
+export function patchRequest (endpoint, body, authToken, env) {
+  return baseRequest('PATCH', endpoint, null, body, authToken, env)
+}
+
+export function deleteRequest (endpoint, authToken, env) {
+  return baseRequest('DELETE', endpoint, null, null, authToken, env)
+}
