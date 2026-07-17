@@ -12,7 +12,7 @@
           </p>
         </div>
         <button
-          class="flex items-center gap-1.5 px-3 py-2 rounded text-sm border border-stroke text-ink-secondary hover:border-danger hover:text-danger transition-colors"
+          class="flex items-center gap-1.5 px-3 py-2 rounded text-sm border border-danger text-danger hover:bg-danger-soft transition-colors"
           :title="$t('projects_cleanup_tooltip')"
           @click="cleanupStale"
         >
@@ -37,7 +37,10 @@
           @keyup.enter="addProject"
         >
         <button
-          class="px-4 py-2 text-ink-inverse bg-accent hover:bg-accent-hover rounded transition duration-150 ease-in-out focus:outline-none disabled:bg-ink-faint disabled:cursor-default"
+          class="flex items-center justify-center w-10 h-10 rounded border shadow transition-colors duration-150 focus:outline-none"
+          :class="newProjectName.trim()
+            ? 'bg-accent border-accent text-ink-inverse hover:bg-accent-hover hover:border-accent-hover focus:ring-2 focus:ring-focus-ring focus:ring-offset-1'
+            : 'bg-card-dim border-stroke-muted text-ink-disabled cursor-default'"
           :disabled="!newProjectName.trim()"
           @click="addProject"
         >
@@ -50,25 +53,22 @@
         <div
           v-for="project in projects"
           :key="project.id"
-          class="flex items-center justify-between p-3 rounded border transition-colors"
+          class="project-card flex items-center justify-between p-3 rounded-lg border transition-colors"
           :class="project.stale ? 'border-warning opacity-75' : 'border-stroke hover:border-ink-faint'"
         >
-          <div class="flex flex-col gap-0.5 min-w-0">
-            <div class="flex items-center gap-1.5">
-              <span class="self-start inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-accent-soft text-accent-fg">
-                {{ project.name }}
-              </span>
-              <alert-triangle-icon v-if="project.stale" size="16" class="text-warning-text flex-shrink-0" :title="$t('projects_stale_hint')" />
-            </div>
-            <span v-if="project.linkedProject" class="text-xs text-ink-muted pl-3 truncate">
+          <div class="flex flex-col gap-1 min-w-0">
+            <span class="self-start inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-accent text-ink-inverse">
+              {{ project.name }}
+            </span>
+            <div v-if="project.linkedProject" class="flex items-center gap-1.5 text-xs text-ink-muted truncate">
               {{ project.linkedProject }}
               <template v-if="project.linkedArea">
                 &middot; {{ project.linkedArea }}
               </template>
-            </span>
-            <span v-else-if="project.stale" class="text-xs text-warning-text pl-3">
+            </div>
+            <div v-else-if="project.stale" class="text-xs text-warning-text">
               {{ $t('projects_stale_hint') }}
-            </span>
+            </div>
           </div>
           <div class="flex items-center gap-1 flex-shrink-0">
             <button
@@ -101,7 +101,7 @@
 </template>
 
 <script>
-import { PlusIcon, EditIcon, TrashIcon, BriefcaseIcon, AlertTriangleIcon, TrashXIcon } from 'vue-tabler-icons'
+import { PlusIcon, EditIcon, TrashIcon, BriefcaseIcon, TrashXIcon } from 'vue-tabler-icons'
 import { mapMutations, mapGetters, mapActions } from 'vuex'
 import { updateApiData } from '~/utils/updateApiData'
 
@@ -111,8 +111,7 @@ export default {
     EditIcon,
     TrashIcon,
     TrashXIcon,
-    BriefcaseIcon,
-    AlertTriangleIcon
+    BriefcaseIcon
   },
   middleware: 'auth',
   data () {
