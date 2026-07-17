@@ -117,6 +117,10 @@ export default () => {
         event.preventDefault()
         nuxt.$router.push('/presets')
         break
+      case 'c':
+        event.preventDefault()
+        nuxt.$router.push('/ferie')
+        break
       case '?':
         event.preventDefault()
         nuxt.$emit('shortcut:show-help')

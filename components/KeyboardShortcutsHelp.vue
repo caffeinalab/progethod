@@ -30,6 +30,7 @@
               <shortcut-row keys="t" :label="$t('keyboard_shortcuts.go_timesheet')" />
               <shortcut-row keys="p" :label="$t('keyboard_shortcuts.go_projects')" />
               <shortcut-row keys="s" :label="$t('keyboard_shortcuts.go_presets')" />
+              <shortcut-row keys="c" :label="$t('keyboard_shortcuts.go_calendar')" />
             </div>
           </section>
 
