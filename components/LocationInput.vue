@@ -157,7 +157,7 @@ export default {
       if (isActive) {
         return 'location-active cursor-default'
       }
-      return 'text-ink-faint location-hover'
+      return 'text-ink-muted location-hover'
     }
   }
 }
