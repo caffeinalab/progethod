@@ -107,9 +107,8 @@ function waitForCallback (popup) {
   })
 }
 
-export async function getGitlabActivity (day) {
+async function ensureGitlabAuth () {
   const store = window.$nuxt.$store
-  const axios = window.$nuxt.$axios
 
   if (!store.getters['user/isGitlabTokenValid']) {
     if (store.getters['user/isGitlabRefreshable']) {
@@ -123,7 +122,11 @@ export async function getGitlabActivity (day) {
       await connectGitlab()
     }
   }
+}
 
+async function fetchGitlabActivity (day) {
+  const store = window.$nuxt.$store
+  const axios = window.$nuxt.$axios
   const accessToken = store.getters['user/gitlabAccessToken']
   const dayString = typeof day === 'string' ? day : day.toISOString().split('T')[0]
 
@@ -135,4 +138,21 @@ export async function getGitlabActivity (day) {
   })
 
   return response.data || []
+}
+
+export async function getGitlabActivity (day) {
+  await ensureGitlabAuth()
+
+  try {
+    return await fetchGitlabActivity(day)
+  } catch (error) {
+    const status = error.response?.status
+    if (status === 401) {
+      const store = window.$nuxt.$store
+      store.commit('user/clearGitlabAuth')
+      await connectGitlab()
+      return await fetchGitlabActivity(day)
+    }
+    throw error
+  }
 }

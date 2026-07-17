@@ -109,9 +109,8 @@ function waitForCallback (popup) {
   })
 }
 
-export async function getJiraActivity (day) {
+async function ensureJiraAuth () {
   const store = window.$nuxt.$store
-  const axios = window.$nuxt.$axios
 
   if (!store.getters['user/isJiraTokenValid']) {
     if (store.getters['user/isJiraRefreshable']) {
@@ -125,7 +124,11 @@ export async function getJiraActivity (day) {
       await connectJira()
     }
   }
+}
 
+async function fetchJiraActivity (day) {
+  const store = window.$nuxt.$store
+  const axios = window.$nuxt.$axios
   const cloudId = store.getters['user/jiraCloudId']
   const accessToken = store.getters['user/jiraAccessToken']
   const dayString = typeof day === 'string' ? day : day.toISOString().split('T')[0]
@@ -139,4 +142,21 @@ export async function getJiraActivity (day) {
   })
 
   return response.data || []
+}
+
+export async function getJiraActivity (day) {
+  await ensureJiraAuth()
+
+  try {
+    return await fetchJiraActivity(day)
+  } catch (error) {
+    const status = error.response?.status
+    if (status === 401) {
+      const store = window.$nuxt.$store
+      store.commit('user/clearJiraAuth')
+      await connectJira()
+      return await fetchJiraActivity(day)
+    }
+    throw error
+  }
 }
