@@ -3,7 +3,7 @@
     <input
       ref="input"
       v-model="inputString"
-      class="text-ink focus:outline-none focus:border focus:border-accent bg-card font-normal w-16 h-10 flex items-center pl-3 text-sm border-stroke rounded border shadow"
+      class="text-ink focus:outline-none focus:border focus:border-accent bg-card font-normal w-16 h-10 flex items-center pl-3 text-sm border-stroke rounded-lg border shadow"
       :class="{ 'text-ink-disabled': disabled, 'text-ink-secondary': !disabled }"
       type="text"
       maxlength="5"

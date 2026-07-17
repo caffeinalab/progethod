@@ -28,7 +28,7 @@
     <!-- Per-row: icon button with dropdown picker -->
     <div v-else class="relative">
       <button
-        class="flex items-center justify-center w-10 h-10 rounded border border-stroke-muted bg-card shadow transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-focus-ring"
+        class="flex items-center justify-center w-10 h-10 rounded-lg border border-stroke-muted bg-card shadow transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-focus-ring"
         :class="disabled
           ? 'text-ink-disabled cursor-default'
           : 'cursor-pointer hover:bg-card-hover hover:border-stroke ' + activeIconColor"

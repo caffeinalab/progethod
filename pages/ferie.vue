@@ -3,7 +3,7 @@
     <div class="mx-auto container max-w-6xl px-6">
       <div class="flex gap-6 items-start">
         <!-- Calendar panel -->
-        <div class="flex-1 min-w-0 bg-card shadow rounded p-6">
+        <div class="flex-1 min-w-0 bg-card shadow rounded-lg p-6">
           <div class="flex items-center justify-between mb-6">
             <h1 class="text-xl font-bold text-ink">
               {{ $t('calendar_page.title') }}
@@ -128,7 +128,7 @@
         </div>
 
         <!-- Upcoming requests sidebar -->
-        <div class="w-80 shrink-0 bg-card shadow rounded p-4 sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto custom-scrollbar">
+        <div class="w-80 shrink-0 bg-card shadow rounded-lg p-4 sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto custom-scrollbar">
           <h2 class="text-sm font-bold text-ink mb-3">
             {{ $t('calendar_page.requests_upcoming') }}
           </h2>
@@ -184,7 +184,7 @@
       </div>
 
       <!-- Past requests history -->
-      <div class="mt-6 bg-card shadow rounded p-6">
+      <div class="mt-6 bg-card shadow rounded-lg p-6">
         <h2 class="text-sm font-bold text-ink mb-3">
           {{ $t('calendar_page.history_title') }}
         </h2>

@@ -1,6 +1,6 @@
 <template>
   <div class="w-full bg-page py-10 pt-20">
-    <div class="mx-auto container max-w-2xl bg-card shadow rounded p-6 lg:p-8">
+    <div class="mx-auto container max-w-2xl bg-card shadow rounded-lg p-6 lg:p-8">
       <div class="flex items-center justify-between mb-6">
         <div>
           <h1 class="text-2xl font-bold text-ink">
@@ -12,7 +12,7 @@
           </p>
         </div>
         <button
-          class="flex items-center gap-1.5 px-3 py-2 rounded text-sm border border-danger text-danger hover:bg-danger-soft transition-colors"
+          class="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm border border-danger text-danger hover:bg-danger-soft transition-colors"
           :title="$t('projects_cleanup_tooltip')"
           @click="cleanupStale"
         >
@@ -32,12 +32,12 @@
           ref="newProjectInput"
           v-model="newProjectName"
           type="text"
-          class="flex-1 border border-stroke pl-3 py-2 shadow-sm bg-transparent rounded text-sm focus:outline-none focus:border-accent placeholder-ink-faint text-ink-secondary"
+          class="flex-1 border border-stroke pl-3 py-2 shadow-sm bg-transparent rounded-lg text-sm focus:outline-none focus:border-accent placeholder-ink-faint text-ink-secondary"
           :placeholder="$t('projects_new_placeholder')"
           @keyup.enter="addProject"
         >
         <button
-          class="flex items-center justify-center w-10 h-10 rounded border shadow transition-colors duration-150 focus:outline-none"
+          class="flex items-center justify-center w-10 h-10 rounded-lg border shadow transition-colors duration-150 focus:outline-none"
           :class="newProjectName.trim()
             ? 'bg-accent border-accent text-ink-inverse hover:bg-accent-hover hover:border-accent-hover focus:ring-2 focus:ring-focus-ring focus:ring-offset-1'
             : 'bg-card-dim border-stroke-muted text-ink-disabled cursor-default'"

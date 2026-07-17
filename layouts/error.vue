@@ -12,7 +12,7 @@
       </p>
       <NuxtLink
         to="/"
-        class="inline-flex items-center gap-2 px-5 py-2.5 rounded bg-accent text-ink-inverse font-medium text-sm hover:bg-accent-hover transition-colors"
+        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-accent text-ink-inverse font-medium text-sm hover:bg-accent-hover transition-colors"
       >
         &larr; Torna al timesheet
       </NuxtLink>

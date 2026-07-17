@@ -169,7 +169,7 @@
         </div>
 
         <div class="visible xl:hidden flex items-center">
-          <ul class="z-40 p-2 border-r border-stroke-muted bg-card absolute rounded top-0 left-0 right-0 shadow mt-16 md:mt-16 hidden">
+          <ul class="z-40 p-2 border-r border-stroke-muted bg-card absolute rounded-lg top-0 left-0 right-0 shadow mt-16 md:mt-16 hidden">
             <NuxtLink to="/" class="h-full flex items-center">
               <li class="flex xl:hidden cursor-pointer text-ink-secondary text-base leading-3 tracking-normal mt-2 py-3 hover:text-accent-fg focus:text-accent-fg focus:outline-none capitalize">
                 <div class="flex items-center">

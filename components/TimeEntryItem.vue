@@ -21,7 +21,7 @@
         v-if="editing"
         ref="searchInput"
         v-model="searchQuery"
-        class="text-ink focus:outline-none focus:border focus:border-accent bg-card font-normal w-full h-10 flex items-center pl-3 text-sm border-stroke rounded border shadow"
+        class="text-ink focus:outline-none focus:border focus:border-accent bg-card font-normal w-full h-10 flex items-center pl-3 text-sm border-stroke rounded-lg border shadow"
         :placeholder="$t('select_project')"
         :disabled="disabled"
         @focus="openDropdown"
@@ -35,7 +35,7 @@
       <!-- Selected display (clickable to re-open) -->
       <button
         v-else-if="selection"
-        class="group relative w-full h-10 pl-3 pr-2 text-sm text-left text-ink border rounded shadow bg-card flex items-center gap-1 transition-colors"
+        class="group relative w-full h-10 pl-3 pr-2 text-sm text-left text-ink border rounded-lg shadow bg-card flex items-center gap-1 transition-colors"
         :class="disabled
           ? 'border-stroke-muted text-ink-disabled cursor-default'
           : 'border-stroke hover:border-accent cursor-text'"
@@ -168,7 +168,7 @@
       <input
         ref="notes"
         v-model="notes"
-        class="text-ink focus:outline-none focus:border focus:border-accent bg-card font-normal w-full h-10 flex items-center pl-3 text-sm border-stroke rounded border shadow"
+        class="text-ink focus:outline-none focus:border focus:border-accent bg-card font-normal w-full h-10 flex items-center pl-3 text-sm border-stroke rounded-lg border shadow"
         :class="{ 'text-ink-disabled': disabled, 'text-ink-secondary': !disabled }"
         placeholder="Notes"
         :disabled="disabled"

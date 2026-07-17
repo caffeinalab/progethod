@@ -1,9 +1,9 @@
 <template>
   <div class="mx-auto container py-10 pt-24">
     <div class="flex items-center justify-between w-full">
-      <div class="flex flex-col lg:flex-row w-full items-start lg:items-center rounded bg-card shadow">
+      <div class="flex flex-col lg:flex-row w-full items-start lg:items-center rounded-lg bg-card shadow">
         <div class="w-full lg:w-2/3 h-64">
-          <div class="container mx-auto bg-card mt-10 rounded px-4">
+          <div class="container mx-auto bg-card mt-10 rounded-lg px-4">
             <div class="xl:w-full border-b border-stroke py-5">
               <div class="flex w-11/12 mx-auto xl:w-full xl:mx-0 items-center">
                 <p class="text-lg text-ink font-bold">
@@ -25,7 +25,7 @@
                       type="text"
                       name="name"
                       required
-                      class="border border-stroke pl-3 py-3 shadow-sm bg-transparent rounded text-sm focus:outline-none focus:border-accent placeholder-ink-faint text-ink"
+                      class="border border-stroke pl-3 py-3 shadow-sm bg-transparent rounded-lg text-sm focus:outline-none focus:border-accent placeholder-ink-faint text-ink"
                       placeholder=""
                     >
                   </div>
@@ -59,7 +59,7 @@
                       v-model="defaultNotes"
                       type="text"
                       name="defaultNotes"
-                      class="border border-stroke pl-3 py-3 shadow-sm bg-transparent rounded text-sm focus:outline-none focus:border-accent placeholder-ink-faint text-ink"
+                      class="border border-stroke pl-3 py-3 shadow-sm bg-transparent rounded-lg text-sm focus:outline-none focus:border-accent placeholder-ink-faint text-ink"
                       placeholder=""
                     >
                   </div>
@@ -74,12 +74,12 @@
                         :value="magicTag"
                         type="text"
                         name="defaultNotes"
-                        class="border border-stroke pl-3 py-3 shadow-sm bg-transparent rounded text-sm focus:outline-none focus:border-accent placeholder-ink-faint text-ink"
+                        class="border border-stroke pl-3 py-3 shadow-sm bg-transparent rounded-lg text-sm focus:outline-none focus:border-accent placeholder-ink-faint text-ink"
                         placeholder=""
                         readonly
                       >
                       <button
-                        class="ml-2 mr-1 p-2 text-ink-inverse focus:outline-none border border-transparent focus:border-ink focus:shadow-outline-gray bg-accent hover:bg-accent-hover rounded transition duration-150 ease-in-out disabled:cursor-default disabled:bg-ink-muted"
+                        class="ml-2 mr-1 p-2 text-ink-inverse focus:outline-none border border-transparent focus:border-ink focus:shadow-outline-gray bg-accent hover:bg-accent-hover rounded-lg transition duration-150 ease-in-out disabled:cursor-default disabled:bg-ink-muted"
                         :disabled="disableCopy"
                         :title="$t('copy')"
                         type="button"
@@ -99,7 +99,7 @@
           </div>
         </div>
         <div class="w-full lg:w-1/3 h-24 lg:h-64 border-t lg:border-t-0 lg:border-r lg:border-l lg:rounded-r bg-card-dim">
-          <button class="m-5 transition duration-150 ease-in-out hover:bg-accent-hover focus:outline-none border bg-accent rounded text-ink-inverse px-8 py-2 text-sm" @click="save">
+          <button class="m-5 transition duration-150 ease-in-out hover:bg-accent-hover focus:outline-none border bg-accent rounded-lg text-ink-inverse px-8 py-2 text-sm" @click="save">
             {{ $t('save') }}
           </button>
         </div>

@@ -56,7 +56,7 @@
             @userSubmit="handleSubmit(entry.id)"
           />
           <button
-            class="flex items-center justify-center w-10 h-10 rounded border shadow transition-colors duration-150 focus:outline-none"
+            class="flex items-center justify-center w-10 h-10 rounded-lg border shadow transition-colors duration-150 focus:outline-none"
             :class="entry.synced
               ? 'bg-card-dim border-stroke-muted text-ink-disabled cursor-default'
               : 'bg-card border-stroke-muted text-ink-muted hover:text-danger hover:border-danger hover:bg-danger-soft focus:text-danger'"
@@ -109,7 +109,7 @@
 
       <div class="flex items-center gap-2">
         <button
-          class="flex items-center justify-center w-10 h-10 rounded border shadow transition-colors duration-150 focus:outline-none"
+          class="flex items-center justify-center w-10 h-10 rounded-lg border shadow transition-colors duration-150 focus:outline-none"
           :class="disableSubmission
             ? 'bg-card-dim border-stroke-muted text-ink-disabled cursor-default'
             : 'bg-accent border-accent text-ink-inverse hover:bg-accent-hover hover:border-accent-hover focus:ring-2 focus:ring-focus-ring focus:ring-offset-1'"
@@ -120,7 +120,7 @@
           <send-icon width="16" height="16" stroke-width="1.5" />
         </button>
         <button
-          class="flex items-center justify-center w-10 h-10 rounded border border-stroke-muted bg-card shadow transition-colors duration-150 focus:outline-none text-ink-muted hover:text-danger hover:border-danger hover:bg-danger-soft focus:text-danger"
+          class="flex items-center justify-center w-10 h-10 rounded-lg border border-stroke-muted bg-card shadow transition-colors duration-150 focus:outline-none text-ink-muted hover:text-danger hover:border-danger hover:bg-danger-soft focus:text-danger"
           :title="$t('reset_day')"
           @click="nukeDay"
         >
@@ -480,7 +480,7 @@ export default {
   }
 
   .integration-btn {
-    @apply relative flex items-center justify-center w-10 h-10 rounded
+    @apply relative flex items-center justify-center w-10 h-10 rounded-lg
            border border-stroke-muted bg-card shadow
            transition-all duration-150 ease-in-out
            hover:bg-card-hover hover:border-stroke
