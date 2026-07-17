@@ -326,7 +326,11 @@
   border-bottom: 1px solid var(--color-stroke-muted);
 }
 
-/* ─── Dark mode: day-card & element overrides ─── */
+/* ─── Day-card background overrides ─── */
+.day-card {
+  background: #f3f4f6;
+}
+
 .dark .day-card {
   background: #3e3f44;
 }
