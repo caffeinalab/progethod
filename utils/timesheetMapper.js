@@ -47,6 +47,18 @@ export function prepareForSubmission (dayEntries, userProjects, linkedProjects, 
     .reduce((acc, day) => acc.concat(day), [])
 }
 
+function normalizeAreaId (areaId) {
+  if (areaId == null || areaId === 'null') {
+    return null
+  }
+  return areaId
+}
+
+function areaExists (areas, areaId) {
+  const normalized = normalizeAreaId(areaId)
+  return areas.some(area => normalizeAreaId(area.id) === normalized)
+}
+
 function resolveEntryIds (data, userProjects, linkedProjects) {
   if (data.directWethodProjectId) {
     const linkedProject = linkedProjects.find(project => project.id === data.directWethodProjectId)
@@ -60,7 +72,7 @@ function resolveEntryIds (data, userProjects, linkedProjects) {
     }
 
     const areaId = data.directWethodAreaId || 'null'
-    if (!linkedProject.areas.find(area => area.id === areaId)) {
+    if (!areaExists(linkedProject.areas, areaId)) {
       throw new TranslatableError('errors.linked_area_not_found', { project: displayName })
     }
 
@@ -79,7 +91,7 @@ function resolveEntryIds (data, userProjects, linkedProjects) {
   if (linkedProject.isAutomatic) {
     return null
   }
-  if (!linkedProject.areas.find(area => area.id === linkedAreaId)) {
+  if (!areaExists(linkedProject.areas, linkedAreaId)) {
     throw new TranslatableError('errors.linked_area_not_found', { project: name })
   }
 
