@@ -10,6 +10,9 @@ module.exports = {
   ],
   safelist: [],
   theme: {
+    fontFamily: {
+      sans: ['"DM Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif']
+    },
     extend: {
       colors: {
         page: 'var(--color-page)',
@@ -51,6 +54,21 @@ module.exports = {
           DEFAULT: 'var(--color-danger)',
           soft: 'var(--color-danger-soft)',
           text: 'var(--color-danger-text)'
+        },
+        vacation: {
+          DEFAULT: 'var(--color-vacation)',
+          soft: 'var(--color-vacation-soft)',
+          text: 'var(--color-vacation-text)'
+        },
+        leaves: {
+          DEFAULT: 'var(--color-leaves)',
+          soft: 'var(--color-leaves-soft)',
+          text: 'var(--color-leaves-text)'
+        },
+        pending: {
+          DEFAULT: 'var(--color-pending)',
+          soft: 'var(--color-pending-soft)',
+          text: 'var(--color-pending-text)'
         }
       }
     }

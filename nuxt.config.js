@@ -15,7 +15,10 @@ export default {
       { name: 'format-detection', content: 'telephone=no' }
     ],
     link: [
-      { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
+      { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+      { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+      { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
+      { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap' }
     ],
     script: [
       {
@@ -45,8 +48,7 @@ export default {
     { src: '~/plugins/projects-sync.js', ssr: false },
     { src: '~/plugins/presets-sync.js', ssr: false },
     { src: '~/plugins/keyboard-shortcuts.js', ssr: false },
-    { src: '~/plugins/theme.js', ssr: false },
-    ...(process.env.NODE_ENV === 'development' ? [{ src: '~/plugins/dev-bypass-auth.js', ssr: false }] : [])
+    { src: '~/plugins/theme.js', ssr: false }
   ],
 
   router: {
@@ -67,18 +69,25 @@ export default {
 
   // Modules: https://go.nuxtjs.dev/config-modules
   modules: [
-    // https://go.nuxtjs.dev/axios
     '@nuxtjs/axios',
-    // https://go.nuxtjs.dev/pwa
+    '@nuxtjs/proxy',
     '@nuxtjs/pwa',
     '@nuxtjs/i18n'
   ],
 
   // Axios module configuration: https://go.nuxtjs.dev/config-axios
   axios: {
-    // Workaround to avoid enforcing hard-coded localhost:3000: https://github.com/nuxt-community/axios-module/issues/308
-    baseURL: process.env.NODE_ENV === 'development' ? `${process.env.CF_PAGES_URL}/api/` : '/api/'
+    baseURL: '/api/',
+    proxy: true,
+    prefix: '/api/'
   },
+
+  proxy: process.env.NODE_ENV === 'development' ? {
+    '/api/': {
+      target: process.env.CF_PAGES_URL || 'http://localhost:8788',
+      pathRewrite: { '^/api/': '/api/' }
+    }
+  } : undefined,
 
   // PWA module configuration: https://go.nuxtjs.dev/pwa
   pwa: {
