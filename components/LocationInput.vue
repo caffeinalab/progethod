@@ -3,7 +3,7 @@
     <!-- Day header: text toggle buttons -->
     <div
       v-if="variant === 'text'"
-      class="flex items-center gap-1 p-0.5 bg-card-hover rounded-full shadow-sm"
+      class="flex items-center gap-1 p-0.5 bg-page rounded-full shadow"
     >
       <button
         v-for="option in options"
