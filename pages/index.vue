@@ -123,7 +123,7 @@
       <div
         v-for="(day, index) of days"
         :key="day.toString()"
-        class="day-card w-full rounded border-2 mb-5 p-2 transition-shadow duration-150"
+        class="day-card w-full rounded-lg border mb-5 p-2 transition-shadow duration-150"
         :class="dayCardClasses(day, index)"
       >
         <day-input-item

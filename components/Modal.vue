@@ -6,7 +6,7 @@
     :class="{'opacity-0': !value, 'pointer-events-none': !value, 'opacity-100': value}"
   >
     <div role="alert" class="container mx-auto w-11/12 md:w-2/3 max-w-xl flex justify-center">
-      <div class="relative w-11/12 sm:w-8/12 md:w-9/12 bg-card shadow pt-10 pb-8 rounded">
+      <div class="relative w-11/12 sm:w-8/12 md:w-9/12 bg-card shadow pt-10 pb-8 rounded-xl border border-stroke-muted">
         <div class="flex flex-col items-center px-4 md:px-8">
           <slot />
         </div>

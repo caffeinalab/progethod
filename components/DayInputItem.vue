@@ -31,13 +31,13 @@
     </div>
     <div class="entries-table mb-4 mt-4">
       <div />
-      <div class="entries-th">
+      <div :class="entries.length ? 'entries-th' : 'entries-th-muted'">
         {{ $t('project') }}
       </div>
-      <div class="entries-th">
+      <div :class="entries.length ? 'entries-th' : 'entries-th-muted'">
         {{ $t('duration') }}
       </div>
-      <div class="entries-th">
+      <div :class="entries.length ? 'entries-th' : 'entries-th-muted'">
         {{ $t('notes') }}
       </div>
       <div />
@@ -473,6 +473,10 @@ export default {
 
   .entries-th {
     @apply w-full text-ink text-sm font-bold leading-tight tracking-normal
+  }
+
+  .entries-th-muted {
+    @apply w-full text-ink-faint text-xs font-medium leading-tight tracking-normal
   }
 
   .integration-btn {

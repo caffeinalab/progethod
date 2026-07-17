@@ -23,7 +23,10 @@
           @keyup.enter="addPreset"
         >
         <button
-          class="px-4 py-2 text-ink-inverse bg-accent hover:bg-accent-hover rounded transition duration-150 ease-in-out focus:outline-none disabled:bg-ink-faint disabled:cursor-default"
+          class="flex items-center justify-center w-10 h-10 rounded border shadow transition-colors duration-150 focus:outline-none"
+          :class="newPresetLabel.trim()
+            ? 'bg-accent border-accent text-ink-inverse hover:bg-accent-hover hover:border-accent-hover focus:ring-2 focus:ring-focus-ring focus:ring-offset-1'
+            : 'bg-card-dim border-stroke-muted text-ink-disabled cursor-default'"
           :disabled="!newPresetLabel.trim()"
           @click="addPreset"
         >
@@ -37,7 +40,7 @@
           v-for="(preset, index) in presets"
           :key="preset.id"
           draggable="true"
-          class="flex items-center justify-between p-3 rounded border transition-colors cursor-grab active:cursor-grabbing"
+          class="flex items-center justify-between p-3 rounded-lg border transition-colors cursor-grab active:cursor-grabbing"
           :class="dragOverIndex === index
             ? 'border-accent bg-accent-soft'
             : 'border-stroke hover:border-ink-faint'"
@@ -72,7 +75,7 @@
           <template v-else>
             <div class="flex items-center gap-2">
               <grip-vertical-icon size="16" class="text-ink-faint flex-shrink-0" />
-              <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-accent-soft text-accent-fg">
+              <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-accent text-ink-inverse">
                 {{ preset.label }}
               </span>
             </div>
