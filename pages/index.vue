@@ -53,7 +53,7 @@
           </button>
           <span
             class="px-4 py-2 text-sm font-semibold text-ink border-l border-r border-stroke-muted select-none cursor-pointer hover:bg-card-hover transition-colors"
-            @click.stop="$refs.monthCalendar.toggle()"
+            @click.stop="$refs.monthCalendar && $refs.monthCalendar.toggle()"
           >
             {{ weekLabel }}
           </span>
@@ -391,12 +391,8 @@ export default {
     },
     dayCardClasses (day, index) {
       const classes = []
-      const dateKey = this.$dateFns.format(day, 'yyyy-MM-dd')
-      const isHoliday = !!this.holidaysByDate[dateKey]
 
-      if (isHoliday) {
-        classes.push('border-success bg-success-soft')
-      } else if (this.isToday(day)) {
+      if (this.isToday(day)) {
         classes.push('border-accent bg-accent-soft')
       } else {
         classes.push('border-stroke')

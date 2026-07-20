@@ -15,11 +15,11 @@
           <span class="day-stat-label">{{ $t('wethod_tracked_short') }}</span>
           <span class="day-stat-value">{{ formattedTrackedHours }}</span>
         </div>
-        <div v-if="holidayName" class="day-stat-box day-stat-box--holiday">
+        <div v-if="holidayName" class="day-stat-box day-stat-box--holiday-active">
           <span class="day-stat-label">{{ $t('calendar_page.holiday_label') }}</span>
           <span class="day-stat-value">{{ holidayName }}</span>
         </div>
-        <div class="day-stat-box" :class="leaveBadgeClasses">
+        <div v-if="leaveHours > 0" class="day-stat-box day-stat-box--vacation">
           <span class="day-stat-label">{{ $t('calendar_page.leave_label') }}</span>
           <span class="day-stat-value">{{ formattedLeaveHours }}</span>
         </div>
@@ -228,12 +228,6 @@ export default {
       if (minutes >= 60) { hours += 1; minutes = 0 }
       if (minutes === 0) { return `${hours}h` }
       return `${hours}h ${minutes}m`
-    },
-    leaveBadgeClasses () {
-      if (this.leaveHours > 0) {
-        return 'day-stat-box--vacation'
-      }
-      return ''
     },
     totalNotAdjustable () {
       return this.totalDuration >= dayDuration && this.totalDuration % 60
@@ -554,13 +548,18 @@ export default {
     color: var(--color-vacation-text);
   }
 
-  .day-stat-box--holiday {
-    border-color: var(--color-stroke-muted);
-    background-color: var(--color-card-dim);
+  .day-stat-box--holiday-active {
+    border-color: var(--color-success);
+    background-color: var(--color-success-soft);
   }
 
-  .day-stat-box--holiday .day-stat-value {
-    @apply text-xs font-medium text-ink-muted;
+  .day-stat-box--holiday-active .day-stat-label {
+    color: var(--color-success-text);
+  }
+
+  .day-stat-box--holiday-active .day-stat-value {
+    @apply text-xs font-medium;
+    color: var(--color-success-text);
   }
 
   .day-stat-label {
