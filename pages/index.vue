@@ -69,7 +69,7 @@
             <span class="stat-label">{{ $t('week_short') }}</span>
             <span class="stat-value">{{ weekTrackedTotal + '/' + weekExpectedHours + 'h' }}</span>
           </div>
-          <div class="stat-card cursor-pointer hover:bg-card-hover hover:border-stroke transition-colors" @click.stop="monthCalendarRef?.toggle()">
+          <div class="stat-card cursor-pointer select-none hover:bg-card-hover hover:border-stroke transition-colors" @click.stop="monthCalendarRef?.toggle()">
             <MonthCalendar
               ref="monthCalendarRef"
               :reference-date="weekAnchor"

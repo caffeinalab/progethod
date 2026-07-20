@@ -300,7 +300,7 @@ defineExpose({ addEntry, focusFirstEntry, focusPrevEntry, focusNextEntry, editCu
   .entry-row { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; place-items: center; padding: 0.25rem 0; }
   .entries-th { @apply w-full text-ink text-sm font-bold leading-tight tracking-normal }
   .entries-th-muted { @apply w-full text-ink-faint text-xs font-medium leading-tight tracking-normal }
-  .integration-btn { @apply relative flex items-center justify-center w-10 h-10 rounded-lg border border-stroke-muted bg-card shadow transition-all duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-1; color: var(--color-ink-secondary); }
+  .integration-btn { @apply relative flex items-center justify-center w-10 h-10 rounded-lg border border-stroke-muted bg-card shadow transition-all duration-150 ease-in-out cursor-pointer focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-1; color: var(--color-ink-secondary); }
   .integration-btn:not(:disabled):hover { background-color: var(--color-card-hover); border-color: var(--color-stroke); }
   .integration-btn:disabled { background-color: var(--color-card-dim); color: var(--color-ink-disabled); cursor: default; }
   .integration-btn--add { color: var(--color-accent-fg); }

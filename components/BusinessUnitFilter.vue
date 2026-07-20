@@ -1,7 +1,7 @@
 <template>
   <div class="relative inline-block">
     <button
-      class="flex items-center text-sm font-bold text-ink bg-card border border-stroke-muted rounded-lg shadow px-3 py-2 hover:bg-card-hover hover:border-stroke focus:outline-none focus:ring-2 focus:ring-focus-ring transition-colors"
+      class="flex items-center text-sm font-bold text-ink bg-card border border-stroke-muted rounded-lg shadow px-3 py-2 cursor-pointer hover:bg-card-hover hover:border-stroke focus:outline-none focus:ring-2 focus:ring-focus-ring transition-colors"
       @click="isOpen = !isOpen"
     >
       <span>{{ $t('business_unit') }}</span>

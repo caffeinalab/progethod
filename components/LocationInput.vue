@@ -39,7 +39,7 @@
         <button
           v-for="option in options"
           :key="option.key"
-          class="w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-card-hover"
+          class="w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors cursor-pointer hover:bg-card-hover"
           :class="modelValue === option.key ? 'location-active font-medium' : 'text-ink-secondary'"
           @click="selectAndClose(option.key)"
         >
@@ -97,7 +97,7 @@ function optionClasses(option: typeof options[number]) {
       : 'text-ink-disabled cursor-default'
   }
   if (isActive) return 'location-active cursor-default'
-  return 'text-ink-muted location-hover'
+  return 'text-ink-muted location-hover cursor-pointer'
 }
 
 function onClickOutside(event: MouseEvent) {
