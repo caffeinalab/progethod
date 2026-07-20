@@ -9,7 +9,7 @@
             <div class="flex items-center gap-3">
               <button
                 v-if="exportableEvents.length"
-                class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg gcal-btn transition-colors"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg cursor-pointer gcal-btn transition-colors"
                 @click="showExportModal = true"
               >
                 <icons-google-calendar-icon :size="14" />
@@ -17,19 +17,19 @@
               </button>
               <button
                 v-if="monthOffset !== 0"
-                class="px-3 py-1.5 text-xs font-medium rounded-lg bg-accent-soft text-accent-fg hover:bg-accent-soft transition-colors border border-accent"
+                class="px-3 py-1.5 text-xs font-medium rounded-lg bg-accent-soft text-accent-fg cursor-pointer hover:bg-accent-soft transition-colors border border-accent"
                 @click="monthOffset = 0"
               >
                 {{ $t('calendar_page.current_month') }}
               </button>
               <div class="inline-flex items-center bg-card border border-stroke-muted rounded-lg shadow">
-                <button class="p-2 text-ink-muted hover:bg-card-hover rounded-l-lg transition-colors focus:outline-none" @click="monthOffset--">
+                <button class="p-2 text-ink-muted cursor-pointer hover:bg-card-hover rounded-l-lg transition-colors focus:outline-none" @click="monthOffset--">
                   <IconChevronLeft :size="18" />
                 </button>
                 <span class="px-4 py-1.5 text-sm font-semibold text-ink border-l border-r border-stroke-muted select-none capitalize">
                   {{ displayedMonthLabel }}
                 </span>
-                <button class="p-2 text-ink-muted hover:bg-card-hover rounded-r-lg transition-colors focus:outline-none" @click="monthOffset++">
+                <button class="p-2 text-ink-muted cursor-pointer hover:bg-card-hover rounded-r-lg transition-colors focus:outline-none" @click="monthOffset++">
                   <IconChevronRight :size="18" />
                 </button>
               </div>
@@ -165,8 +165,8 @@
                         <component :is="getStatusIcon(request.status)" :size="15" :class="statusIconClasses(request.status)" :title="statusLabel(request.status)" class="shrink-0" />
                       </button>
                       <div class="sidebar-actions">
-                        <button class="p-0.5 rounded text-ink-faint hover:text-accent-fg transition-colors" :title="$t('edit')" @click="openEditFromRequest(request)"><IconEdit :size="14" /></button>
-                        <button class="p-0.5 rounded text-ink-faint hover:text-danger transition-colors" :title="$t('delete')" @click="deleteRequestDirect(request)"><IconTrash :size="14" /></button>
+                        <button class="p-0.5 rounded text-ink-faint cursor-pointer hover:text-accent-fg transition-colors" :title="$t('edit')" @click="openEditFromRequest(request)"><IconEdit :size="14" /></button>
+                        <button class="p-0.5 rounded text-ink-faint cursor-pointer hover:text-danger transition-colors" :title="$t('delete')" @click="deleteRequestDirect(request)"><IconTrash :size="14" /></button>
                       </div>
                     </div>
                   </div>
@@ -775,12 +775,12 @@ async function executeGCalExport(events) {
 @reference "~/assets/css/tailwind.css";
 .sidebar-tabs-wrapper { @apply relative flex rounded-lg bg-card-hover p-0.5; }
 .sidebar-tabs-indicator { @apply absolute top-0.5 left-0.5 h-[calc(100%-4px)] w-[calc(50%-2px)] rounded-md bg-card shadow-sm transition-transform duration-200 ease-out; }
-.sidebar-tab { @apply relative z-10 flex-1 text-xs font-bold uppercase tracking-wide py-1.5 rounded-md transition-colors text-center; }
+.sidebar-tab { @apply relative z-10 flex-1 text-xs font-bold uppercase tracking-wide py-1.5 rounded-md transition-colors text-center cursor-pointer; }
 .sidebar-tab-active { @apply text-ink; }
 .sidebar-tab-inactive { @apply text-ink-faint hover:text-ink-muted; }
 .sidebar-request-row { @apply flex items-center rounded transition-colors px-2; gap: 0.75rem; min-height: 2.25rem; }
 .sidebar-request-row:hover { @apply bg-card-hover; }
-.sidebar-request-btn { @apply flex-1 min-w-0 flex items-center text-left; gap: 0.75rem; }
+.sidebar-request-btn { @apply flex-1 min-w-0 flex items-center text-left cursor-pointer; gap: 0.75rem; }
 .sidebar-date { @apply text-sm font-semibold text-ink tabular-nums whitespace-nowrap; width: 3rem; flex-shrink: 0; }
 .sidebar-hours { @apply text-xs text-ink-muted whitespace-nowrap tabular-nums; width: 2rem; flex-shrink: 0; }
 .sidebar-type { @apply text-[10px] font-bold leading-none px-1.5 py-0.5 rounded; flex-shrink: 0; min-width: 1.25rem; text-align: center; }
@@ -817,4 +817,6 @@ async function executeGCalExport(events) {
 .dark .bg-budget-requested { background: #f59e0b; }
 .dark .time-pick-active { border-color: #6ea8ff; background: rgba(110, 168, 255, 0.15); color: #6ea8ff; }
 .dark .time-pick-input { color-scheme: dark; }
+.dark .sidebar-tabs-wrapper { background-color: var(--color-accent-soft); }
+.dark .sidebar-tabs-indicator { box-shadow: none; }
 </style>

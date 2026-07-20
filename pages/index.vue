@@ -37,7 +37,7 @@
     <div class="my-6 lg:my-12 container px-6 mx-auto pb-4 border-b border-stroke">
       <div class="flex items-center gap-3">
         <div class="inline-flex items-center bg-card border border-stroke-muted rounded-lg shadow">
-          <button class="p-2.5 text-ink-muted hover:bg-card-hover rounded-l-lg transition-colors focus:outline-none" :title="$t('previous_week')" @click="weekOffset--">
+          <button class="p-2.5 text-ink-muted cursor-pointer hover:bg-card-hover rounded-l-lg transition-colors focus:outline-none" :title="$t('previous_week')" @click="weekOffset--">
             <IconChevronLeft :size="18" />
           </button>
           <span
@@ -46,13 +46,13 @@
           >
             {{ weekLabel }}
           </span>
-          <button class="p-2.5 text-ink-muted hover:bg-card-hover rounded-r-lg transition-colors focus:outline-none" :title="$t('next_week')" @click="weekOffset++">
+          <button class="p-2.5 text-ink-muted cursor-pointer hover:bg-card-hover rounded-r-lg transition-colors focus:outline-none" :title="$t('next_week')" @click="weekOffset++">
             <IconChevronRight :size="18" />
           </button>
         </div>
         <button
           v-if="weekOffset !== 0"
-          class="px-3 py-1.5 text-xs font-medium rounded-lg bg-accent-soft text-accent-fg hover:bg-accent-soft transition-colors border border-accent"
+          class="px-3 py-1.5 text-xs font-medium rounded-lg bg-accent-soft text-accent-fg cursor-pointer hover:bg-accent-soft transition-colors border border-accent"
           @click="weekOffset = 0"
         >
           {{ $t('current_week') }}
