@@ -81,11 +81,9 @@
             />
             <span class="stat-value">{{ monthTrackedDays + '/' + monthWorkingDays }}</span>
           </div>
-          <div class="stat-card">
-            <button class="inline-flex items-center gap-1.5 text-sm font-bold text-ink hover:bg-card-hover hover:border-stroke transition-colors" @click="showOfficeDaysModal = true">
-              <IconBuilding :size="14" />
-              {{ $t('office_days_check_button') }}
-            </button>
+          <div class="stat-card cursor-pointer select-none hover:bg-card-hover hover:border-stroke transition-colors" @click="showOfficeDaysModal = true">
+            <IconBuilding :size="14" class="text-ink" />
+            <span class="stat-value">{{ $t('office_days_check_button') }}</span>
           </div>
         </template>
         <BusinessUnitFilter v-if="userStore.businessUnitsEnabled" class="ml-auto" />

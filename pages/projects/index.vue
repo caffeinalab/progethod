@@ -10,7 +10,7 @@
           </p>
         </div>
         <button
-          class="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm border border-danger text-danger hover:bg-danger-soft transition-colors"
+          class="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm border border-danger text-danger hover:bg-danger-soft transition-colors cursor-pointer"
           :title="$t('projects_cleanup_tooltip')"
           @click="cleanupStale"
         >
@@ -33,7 +33,7 @@
         <button
           class="flex items-center justify-center w-10 h-10 rounded-lg border shadow transition-colors duration-150 focus:outline-none"
           :class="newProjectName.trim()
-            ? 'bg-accent border-accent text-ink-inverse hover:bg-accent-hover hover:border-accent-hover focus:ring-2 focus:ring-focus-ring focus:ring-offset-1'
+            ? 'bg-accent border-accent text-ink-inverse hover:bg-accent-hover hover:border-accent-hover focus:ring-2 focus:ring-focus-ring focus:ring-offset-1 cursor-pointer'
             : 'bg-card-dim border-stroke-muted text-ink-disabled cursor-default'"
           :disabled="!newProjectName.trim()"
           @click="addProject"
@@ -60,10 +60,10 @@
             <div v-else-if="project.stale" class="text-xs text-warning-text">{{ $t('projects_stale_hint') }}</div>
           </div>
           <div class="flex items-center gap-1 flex-shrink-0">
-            <button class="p-1.5 text-ink-faint hover:text-accent-fg rounded transition-colors" :title="$t('edit')" @click="edit(project.id)">
+            <button class="p-1.5 text-ink-faint hover:text-accent-fg rounded transition-colors cursor-pointer" :title="$t('edit')" @click="edit(project.id)">
               <IconEdit :size="16" />
             </button>
-            <button class="p-1.5 text-ink-faint hover:text-danger rounded transition-colors" :title="$t('delete')" @click="projectsStore.remove(project.id)">
+            <button class="p-1.5 text-ink-faint hover:text-danger rounded transition-colors cursor-pointer" :title="$t('delete')" @click="projectsStore.remove(project.id)">
               <IconTrash :size="16" />
             </button>
           </div>

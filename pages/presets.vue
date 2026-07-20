@@ -20,7 +20,7 @@
         <button
           class="flex items-center justify-center w-10 h-10 rounded-lg border shadow transition-colors duration-150 focus:outline-none"
           :class="newPresetLabel.trim()
-            ? 'bg-accent border-accent text-ink-inverse hover:bg-accent-hover hover:border-accent-hover focus:ring-2 focus:ring-focus-ring focus:ring-offset-1'
+            ? 'bg-accent border-accent text-ink-inverse hover:bg-accent-hover hover:border-accent-hover focus:ring-2 focus:ring-focus-ring focus:ring-offset-1 cursor-pointer'
             : 'bg-card-dim border-stroke-muted text-ink-disabled cursor-default'"
           :disabled="!newPresetLabel.trim()"
           @click="addPreset"
@@ -51,8 +51,8 @@
               @keyup.enter="saveEdit(preset.id)"
               @keyup.escape="cancelEdit"
             >
-            <button class="px-3 py-1 text-sm text-ink-inverse bg-accent hover:bg-accent-hover rounded-lg" @click="saveEdit(preset.id)">{{ $t('save') }}</button>
-            <button class="px-3 py-1 text-sm text-ink-secondary hover:text-ink" @click="cancelEdit">{{ $t('presets.cancel') }}</button>
+            <button class="px-3 py-1 text-sm text-ink-inverse bg-accent hover:bg-accent-hover rounded-lg cursor-pointer" @click="saveEdit(preset.id)">{{ $t('save') }}</button>
+            <button class="px-3 py-1 text-sm text-ink-secondary hover:text-ink cursor-pointer" @click="cancelEdit">{{ $t('presets.cancel') }}</button>
           </div>
           <template v-else>
             <div class="flex items-center gap-2">
@@ -60,10 +60,10 @@
               <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-accent text-ink-inverse">{{ preset.label }}</span>
             </div>
             <div class="flex items-center gap-1">
-              <button class="p-1.5 text-ink-faint hover:text-accent-fg rounded transition-colors" :title="$t('edit')" @click="startEdit(preset)">
+              <button class="p-1.5 text-ink-faint hover:text-accent-fg rounded transition-colors cursor-pointer" :title="$t('edit')" @click="startEdit(preset)">
                 <IconEdit :size="16" />
               </button>
-              <button class="p-1.5 text-ink-faint hover:text-danger rounded transition-colors" :title="$t('delete')" @click="presetsStore.remove(preset.id)">
+              <button class="p-1.5 text-ink-faint hover:text-danger rounded transition-colors cursor-pointer" :title="$t('delete')" @click="presetsStore.remove(preset.id)">
                 <IconTrash :size="16" />
               </button>
             </div>
