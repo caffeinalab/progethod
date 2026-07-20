@@ -5,7 +5,7 @@
       <template v-if="selection">
         <NuxtLink
           v-if="selection.type === 'local'"
-          :to="{ name: 'projects-id', params: { id: selection.localProject.id } }"
+          :to="`/projects/${selection.localProject.id}`"
         >
           <IconAlertTriangle v-if="!isSelectionLinked" class="text-warning" :size="16" />
           <IconExternalLink v-if="isSelectionLinked" class="text-ink-faint" :size="16" />
@@ -502,7 +502,7 @@ async function createLocalProject() {
   if (!name) return
   const project = await projectsStore.add(name)
   selectLocalProject(project)
-  router.push({ name: 'projects-id', params: { id: project.id } })
+  router.push(`/projects/${project.id}`)
 }
 
 function escapeField() {
