@@ -13,9 +13,18 @@ const SCOPES = 'https://www.googleapis.com/auth/calendar https://www.googleapis.
 
 let loadedPromise: Promise<void> | null = null
 
+function waitForGapi(): Promise<void> {
+  if (window.gapi) return Promise.resolve()
+  return new Promise((resolve) => {
+    const interval = setInterval(() => {
+      if (window.gapi) { clearInterval(interval); resolve() }
+    }, 100)
+  })
+}
+
 function loadGApiClient(): Promise<void> {
   if (!loadedPromise) {
-    loadedPromise = new Promise((resolve) => {
+    loadedPromise = waitForGapi().then(() => new Promise((resolve) => {
       const config = useRuntimeConfig()
       window.gapi.load('client', async () => {
         await window.gapi.client.init({
@@ -24,12 +33,22 @@ function loadGApiClient(): Promise<void> {
         })
         resolve()
       })
-    })
+    }))
   }
   return loadedPromise
 }
 
-function connectCalendar(): Promise<void> {
+function waitForGsi(): Promise<void> {
+  if (window.google?.accounts?.oauth2) return Promise.resolve()
+  return new Promise((resolve) => {
+    const interval = setInterval(() => {
+      if (window.google?.accounts?.oauth2) { clearInterval(interval); resolve() }
+    }, 100)
+  })
+}
+
+async function connectCalendar(): Promise<void> {
+  await waitForGsi()
   const config = useRuntimeConfig()
   const userStore = useUserStore()
 

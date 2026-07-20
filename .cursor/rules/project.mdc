@@ -14,7 +14,7 @@ A simplified timesheet interface for Wethod. Data is stored locally (localStorag
 - **Styling**: Tailwind CSS 4 via `@tailwindcss/vite` plugin (CSS-first config in `assets/css/tailwind.css`)
 - **i18n**: `@nuxtjs/i18n` v10 (vue-i18n v11), Italian only (`locales/it.json`)
 - **API**: `$fetch` wrapped in `composables/useApi.ts`, backend at `/api/`
-- **Calendar**: Google Calendar integration for importing events
+- **Calendar**: Google Calendar integration for importing events. GAPI (`apis.google.com/js/api.js`) and GIS (`accounts.google.com/gsi/client`) scripts loaded via `app.head` in `nuxt.config.ts`. `utils/gCal.ts` waits for scripts before using `window.gapi`/`window.google`.
 - **Jira**: OAuth 2.0 + PKCE popup flow to fetch daily Jira activity (tickets touched that day)
 - **GitLab**: OAuth 2.0 + PKCE popup flow to fetch daily GitLab commits (push events)
 - **PWA**: `@vite-pwa/nuxt` v1
