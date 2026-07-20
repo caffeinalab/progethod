@@ -134,29 +134,29 @@
 
   --base-focus-ring: #b4b9f8;
 
-  --base-success: #8ee0b8;
-  --base-success-soft: #1a3329;
-  --base-success-text: #b2ecd0;
+  --base-success: #5eead4;
+  --base-success-soft: rgba(94, 234, 212, 0.15);
+  --base-success-text: #99f6e4;
 
-  --base-warning: #f2c98e;
-  --base-warning-soft: #3d2e14;
-  --base-warning-text: #f5dbb5;
+  --base-warning: #fbbf24;
+  --base-warning-soft: rgba(251, 191, 36, 0.15);
+  --base-warning-text: #fde68a;
 
-  --base-danger: #f0a5a5;
-  --base-danger-soft: #3d1c1c;
-  --base-danger-text: #f5c2c2;
+  --base-danger: #f87171;
+  --base-danger-soft: rgba(248, 113, 113, 0.15);
+  --base-danger-text: #fecaca;
 
-  --base-vacation: #8ad6ca;
-  --base-vacation-soft: #1a3330;
-  --base-vacation-text: #b0e8de;
+  --base-vacation: #2dd4bf;
+  --base-vacation-soft: rgba(45, 212, 191, 0.18);
+  --base-vacation-text: #5eead4;
 
-  --base-leaves: #f0ca82;
-  --base-leaves-soft: #3d2e14;
-  --base-leaves-text: #f5dca5;
+  --base-leaves: #fbbf24;
+  --base-leaves-soft: rgba(251, 191, 36, 0.15);
+  --base-leaves-text: #fde68a;
 
-  --base-pending: #f0b292;
-  --base-pending-soft: #3d2010;
-  --base-pending-text: #f5ccb2;
+  --base-pending: #fb923c;
+  --base-pending-soft: rgba(251, 146, 60, 0.15);
+  --base-pending-text: #fdba74;
 
   --color-page: var(--base-page);
   --color-card: var(--base-card);
@@ -263,29 +263,29 @@
   --color-accent-fg: oklch(from var(--base-accent-fg) min(calc(l * 1.10), 0.95) c h);
   --color-focus-ring: oklch(from var(--base-focus-ring) min(calc(l * 1.10), 0.90) c h);
 
-  --color-success: oklch(from var(--base-success) min(calc(l * 1.10), 0.92) calc(c * 1.40) h);
-  --color-success-soft: oklch(from var(--base-success-soft) calc(l * 0.80) calc(c * 1.50) h);
-  --color-success-text: oklch(from var(--base-success-text) min(calc(l * 1.10), 0.97) c h);
+  --color-success: oklch(from var(--base-success) min(calc(l * 1.05), 0.95) calc(c * 1.20) h);
+  --color-success-soft: rgba(94, 234, 212, 0.25);
+  --color-success-text: oklch(from var(--base-success-text) min(calc(l * 1.05), 0.97) c h);
 
-  --color-warning: oklch(from var(--base-warning) min(calc(l * 1.10), 0.92) calc(c * 1.40) h);
-  --color-warning-soft: oklch(from var(--base-warning-soft) calc(l * 0.80) calc(c * 1.50) h);
-  --color-warning-text: oklch(from var(--base-warning-text) min(calc(l * 1.10), 0.97) c h);
+  --color-warning: oklch(from var(--base-warning) min(calc(l * 1.05), 0.95) calc(c * 1.20) h);
+  --color-warning-soft: rgba(251, 191, 36, 0.25);
+  --color-warning-text: oklch(from var(--base-warning-text) min(calc(l * 1.05), 0.97) c h);
 
-  --color-danger: oklch(from var(--base-danger) min(calc(l * 1.10), 0.90) calc(c * 1.40) h);
-  --color-danger-soft: oklch(from var(--base-danger-soft) calc(l * 0.80) calc(c * 1.50) h);
-  --color-danger-text: oklch(from var(--base-danger-text) min(calc(l * 1.10), 0.97) c h);
+  --color-danger: oklch(from var(--base-danger) min(calc(l * 1.05), 0.93) calc(c * 1.20) h);
+  --color-danger-soft: rgba(248, 113, 113, 0.25);
+  --color-danger-text: oklch(from var(--base-danger-text) min(calc(l * 1.05), 0.97) c h);
 
-  --color-vacation: oklch(from var(--base-vacation) min(calc(l * 1.10), 0.92) calc(c * 1.40) h);
-  --color-vacation-soft: oklch(from var(--base-vacation-soft) calc(l * 0.80) calc(c * 1.50) h);
-  --color-vacation-text: oklch(from var(--base-vacation-text) min(calc(l * 1.10), 0.97) c h);
+  --color-vacation: oklch(from var(--base-vacation) min(calc(l * 1.05), 0.95) calc(c * 1.20) h);
+  --color-vacation-soft: rgba(45, 212, 191, 0.30);
+  --color-vacation-text: oklch(from var(--base-vacation-text) min(calc(l * 1.05), 0.97) c h);
 
-  --color-leaves: oklch(from var(--base-leaves) min(calc(l * 1.10), 0.92) calc(c * 1.40) h);
-  --color-leaves-soft: oklch(from var(--base-leaves-soft) calc(l * 0.80) calc(c * 1.50) h);
-  --color-leaves-text: oklch(from var(--base-leaves-text) min(calc(l * 1.10), 0.97) c h);
+  --color-leaves: oklch(from var(--base-leaves) min(calc(l * 1.05), 0.95) calc(c * 1.20) h);
+  --color-leaves-soft: rgba(251, 191, 36, 0.25);
+  --color-leaves-text: oklch(from var(--base-leaves-text) min(calc(l * 1.05), 0.97) c h);
 
-  --color-pending: oklch(from var(--base-pending) min(calc(l * 1.10), 0.92) calc(c * 1.40) h);
-  --color-pending-soft: oklch(from var(--base-pending-soft) calc(l * 0.80) calc(c * 1.50) h);
-  --color-pending-text: oklch(from var(--base-pending-text) min(calc(l * 1.10), 0.97) c h);
+  --color-pending: oklch(from var(--base-pending) min(calc(l * 1.05), 0.95) calc(c * 1.20) h);
+  --color-pending-soft: rgba(251, 146, 60, 0.25);
+  --color-pending-text: oklch(from var(--base-pending-text) min(calc(l * 1.05), 0.97) c h);
 }
 
 /* ─── Location accent ─── */

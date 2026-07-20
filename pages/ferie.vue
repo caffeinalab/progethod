@@ -3,7 +3,7 @@
     <div class="mx-auto container max-w-6xl px-6">
       <div class="flex gap-6 items-start">
         <!-- Calendar panel -->
-        <div class="flex-1 min-w-0 bg-card shadow rounded-lg p-6">
+        <div ref="calendarPanel" class="flex-1 min-w-0 bg-card shadow rounded-lg p-6">
           <div class="flex items-center justify-between mb-6">
             <h1 class="text-xl font-bold text-ink">
               {{ $t('calendar_page.title') }}
@@ -11,7 +11,7 @@
             <div class="flex items-center gap-3">
               <button
                 v-if="exportableEvents.length"
-                class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-accent-soft text-accent-fg hover:bg-accent border border-accent hover:text-ink-inverse transition-colors"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg gcal-btn transition-colors"
                 @click="showExportModal = true"
               >
                 <icons-google-calendar-icon :size="14" />
@@ -72,12 +72,12 @@
             >
               <template v-if="cell.dayNumber">
                 <div class="flex items-center justify-between mb-1">
-                  <span class="text-xs font-semibold" :class="cell.isToday ? 'text-accent-fg' : ''">
+                  <span class="text-sm font-semibold text-ink" :class="cell.isToday ? 'text-accent-fg' : ''">
                     {{ cell.dayNumber }}
                   </span>
                   <button
                     v-if="(cell.vacation > 0 || cell.leaves > 0) && !cell.isWeekend && !cell.isHoliday"
-                    class="text-ink-faint hover:text-ink transition-colors disabled:opacity-30"
+                    class="gcal-icon hover:opacity-70 transition-opacity disabled:opacity-30"
                     :disabled="createdDates.has(cell.dateKey)"
                     :title="createdDates.has(cell.dateKey) ? $t('calendar_page.already_added') : $t('calendar_page.add_to_gcal')"
                     @mousedown.stop
@@ -128,55 +128,67 @@
         </div>
 
         <!-- Upcoming requests sidebar -->
-        <div class="w-80 shrink-0 bg-card shadow rounded-lg p-4 sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto custom-scrollbar">
-          <h2 class="text-sm font-bold text-ink mb-3">
-            {{ $t('calendar_page.requests_upcoming') }}
-          </h2>
+        <div class="w-72 shrink-0 sticky top-20 flex flex-col" :style="{ maxHeight: sidebarMaxHeight }">
+          <div class="bg-card shadow rounded-lg p-3 flex flex-col min-h-0 flex-1 overflow-hidden">
+            <h2 class="text-xs font-bold text-ink-muted uppercase tracking-wide mb-2 px-1">
+              {{ $t('calendar_page.requests_upcoming') }}
+            </h2>
 
-          <div v-if="requestsLoading" class="space-y-3">
-            <div v-for="skeleton in 5" :key="skeleton" class="animate-pulse">
-              <span class="inline-block w-full h-10 bg-stroke-muted rounded" />
+            <div v-if="requestsLoading" class="space-y-2 px-1">
+              <div v-for="skeleton in 4" :key="skeleton" class="animate-pulse">
+                <span class="inline-block w-full h-6 bg-stroke-muted rounded" />
+              </div>
             </div>
-          </div>
 
-          <div v-else-if="upcomingRequests.length === 0" class="text-xs text-ink-muted py-4 text-center">
-            {{ $t('calendar_page.requests_empty') }}
-          </div>
+            <div v-else-if="upcomingRequests.length === 0" class="text-xs text-ink-muted py-4 text-center">
+              {{ $t('calendar_page.requests_empty') }}
+            </div>
 
-          <div v-else class="space-y-0.5">
-            <div
-              v-for="request in upcomingRequests"
-              :key="request.id"
-              class="flex items-center gap-2 px-2 py-1.5 rounded-lg border transition-colors group"
-              :class="requestClasses(request)"
-            >
-              <component
-                :is="statusIcon(request.status)"
-                :size="14"
-                class="shrink-0"
-                :class="statusIconClasses(request.status)"
-                :title="statusLabel(request.status)"
-              />
-              <button class="flex-1 min-w-0 text-left" @click="navigateToRequest(request)">
-                <span class="text-xs font-semibold text-ink">{{ request.typeLabel }}</span>
-                <span class="text-[10px] text-ink-muted ml-1">{{ request.dateRangeShort }}</span>
-                <span class="text-[10px] text-ink-faint ml-0.5">{{ request.totalHoursLabel }}</span>
-              </button>
-              <div class="flex items-center gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  class="p-1 rounded text-ink-faint hover:text-accent-fg hover:bg-card-hover transition-colors"
-                  :title="$t('edit')"
-                  @click="openEditFromRequest(request)"
-                >
-                  <edit-icon :size="13" />
-                </button>
-                <button
-                  class="p-1 rounded text-ink-faint hover:text-danger hover:bg-danger-soft transition-colors"
-                  :title="$t('delete')"
-                  @click="deleteRequestDirect(request)"
-                >
-                  <trash-icon :size="13" />
-                </button>
+            <div v-else class="overflow-y-auto custom-scrollbar min-h-0">
+              <div v-for="group in upcomingByMonth" :key="group.monthKey" class="mb-2 last:mb-0">
+                <div class="text-[10px] font-semibold text-ink-faint uppercase tracking-wide px-1 py-1 capitalize">
+                  {{ group.label }}
+                </div>
+                <div>
+                  <div
+                    v-for="request in group.requests"
+                    :key="request.id"
+                    class="sidebar-request-row group"
+                  >
+                    <button class="sidebar-request-btn" @click="navigateToRequest(request)">
+                      <span class="sidebar-date">{{ request.dateDayOnly }}</span>
+                      <span class="sidebar-hours">{{ request.totalHoursLabel }}</span>
+                      <span
+                        class="sidebar-type"
+                        :class="request.projectId === vacationProjectId ? 'pill-ferie' : 'pill-permesso'"
+                        :title="request.typeLabel"
+                      >{{ request.typeShort }}</span>
+                      <component
+                        :is="statusIcon(request.status)"
+                        :size="15"
+                        :class="statusIconClasses(request.status)"
+                        :title="statusLabel(request.status)"
+                        class="shrink-0"
+                      />
+                    </button>
+                    <div class="sidebar-actions">
+                      <button
+                        class="p-0.5 rounded text-ink-faint hover:text-accent-fg transition-colors"
+                        :title="$t('edit')"
+                        @click="openEditFromRequest(request)"
+                      >
+                        <edit-icon :size="14" />
+                      </button>
+                      <button
+                        class="p-0.5 rounded text-ink-faint hover:text-danger transition-colors"
+                        :title="$t('delete')"
+                        @click="deleteRequestDirect(request)"
+                      >
+                        <trash-icon :size="14" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -184,14 +196,22 @@
       </div>
 
       <!-- Past requests history -->
-      <div class="mt-6 bg-card shadow rounded-lg p-6">
-        <h2 class="text-sm font-bold text-ink mb-3">
-          {{ $t('calendar_page.history_title') }}
-        </h2>
+      <div class="mt-6 bg-card shadow rounded-lg p-4">
+        <div class="flex items-center justify-between mb-2 px-1">
+          <h2 class="text-xs font-bold text-ink-muted uppercase tracking-wide">
+            {{ $t('calendar_page.history_title') }}
+          </h2>
+          <input
+            v-model="historySearch"
+            type="text"
+            class="w-40 px-2 py-1 text-xs rounded border border-stroke bg-card-hover text-ink placeholder-ink-faint focus:outline-none focus:ring-1 focus:ring-focus-ring"
+            :placeholder="$t('calendar_page.history_search_placeholder')"
+          >
+        </div>
 
-        <div v-if="requestsLoading" class="space-y-3">
+        <div v-if="requestsLoading" class="space-y-2 px-1">
           <div v-for="skeleton in 3" :key="skeleton" class="animate-pulse">
-            <span class="inline-block w-full h-10 bg-stroke-muted rounded" />
+            <span class="inline-block w-full h-6 bg-stroke-muted rounded" />
           </div>
         </div>
 
@@ -199,37 +219,37 @@
           {{ $t('calendar_page.no_past_requests') }}
         </div>
 
-        <template v-else>
-          <div class="space-y-0.5">
-            <div
-              v-for="request in pastRequests"
-              :key="request.id"
-              class="flex items-center gap-2 px-2 py-1.5 rounded-lg border transition-colors hover:bg-card-hover"
-              :class="requestClasses(request)"
-            >
-              <component
-                :is="statusIcon(request.status)"
-                :size="14"
-                class="shrink-0"
-                :class="statusIconClasses(request.status)"
-                :title="statusLabel(request.status)"
-              />
-              <button class="flex-1 min-w-0 text-left" @click="navigateToRequest(request)">
-                <span class="text-xs font-semibold text-ink">{{ request.typeLabel }}</span>
-                <span class="text-[10px] text-ink-muted ml-1">{{ request.dateRangeShort }}</span>
-                <span class="text-[10px] text-ink-faint ml-0.5">{{ request.totalHoursLabel }}</span>
-              </button>
+        <div v-else ref="historyScroll" class="max-h-96 overflow-y-auto custom-scrollbar" @scroll="onHistoryScroll">
+          <div v-for="group in pastByMonth" :key="group.monthKey" class="mb-2 last:mb-0">
+            <div class="text-[10px] font-semibold text-ink-faint uppercase tracking-wide px-1 py-1 capitalize">
+              {{ group.label }}
+            </div>
+            <div>
+              <div
+                v-for="request in group.requests"
+                :key="request.id"
+                class="sidebar-request-row group"
+              >
+                <button class="sidebar-request-btn" @click="navigateToRequest(request)">
+                  <span class="sidebar-date">{{ request.dateDayOnly }}</span>
+                  <span class="sidebar-hours">{{ request.totalHoursLabel }}</span>
+                  <span
+                    class="sidebar-type"
+                    :class="request.projectId === vacationProjectId ? 'pill-ferie' : 'pill-permesso'"
+                    :title="request.typeLabel"
+                  >{{ request.typeShort }}</span>
+                  <component
+                    :is="statusIcon(request.status)"
+                    :size="15"
+                    :class="statusIconClasses(request.status)"
+                    :title="statusLabel(request.status)"
+                    class="shrink-0"
+                  />
+                </button>
+              </div>
             </div>
           </div>
-
-          <button
-            v-if="hasMorePast"
-            class="w-full text-center text-xs text-accent-fg hover:underline py-2 mt-2"
-            @click="loadMorePast"
-          >
-            {{ $t('calendar_page.load_more') }}
-          </button>
-        </template>
+        </div>
       </div>
     </div>
 
@@ -271,6 +291,97 @@
           </template>
         </button>
       </div>
+    </modal>
+
+    <!-- Time picker modal for GCal export -->
+    <modal v-model="showTimePickModal">
+      <h3 class="text-lg font-bold text-ink mb-1">
+        {{ $t('calendar_page.time_pick_title') }}
+      </h3>
+      <p class="text-sm text-ink-muted mb-4 text-center">
+        {{ $t('calendar_page.time_pick_description') }}
+      </p>
+
+      <template v-if="currentTimePick">
+        <!-- Progress -->
+        <p v-if="timePickEvents.length > 1" class="text-xs text-ink-faint mb-3 tabular-nums">
+          {{ timePickIndex + 1 }} / {{ timePickEvents.length }}
+        </p>
+
+        <!-- Day label -->
+        <div class="w-full rounded-lg bg-card-hover px-4 py-3 mb-4">
+          <span class="text-sm font-semibold text-ink capitalize">{{ currentTimePick.dateLabel }}</span>
+          <span class="text-xs text-ink-muted ml-2">{{ currentTimePick.hoursLabel }}</span>
+        </div>
+
+        <!-- Presets (only for 4h) -->
+        <div v-if="currentTimePick.hours === 4" class="w-full flex gap-2 mb-3">
+          <button
+            class="flex-1 px-3 py-2.5 rounded-lg border-2 transition-colors text-center"
+            :class="timePickMode === 'morning' ? 'time-pick-active' : 'time-pick-inactive'"
+            @click="timePickMode = 'morning'; timePickCustomStart = '09:00'; timePickCustomEnd = '13:00'"
+          >
+            <span class="block text-sm font-medium">{{ $t('calendar_page.time_pick_morning') }}</span>
+            <span class="block text-xs opacity-70 mt-0.5">{{ $t('calendar_page.time_pick_morning_range') }}</span>
+          </button>
+          <button
+            class="flex-1 px-3 py-2.5 rounded-lg border-2 transition-colors text-center"
+            :class="timePickMode === 'afternoon' ? 'time-pick-active' : 'time-pick-inactive'"
+            @click="timePickMode = 'afternoon'; timePickCustomStart = '14:00'; timePickCustomEnd = '18:00'"
+          >
+            <span class="block text-sm font-medium">{{ $t('calendar_page.time_pick_afternoon') }}</span>
+            <span class="block text-xs opacity-70 mt-0.5">{{ $t('calendar_page.time_pick_afternoon_range') }}</span>
+          </button>
+          <button
+            class="flex-1 px-3 py-2.5 rounded-lg border-2 transition-colors text-center"
+            :class="timePickMode === 'custom' ? 'time-pick-active' : 'time-pick-inactive'"
+            @click="timePickMode = 'custom'"
+          >
+            <span class="block text-sm font-medium">{{ $t('calendar_page.time_pick_custom') }}</span>
+          </button>
+        </div>
+
+        <!-- Custom time inputs (shown for non-4h always, for 4h only when custom selected) -->
+        <div v-if="currentTimePick.hours !== 4 || timePickMode === 'custom'" class="w-full flex items-center gap-3 mb-4">
+          <label class="text-xs text-ink-muted whitespace-nowrap">{{ $t('calendar_page.time_pick_start') }}</label>
+          <input
+            v-model="timePickCustomStart"
+            type="time"
+            class="time-pick-input"
+          >
+          <label class="text-xs text-ink-muted whitespace-nowrap">{{ $t('calendar_page.time_pick_end') }}</label>
+          <input
+            v-model="timePickCustomEnd"
+            type="time"
+            class="time-pick-input"
+          >
+        </div>
+
+        <!-- Actions -->
+        <div class="flex gap-2 w-full">
+          <button
+            v-if="timePickEvents.length > 1"
+            class="px-3 py-2 text-xs font-medium rounded-lg gcal-btn transition-colors"
+            @click="applyTimePickToAll"
+          >
+            {{ $t('calendar_page.time_pick_apply_all') }}
+          </button>
+          <div class="flex-1" />
+          <button
+            class="px-4 py-2 text-sm rounded-lg border border-stroke text-ink-secondary hover:bg-card-hover transition-colors"
+            @click="showTimePickModal = false"
+          >
+            {{ $t('calendar_page.cancel') }}
+          </button>
+          <button
+            class="px-4 py-2 text-sm font-medium rounded-lg gcal-btn transition-colors disabled:opacity-50"
+            :disabled="exporting"
+            @click="confirmTimePick"
+          >
+            {{ timePickIndex < timePickEvents.length - 1 ? $t('calendar_page.time_pick_next') : $t('calendar_page.time_pick_confirm') }}
+          </button>
+        </div>
+      </template>
     </modal>
 
     <!-- Create / Edit request modal -->
@@ -446,11 +557,25 @@ export default {
     requestSaving: false,
     requestDeleting: false,
     requestError: null,
-    pastVisibleCount: 10
+    pastVisibleCount: 10,
+    calendarHeight: 0,
+    historySearch: '',
+
+    showTimePickModal: false,
+    timePickEvents: [],
+    timePickIndex: 0,
+    timePickChoices: {},
+    timePickMode: 'morning',
+    timePickCustomStart: '09:00',
+    timePickCustomEnd: '13:00',
+    timePickSingleCell: null
   }),
   computed: {
     vacationProjectId () { return VACATION_PROJECT_ID },
     leavesProjectId () { return LEAVES_PROJECT_ID },
+    sidebarMaxHeight () {
+      return this.calendarHeight ? `${this.calendarHeight}px` : 'none'
+    },
     displayedMonth () {
       if (this.monthOffset === 0) {
         return this.today
@@ -484,16 +609,62 @@ export default {
         .filter(request => request.lastDate && request.lastDate >= this.todayStr)
         .sort((first, second) => first.firstDate.localeCompare(second.firstDate))
     },
+    upcomingByMonth () {
+      const groups = []
+      let currentKey = ''
+      for (const request of this.upcomingRequests) {
+        if (!request.firstDate) { continue }
+        const monthKey = request.firstDate.substring(0, 7)
+        if (monthKey !== currentKey) {
+          currentKey = monthKey
+          const label = this.$dateFns.format(new Date(request.firstDate + 'T00:00:00'), 'MMMM yyyy')
+          groups.push({ monthKey, label, requests: [] })
+        }
+        groups[groups.length - 1].requests.push(request)
+      }
+      return groups
+    },
     allPastRequests () {
       return this.allRequests
         .filter(request => !request.lastDate || request.lastDate < this.todayStr)
         .sort((first, second) => (second.firstDate || '').localeCompare(first.firstDate || ''))
     },
+    filteredPastRequests () {
+      const query = this.historySearch.trim().toLowerCase()
+      if (!query) { return this.allPastRequests }
+      const queryWords = query.split(/\s+/).filter(Boolean)
+      return this.allPastRequests.filter((request) => {
+        if (!request.firstDate) { return false }
+        const date = new Date(request.firstDate + 'T00:00:00')
+        const fullMonth = this.$dateFns.format(date, 'MMMM yyyy').toLowerCase()
+        const shortMonth = this.$dateFns.format(date, 'MMM yyyy').toLowerCase()
+        const numericMonth = this.$dateFns.format(date, 'MM/yy')
+        const numericMonthFull = this.$dateFns.format(date, 'MM/yyyy')
+        const yearOnly = this.$dateFns.format(date, 'yyyy')
+        const haystack = `${fullMonth} ${shortMonth} ${numericMonth} ${numericMonthFull} ${yearOnly}`
+        return queryWords.every(word => haystack.includes(word))
+      })
+    },
     pastRequests () {
-      return this.allPastRequests.slice(0, this.pastVisibleCount)
+      return this.filteredPastRequests.slice(0, this.pastVisibleCount)
     },
     hasMorePast () {
-      return this.pastVisibleCount < this.allPastRequests.length
+      return this.pastVisibleCount < this.filteredPastRequests.length
+    },
+    pastByMonth () {
+      const groups = []
+      let currentKey = ''
+      for (const request of this.pastRequests) {
+        if (!request.firstDate) { continue }
+        const monthKey = request.firstDate.substring(0, 7)
+        if (monthKey !== currentKey) {
+          currentKey = monthKey
+          const label = this.$dateFns.format(new Date(request.firstDate + 'T00:00:00'), 'MMMM yyyy')
+          groups.push({ monthKey, label, requests: [] })
+        }
+        groups[groups.length - 1].requests.push(request)
+      }
+      return groups
     },
     selectedDates () {
       if (!this.dragStartDate) { return new Set() }
@@ -624,6 +795,9 @@ export default {
         total += day.leaves
       }
       return this.formatHours(total)
+    },
+    currentTimePick () {
+      return this.timePickEvents[this.timePickIndex] || null
     }
   },
   watch: {
@@ -631,17 +805,35 @@ export default {
       this.fetchPlannings()
       this.createdDates = new Set()
       this.exportResult = null
+    },
+    historySearch () {
+      this.pastVisibleCount = 10
+    },
+    showTimePickModal (visible) {
+      if (!visible) {
+        this.timePickSingleCell = null
+      }
     }
   },
   mounted () {
     this.fetchPlannings()
     this.fetchRequests()
     this.fetchHolidays()
+    this.$nextTick(() => this.measureCalendar())
+  },
+  updated () {
+    this.measureCalendar()
   },
   beforeDestroy () {
     document.removeEventListener('mouseup', this.onDocumentMouseUp)
   },
   methods: {
+    measureCalendar () {
+      const panel = this.$refs.calendarPanel
+      if (panel) {
+        this.calendarHeight = panel.offsetHeight
+      }
+    },
     async fetchPlannings () {
       if (!this.$store.getters['user/canMakeRequests']) {
         return
@@ -726,17 +918,26 @@ export default {
 
       let dateRange = ''
       let dateRangeShort = ''
+      let dateDayOnly = ''
       if (firstDate) {
+        const startDate = new Date(firstDate + 'T00:00:00')
         if (firstDate === lastDate) {
-          dateRange = this.$dateFns.format(new Date(firstDate + 'T00:00:00'), 'd MMM yyyy')
-          dateRangeShort = this.$dateFns.format(new Date(firstDate + 'T00:00:00'), 'dd/MM/yy')
+          dateRange = this.$dateFns.format(startDate, 'd MMM yyyy')
+          dateRangeShort = this.$dateFns.format(startDate, 'dd/MM/yy')
+          dateDayOnly = String(startDate.getDate())
         } else {
-          const start = this.$dateFns.format(new Date(firstDate + 'T00:00:00'), 'd MMM')
-          const end = this.$dateFns.format(new Date(lastDate + 'T00:00:00'), 'd MMM yyyy')
+          const endDate = new Date(lastDate + 'T00:00:00')
+          const start = this.$dateFns.format(startDate, 'd MMM')
+          const end = this.$dateFns.format(endDate, 'd MMM yyyy')
           dateRange = `${start} – ${end}`
-          const startShort = this.$dateFns.format(new Date(firstDate + 'T00:00:00'), 'dd/MM/yy')
-          const endShort = this.$dateFns.format(new Date(lastDate + 'T00:00:00'), 'dd/MM/yy')
-          dateRangeShort = `${startShort} – ${endShort}`
+          const sameMonth = firstDate.substring(0, 7) === lastDate.substring(0, 7)
+          if (sameMonth) {
+            dateRangeShort = `${startDate.getDate()}–${endDate.getDate()}/${this.$dateFns.format(endDate, 'MM/yy')}`
+            dateDayOnly = `${startDate.getDate()}–${endDate.getDate()}`
+          } else {
+            dateRangeShort = `${startDate.getDate()}/${this.$dateFns.format(startDate, 'MM')}–${endDate.getDate()}/${this.$dateFns.format(endDate, 'MM/yy')}`
+            dateDayOnly = `${startDate.getDate()}/${this.$dateFns.format(startDate, 'MM')}–${endDate.getDate()}/${this.$dateFns.format(endDate, 'MM')}`
+          }
         }
       }
 
@@ -745,13 +946,17 @@ export default {
       const rawNotes = raw.notes || ''
       const userNotes = SYSTEM_NOTE_PATTERN.test(rawNotes) ? '' : rawNotes
 
+      const typeShort = isVacation ? 'F' : 'P'
+
       return {
         id: raw.id,
         projectId: raw.project?.id,
         typeLabel,
+        typeShort,
         status: raw.status,
         dateRange,
         dateRangeShort,
+        dateDayOnly,
         totalHoursLabel: this.formatHours(totalHours || raw.hours || 0),
         firstDate,
         lastDate,
@@ -783,6 +988,8 @@ export default {
     statusLabel (status) {
       if (status === 'pending') { return this.$t('calendar_page.pending') }
       if (status === 'approved') { return this.$t('calendar_page.approved') }
+      if (status === 'rejected') { return this.$t('calendar_page.rejected') }
+      if (status === 'conflict') { return this.$t('calendar_page.conflict') }
       return status
     },
     statusIcon (status) {
@@ -793,6 +1000,7 @@ export default {
     statusIconClasses (status) {
       if (status === 'approved') { return 'text-vacation-text' }
       if (status === 'pending') { return 'text-pending-text' }
+      if (status === 'rejected' || status === 'conflict') { return 'text-danger' }
       return 'text-ink-muted'
     },
     formatHours (value) {
@@ -961,36 +1169,148 @@ export default {
     loadMorePast () {
       this.pastVisibleCount += 10
     },
-
-    async addDayToCalendar (cell) {
-      if (this.createdDates.has(cell.dateKey)) { return }
-      try {
-        const nextDay = this.$dateFns.format(
-          this.$dateFns.addDays(new Date(cell.dateKey + 'T00:00:00'), 1),
-          'yyyy-MM-dd'
-        )
-        await createOutOfOfficeEvent(cell.dateKey, nextDay)
-        this.createdDates = new Set([...this.createdDates, cell.dateKey])
-      } catch (error) {
-        console.error('Failed to create GCal event:', error)
-        this.exportResult = {
-          success: false,
-          message: this.$t('error') + ': ' + (error.message || 'Google Calendar non raggiungibile')
-        }
+    onHistoryScroll () {
+      if (!this.hasMorePast) { return }
+      const container = this.$refs.historyScroll
+      if (!container) { return }
+      const nearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 40
+      if (nearBottom) {
+        this.loadMorePast()
       }
     },
-    async confirmExport () {
+
+    addDayToCalendar (cell) {
+      if (this.createdDates.has(cell.dateKey)) { return }
+      const totalHours = (cell.vacation || 0) + (cell.leaves || 0)
+      const event = {
+        date: cell.dateKey,
+        dateLabel: this.$dateFns.format(new Date(cell.dateKey + 'T00:00:00'), 'EEEE d MMMM'),
+        hours: totalHours,
+        hoursLabel: this.formatHours(totalHours)
+      }
+      this.timePickSingleCell = cell
+      if (totalHours >= 8) {
+        this.executeGCalExport([event])
+        this.timePickSingleCell = null
+      } else {
+        this.timePickChoices = {}
+        this.openTimePicker([event])
+      }
+    },
+    confirmExport () {
+      const events = this.exportableEvents
+        .filter(event => !this.createdDates.has(event.date))
+      this.showExportModal = false
+      this.startGCalFlow(events)
+    },
+    aggregateByDate (events) {
+      const byDate = {}
+      for (const event of events) {
+        if (!byDate[event.date]) {
+          byDate[event.date] = { ...event, hours: 0 }
+        }
+        byDate[event.date].hours += event.hours
+        byDate[event.date].hoursLabel = this.formatHours(byDate[event.date].hours)
+      }
+      return Object.values(byDate)
+    },
+    startGCalFlow (events) {
+      const aggregated = this.aggregateByDate(events)
+      const needsTime = aggregated.filter(event => event.hours < 8)
+      const fullDay = aggregated.filter(event => event.hours >= 8)
+
+      const choices = {}
+      for (const event of fullDay) {
+        choices[event.date] = { allDay: true }
+      }
+      this.timePickChoices = choices
+
+      if (needsTime.length === 0) {
+        this.executeGCalExport(aggregated)
+      } else {
+        this.openTimePicker(needsTime)
+      }
+    },
+    openTimePicker (needsTime) {
+      this.timePickEvents = needsTime
+      this.timePickIndex = 0
+      this.timePickMode = needsTime[0]?.hours === 4 ? 'morning' : 'custom'
+      this.timePickCustomStart = '09:00'
+      this.timePickCustomEnd = '13:00'
+      this.showTimePickModal = true
+    },
+    confirmTimePick () {
+      const event = this.currentTimePick
+      let startTime, endTime
+      if (this.timePickMode === 'morning') {
+        startTime = '09:00'
+        endTime = '13:00'
+      } else if (this.timePickMode === 'afternoon') {
+        startTime = '14:00'
+        endTime = '18:00'
+      } else {
+        startTime = this.timePickCustomStart
+        endTime = this.timePickCustomEnd
+      }
+      this.timePickChoices = {
+        ...this.timePickChoices,
+        [event.date]: { startTime, endTime }
+      }
+
+      if (this.timePickIndex < this.timePickEvents.length - 1) {
+        this.timePickIndex++
+        const nextEvent = this.timePickEvents[this.timePickIndex]
+        this.timePickMode = nextEvent.hours === 4 ? 'morning' : 'custom'
+        this.timePickCustomStart = '09:00'
+        this.timePickCustomEnd = '13:00'
+      } else {
+        this.showTimePickModal = false
+        this.finishTimePickFlow()
+      }
+    },
+    applyTimePickToAll () {
+      let startTime, endTime
+      if (this.timePickMode === 'morning') {
+        startTime = '09:00'
+        endTime = '13:00'
+      } else if (this.timePickMode === 'afternoon') {
+        startTime = '14:00'
+        endTime = '18:00'
+      } else {
+        startTime = this.timePickCustomStart
+        endTime = this.timePickCustomEnd
+      }
+
+      const updatedChoices = { ...this.timePickChoices }
+      for (let eventIndex = this.timePickIndex; eventIndex < this.timePickEvents.length; eventIndex++) {
+        updatedChoices[this.timePickEvents[eventIndex].date] = { startTime, endTime }
+      }
+      this.timePickChoices = updatedChoices
+
+      this.showTimePickModal = false
+      this.finishTimePickFlow()
+    },
+    finishTimePickFlow () {
+      const allDates = Object.keys(this.timePickChoices)
+      const events = allDates.map(date => ({ date }))
+      this.executeGCalExport(events)
+      this.timePickSingleCell = null
+    },
+    async executeGCalExport (events) {
       this.exporting = true
       this.exportResult = null
       let created = 0
       try {
-        for (const dateStr of this.uniqueExportDates) {
+        const dedupedDates = [...new Set(events.map(event => event.date))]
+        for (const dateStr of dedupedDates) {
           if (this.createdDates.has(dateStr)) { continue }
           const nextDay = this.$dateFns.format(
             this.$dateFns.addDays(new Date(dateStr + 'T00:00:00'), 1),
             'yyyy-MM-dd'
           )
-          await createOutOfOfficeEvent(dateStr, nextDay)
+          const choice = this.timePickChoices[dateStr]
+          const options = choice && !choice.allDay ? { startTime: choice.startTime, endTime: choice.endTime } : {}
+          await createOutOfOfficeEvent(dateStr, nextDay, options)
           this.createdDates = new Set([...this.createdDates, dateStr])
           created++
         }
@@ -1012,3 +1332,129 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+  .sidebar-request-row {
+    @apply flex items-center rounded transition-colors px-2;
+    gap: 0.75rem;
+    min-height: 2.25rem;
+  }
+
+  .sidebar-request-row:hover {
+    @apply bg-card-hover;
+  }
+
+  .sidebar-request-btn {
+    @apply flex-1 min-w-0 flex items-center text-left;
+    gap: 0.75rem;
+  }
+
+  .sidebar-date {
+    @apply text-sm font-semibold text-ink tabular-nums whitespace-nowrap;
+    width: 3rem;
+    flex-shrink: 0;
+  }
+
+  .sidebar-hours {
+    @apply text-xs text-ink-muted whitespace-nowrap tabular-nums;
+    width: 2rem;
+    flex-shrink: 0;
+  }
+
+  .sidebar-type {
+    @apply text-[10px] font-bold leading-none px-1.5 py-0.5 rounded;
+    flex-shrink: 0;
+    min-width: 1.25rem;
+    text-align: center;
+  }
+
+  .sidebar-actions {
+    @apply flex items-center shrink-0 opacity-0 transition-opacity;
+    gap: 0.25rem;
+  }
+
+  .sidebar-request-row:hover .sidebar-actions {
+    @apply opacity-100;
+  }
+
+  /* F/P type pills */
+  .pill-ferie {
+    background: rgba(245, 158, 11, 0.15);
+    color: #d97706;
+  }
+  .pill-permesso {
+    background: var(--color-accent);
+    color: #fff;
+  }
+
+  /* GCal icon on calendar cells */
+  .gcal-icon {
+    color: #4285F4;
+  }
+
+  /* GCal "Aggiungi tutto al calendario" button */
+  .gcal-btn {
+    background: rgba(66, 133, 244, 0.12);
+    color: #4285F4;
+    border: 1px solid rgba(66, 133, 244, 0.3);
+  }
+  .gcal-btn:hover {
+    background: #4285F4;
+    color: #fff;
+  }
+
+  /* Time picker preset buttons */
+  .time-pick-active {
+    border-color: #4285F4;
+    background: rgba(66, 133, 244, 0.12);
+    color: #4285F4;
+  }
+  .time-pick-inactive {
+    border-color: var(--color-stroke);
+    color: var(--color-ink-muted);
+    background: transparent;
+  }
+  .time-pick-inactive:hover {
+    background: var(--color-card-hover);
+  }
+
+  /* Time inputs */
+  .time-pick-input {
+    @apply flex-1 px-3 py-2 text-sm rounded-lg border border-stroke text-ink;
+    background: var(--color-card-hover);
+    color-scheme: light;
+  }
+  .time-pick-input:focus {
+    @apply outline-none ring-1 ring-focus-ring;
+  }
+</style>
+
+<style>
+  .dark .pill-ferie {
+    background: rgba(251, 191, 36, 0.18);
+    color: #fbbf24;
+  }
+  .dark .pill-permesso {
+    color: #1e1b4b;
+  }
+  .dark .gcal-icon {
+    color: #6ea8ff;
+  }
+  .dark .gcal-btn {
+    background: rgba(110, 168, 255, 0.15);
+    color: #6ea8ff;
+    border-color: rgba(110, 168, 255, 0.35);
+  }
+  .dark .gcal-btn:hover {
+    background: #6ea8ff;
+    color: #1a1a2e;
+  }
+  .dark .time-pick-active {
+    border-color: #6ea8ff;
+    background: rgba(110, 168, 255, 0.15);
+    color: #6ea8ff;
+  }
+  .dark .time-pick-input {
+    color-scheme: dark;
+  }
+</style>

@@ -91,30 +91,40 @@ function loadGApiClient () {
 }
 
 /**
- * Creates an all-day Out of Office event on the user's primary calendar.
+ * Creates an Out of Office event on the user's primary calendar.
+ * If startTime/endTime are provided, creates a timed event; otherwise all-day.
  * @param {string} dateStr – ISO date like '2026-07-08'
- * @param {string} nextDateStr – ISO date of the following day like '2026-07-09'
+ * @param {string} nextDateStr – ISO date of the following day (used for all-day events)
+ * @param {{ startTime?: string, endTime?: string }} options – e.g. { startTime: '09:00', endTime: '13:00' }
  */
-export async function createOutOfOfficeEvent (dateStr, nextDateStr) {
+export async function createOutOfOfficeEvent (dateStr, nextDateStr, options = {}) {
   await loadGApiClient()
 
   if (!window.$nuxt.$store.getters['user/isGoogleTokenValid']) {
     await connectCalendar()
   }
 
+  const resource = {
+    summary: 'OOO',
+    eventType: 'outOfOffice',
+    outOfOfficeProperties: {
+      autoDeclineMode: 'declineAllConflictingInvitations'
+    },
+    transparency: 'opaque',
+    visibility: 'public'
+  }
+
+  if (options.startTime && options.endTime) {
+    resource.start = { dateTime: `${dateStr}T${options.startTime}:00`, timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }
+    resource.end = { dateTime: `${dateStr}T${options.endTime}:00`, timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }
+  } else {
+    resource.start = { date: dateStr }
+    resource.end = { date: nextDateStr }
+  }
+
   const response = await window.gapi.client.calendar.events.insert({
     calendarId: 'primary',
-    resource: {
-      summary: 'OOO',
-      start: { date: dateStr },
-      end: { date: nextDateStr },
-      eventType: 'outOfOffice',
-      outOfOfficeProperties: {
-        autoDeclineMode: 'declineAllConflictingInvitations'
-      },
-      transparency: 'opaque',
-      visibility: 'public'
-    }
+    resource
   })
 
   return response.result
