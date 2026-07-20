@@ -282,7 +282,11 @@
           <button class="px-4 py-2 text-sm font-medium rounded-lg border-2 transition-colors" :class="modalCustomHours !== null ? 'border-accent bg-accent-soft text-accent-fg' : 'border-stroke-muted text-ink-muted hover:bg-card-hover'" @click="modalCustomHours = modalCustomHours ?? 1; modalHoursPerDay = modalCustomHours">{{ $t('calendar_page.hours_custom') }}</button>
         </div>
         <div v-if="modalCustomHours !== null" class="mt-2 flex items-center gap-2">
-          <input v-model.number="modalCustomHours" type="number" min="0.5" max="8" step="0.5" class="w-20 px-3 py-2 text-sm rounded-lg border border-stroke bg-input text-ink focus:outline-none focus:ring-2 focus:ring-focus-ring" @input="modalHoursPerDay = modalCustomHours">
+          <div class="inline-flex items-stretch rounded-lg border border-stroke overflow-hidden">
+            <button class="px-2.5 flex items-center text-ink-muted hover:bg-card-hover hover:text-ink transition-colors disabled:opacity-30 disabled:cursor-not-allowed" :disabled="modalCustomHours <= 0.5" @click="modalCustomHours = Math.max(0.5, modalCustomHours - 0.5); modalHoursPerDay = modalCustomHours"><IconMinus :size="14" /></button>
+            <input v-model.number="modalCustomHours" type="number" min="0.5" max="8" step="0.5" class="custom-hours-input w-12 text-center text-sm font-medium bg-input text-ink py-2 border-x border-stroke focus:outline-none" @input="modalHoursPerDay = modalCustomHours">
+            <button class="px-2.5 flex items-center text-ink-muted hover:bg-card-hover hover:text-ink transition-colors disabled:opacity-30 disabled:cursor-not-allowed" :disabled="modalCustomHours >= 8" @click="modalCustomHours = Math.min(8, modalCustomHours + 0.5); modalHoursPerDay = modalCustomHours"><IconPlus :size="14" /></button>
+          </div>
           <span class="text-xs text-ink-muted">{{ $t('calendar_page.hours_custom_hint') }}</span>
         </div>
       </div>
@@ -810,6 +814,9 @@ async function executeGCalExport(events) {
 .bg-budget-remaining { background: var(--color-budget-remaining, var(--color-stroke-muted)); }
 .time-pick-input { @apply flex-1 px-3 py-2 text-sm rounded-lg border border-stroke text-ink; background: var(--color-card-hover); color-scheme: light; }
 .time-pick-input:focus { @apply outline-none ring-1 ring-focus-ring; }
+.custom-hours-input::-webkit-inner-spin-button,
+.custom-hours-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.custom-hours-input { -moz-appearance: textfield; appearance: textfield; }
 </style>
 
 <style>

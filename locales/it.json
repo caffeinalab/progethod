@@ -188,6 +188,8 @@
     "edit_request_title": "Modifica richiesta",
     "request_type": "Tipo",
     "hours_per_day": "Ore per giorno",
+    "hours_custom": "Personalizzato",
+    "hours_custom_hint": "ore (da 0.5 a 8)",
     "notes_placeholder": "Note (opzionale)...",
     "selected_days": "Giorni selezionati",
     "create_request": "Crea richiesta",
