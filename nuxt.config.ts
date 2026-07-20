@@ -53,6 +53,10 @@ export default defineNuxtConfig({
       name: 'Progethod',
       short_name: 'Progethod',
     },
+    workbox: {
+      navigateFallback: '/200.html',
+      globPatterns: ['**/*.{js,css,html,ico,png,svg,webmanifest}'],
+    },
   },
 
   runtimeConfig: {
