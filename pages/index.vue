@@ -104,20 +104,15 @@
             <span class="stat-value">{{ monthTrackedDays + '/' + monthWorkingDays }}</span>
           </div>
 
-          <!-- Office days stat -->
+          <!-- Office days check -->
           <div class="stat-card">
-            <span class="stat-label inline-flex items-center gap-1">
-              <building-icon size="14" class="text-accent" />
-              {{ $t('office_days_label') }}
-            </span>
-            <span class="stat-value inline-flex items-center gap-1.5">
-              {{ officeDaysInMonth }}
-              <span
-                class="office-pace-dot"
-                :class="officeDaysOnTrack.onTrack ? 'bg-success' : 'bg-warning'"
-                :data-tooltip="officeDaysOnTrack.tooltip"
-              />
-            </span>
+            <button
+              class="inline-flex items-center gap-1.5 text-sm font-bold text-ink hover:bg-card-hover hover:border-stroke transition-colors"
+              @click="showOfficeDaysModal = true"
+            >
+              <building-icon size="14" />
+              {{ $t('office_days_check_button') }}
+            </button>
           </div>
         </template>
 
@@ -144,6 +139,14 @@
         />
       </div>
     </div>
+    <office-days-modal
+      v-model="showOfficeDaysModal"
+      :month-tracked-hours="monthTrackedHours"
+      :month-from="monthFrom"
+      :month-to="monthTo"
+      :month-working-days="monthWorkingDays"
+      :month-label="monthLabel"
+    />
   </div>
 </template>
 
@@ -153,6 +156,7 @@ import { isSameDay, startOfMonth, endOfMonth, subDays, getDay, isAfter, isBefore
 import { mapGetters } from 'vuex'
 import DayInputItem from '~/components/DayInputItem'
 import BusinessUnitFilter from '~/components/BusinessUnitFilter'
+import OfficeDaysModal from '~/components/OfficeDaysModal'
 import liveToday from '~/mixins/liveToday'
 
 export default {
@@ -162,7 +166,8 @@ export default {
     ChevronRightIcon,
     BuildingIcon,
     DayInputItem,
-    BusinessUnitFilter
+    BusinessUnitFilter,
+    OfficeDaysModal
   },
   mixins: [liveToday],
   middleware: 'auth',
@@ -176,7 +181,7 @@ export default {
       monthTrackedHours: [],
       calendarTrackedHours: [],
       trackedHoursLoading: false,
-      officeDaysFromApi: [],
+      showOfficeDaysModal: false,
       weekVacationHours: [],
       holidays: [],
       holidaysFetchFailed: false,
@@ -253,53 +258,6 @@ export default {
     },
     monthLabel () {
       return this.$dateFns.format(this.weekAnchor, 'MMMM yyyy')
-    },
-    officeDaysInMonth () {
-      return this.officeDaysFromApi.length
-    },
-    officeDaysOnTrack () {
-      const target = 8
-      const todayStr = this.$dateFns.format(this.today, 'yyyy-MM-dd')
-
-      if (todayStr < this.monthFrom || todayStr > this.monthTo) {
-        return { onTrack: true, tooltip: this.$t('office_days_tooltip_remaining', { remaining: target - this.officeDaysInMonth }) }
-      }
-
-      let elapsedWorkingDays = 0
-      let current = new Date(this.monthFrom + 'T00:00:00')
-      const todayDate = new Date(todayStr + 'T00:00:00')
-      while (current <= todayDate) {
-        const dow = current.getDay()
-        if (dow !== 0 && dow !== 6) {
-          elapsedWorkingDays++
-        }
-        current = this.$dateFns.addDays(current, 1)
-      }
-
-      const expectedPace = Math.round(target * elapsedWorkingDays / this.monthWorkingDays)
-
-      const friday = this.$dateFns.addDays(this.$dateFns.startOfWeek(this.today, { weekStartsOn: 1 }), 4)
-      let remainingThisWeek = 0
-      let cursor = this.$dateFns.addDays(this.today, 1)
-      while (cursor <= friday) {
-        const dow = cursor.getDay()
-        if (dow !== 0 && dow !== 6) {
-          remainingThisWeek++
-        }
-        cursor = this.$dateFns.addDays(cursor, 1)
-      }
-
-      const onTrack = this.officeDaysInMonth + remainingThisWeek >= expectedPace
-      const remaining = target - this.officeDaysInMonth
-
-      if (this.officeDaysInMonth >= target) {
-        return { onTrack: true, tooltip: this.$t('office_days_tooltip_done') }
-      }
-
-      return {
-        onTrack,
-        tooltip: this.$t('office_days_tooltip_remaining', { remaining })
-      }
     },
     trackedHoursByDay () {
       const map = {}
@@ -528,36 +486,7 @@ export default {
       } finally {
         if (this.weekOffset === snapshotOffset) {
           this.trackedHoursLoading = false
-          this.fetchOfficeDays()
         }
-      }
-    },
-    async fetchOfficeDays () {
-      if (!this.$store.getters['user/canMakeRequests']) {
-        return
-      }
-      const fullDays = this.monthTrackedHours
-        .filter(entry => entry.value >= 8)
-        .map(entry => entry.date)
-
-      if (fullDays.length === 0) {
-        this.officeDaysFromApi = []
-        return
-      }
-
-      const snapshotMonth = this.monthFrom
-      try {
-        const response = await this.$axios.$get('office-days', {
-          params: { dates: fullDays.join(',') }
-        })
-        if (this.monthFrom !== snapshotMonth) {
-          return
-        }
-        if (Array.isArray(response?.data)) {
-          this.officeDaysFromApi = response.data
-        }
-      } catch {
-        // API unreachable — office days will remain empty
       }
     },
     async fetchVacationHours () {
@@ -667,45 +596,5 @@ export default {
 
   .stat-value {
     @apply text-ink font-bold tabular-nums;
-  }
-
-  .office-pace-dot {
-    position: relative;
-    cursor: default;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-  }
-
-  .office-pace-dot::before {
-    content: '';
-    position: absolute;
-    inset: -6px;
-  }
-
-  .office-pace-dot::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    bottom: calc(100% + 8px);
-    left: 50%;
-    transform: translateX(-50%);
-    white-space: nowrap;
-    font-size: 11px;
-    font-weight: 500;
-    padding: 4px 8px;
-    border-radius: 6px;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.1s ease;
-    z-index: 50;
-    @apply bg-card-hover text-ink border border-stroke-muted shadow;
-  }
-
-  .office-pace-dot:hover::after {
-    opacity: 1;
-  }
-
-  .office-pace-dot[data-tooltip=""]::after {
-    display: none;
   }
 </style>

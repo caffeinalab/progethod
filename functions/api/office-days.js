@@ -32,6 +32,9 @@ export async function onRequestGet ({ request, env, data: { authToken } }) {
 
         let totalInternal = 0
         for (const project of body.data) {
+          if (project.project?.project_type?.is_timesheet_automatic) {
+            continue
+          }
           for (const area of project.areas || []) {
             if (area.hours?.internal > 0) {
               totalInternal += area.hours.internal
