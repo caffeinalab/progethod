@@ -278,7 +278,12 @@
       <div v-if="requestModalMode === 'create'" class="w-full mb-4">
         <label class="text-xs font-semibold text-ink-muted block mb-1.5">{{ $t('calendar_page.hours_per_day') }}</label>
         <div class="flex gap-2">
-          <button v-for="option in [4, 8]" :key="option" class="px-4 py-2 text-sm font-medium rounded-lg border-2 transition-colors" :class="modalHoursPerDay === option ? 'border-accent bg-accent-soft text-accent-fg' : 'border-stroke-muted text-ink-muted hover:bg-card-hover'" @click="modalHoursPerDay = option">{{ option }}h</button>
+          <button v-for="option in [4, 8]" :key="option" class="px-4 py-2 text-sm font-medium rounded-lg border-2 transition-colors" :class="modalHoursPerDay === option && modalCustomHours === null ? 'border-accent bg-accent-soft text-accent-fg' : 'border-stroke-muted text-ink-muted hover:bg-card-hover'" @click="modalHoursPerDay = option; modalCustomHours = null">{{ option }}h</button>
+          <button class="px-4 py-2 text-sm font-medium rounded-lg border-2 transition-colors" :class="modalCustomHours !== null ? 'border-accent bg-accent-soft text-accent-fg' : 'border-stroke-muted text-ink-muted hover:bg-card-hover'" @click="modalCustomHours = modalCustomHours ?? 1; modalHoursPerDay = modalCustomHours">{{ $t('calendar_page.hours_custom') }}</button>
+        </div>
+        <div v-if="modalCustomHours !== null" class="mt-2 flex items-center gap-2">
+          <input v-model.number="modalCustomHours" type="number" min="0.5" max="8" step="0.5" class="w-20 px-3 py-2 text-sm rounded-lg border border-stroke bg-input text-ink focus:outline-none focus:ring-2 focus:ring-focus-ring" @input="modalHoursPerDay = modalCustomHours">
+          <span class="text-xs text-ink-muted">{{ $t('calendar_page.hours_custom_hint') }}</span>
         </div>
       </div>
       <div class="w-full mb-6">
@@ -304,7 +309,7 @@
 import { ref, computed, watch, onMounted, onUpdated, onBeforeUnmount, nextTick } from 'vue'
 import { startOfMonth, endOfMonth, getDay, addMonths, addDays, format, differenceInCalendarMonths } from 'date-fns'
 import { it } from 'date-fns/locale'
-import { IconChevronLeft, IconChevronRight, IconCheck, IconX, IconEdit, IconTrash, IconClock, IconCircleCheck, IconCircleX } from '@tabler/icons-vue'
+import { IconChevronLeft, IconChevronRight, IconCheck, IconX, IconEdit, IconTrash, IconClock, IconCircleCheck, IconCircleX, IconMinus, IconPlus } from '@tabler/icons-vue'
 import { createOutOfOfficeEvent } from '~/utils/gCal'
 
 definePageMeta({ middleware: 'auth' })
@@ -338,6 +343,7 @@ const requestModalMode = ref('create')
 const editingRequest = ref(null)
 const modalProjectId = ref(VACATION_PROJECT_ID)
 const modalHoursPerDay = ref(8)
+const modalCustomHours = ref(null)
 const modalNotes = ref('')
 const modalDates = ref([])
 const requestSaving = ref(false)
@@ -576,9 +582,9 @@ function onDocumentMouseUp() {
   if (emptyDates.length > 0) openCreateModal(emptyDates)
 }
 
-function openCreateModal(dates) { requestModalMode.value = 'create'; editingRequest.value = null; modalProjectId.value = VACATION_PROJECT_ID; modalHoursPerDay.value = 8; modalNotes.value = ''; modalDates.value = dates; requestError.value = null; showRequestModal.value = true }
+function openCreateModal(dates) { requestModalMode.value = 'create'; editingRequest.value = null; modalProjectId.value = VACATION_PROJECT_ID; modalHoursPerDay.value = 8; modalCustomHours.value = null; modalNotes.value = ''; modalDates.value = dates; requestError.value = null; showRequestModal.value = true }
 function openEditModal(dateKey, dayData) { const requestIds = dayData.requestIds || []; if (!requestIds.length) return; const request = allRequests.value.find((r) => requestIds.includes(r.id)); if (request) openEditFromRequest(request) }
-function openEditFromRequest(request) { requestModalMode.value = 'edit'; editingRequest.value = request; modalProjectId.value = request.projectId; modalNotes.value = request.notes; modalDates.value = request.days.map((d) => d.date || d.day).filter(Boolean).sort(); modalHoursPerDay.value = request.days[0]?.hours || 8; requestError.value = null; showRequestModal.value = true }
+function openEditFromRequest(request) { requestModalMode.value = 'edit'; editingRequest.value = request; modalProjectId.value = request.projectId; modalNotes.value = request.notes; modalDates.value = request.days.map((d) => d.date || d.day).filter(Boolean).sort(); const hours = request.days[0]?.hours || 8; modalHoursPerDay.value = hours; modalCustomHours.value = (hours === 4 || hours === 8) ? null : hours; requestError.value = null; showRequestModal.value = true }
 function removeModalDate(dateIndex) { modalDates.value = modalDates.value.filter((_, idx) => idx !== dateIndex) }
 function navigateToRequest(request) { if (!request.firstDate) return; this; monthOffset.value = differenceInCalendarMonths(new Date(request.firstDate + 'T00:00:00'), startOfMonth(today.value)) }
 function onHistoryScroll() { if (!hasMorePast.value) return; const container = historyScroll.value; if (!container) return; if (container.scrollTop + container.clientHeight >= container.scrollHeight - 40) pastVisibleCount.value += 10 }
@@ -817,6 +823,6 @@ async function executeGCalExport(events) {
 .dark .bg-budget-requested { background: #f59e0b; }
 .dark .time-pick-active { border-color: #6ea8ff; background: rgba(110, 168, 255, 0.15); color: #6ea8ff; }
 .dark .time-pick-input { color-scheme: dark; }
-.dark .sidebar-tabs-wrapper { background-color: var(--color-accent-soft); }
-.dark .sidebar-tabs-indicator { box-shadow: none; }
+.dark .sidebar-tabs-indicator { background-color: #b4b9f8; box-shadow: none; }
+.dark .sidebar-tab-active { color: #323339; }
 </style>
