@@ -5,38 +5,47 @@ alwaysApply: true
 
 # Progethod
 
-A simplified timesheet interface for Wethod. Data is stored locally (localStorage) and synced to a backend API. Built with Nuxt 2 (SPA mode, static target) + Vuex + TailwindCSS.
+A simplified timesheet interface for Wethod. Data is stored locally (localStorage) and synced to a backend API. Built with Nuxt 4 (SPA mode, static preset) + Pinia 4 + Tailwind CSS 4.
 
 ## Architecture
 
-- **Framework**: Nuxt 2 (Vue 2), SPA mode (`ssr: false`, `target: static`)
-- **State**: Vuex modules persisted via `vuex-persist` to localStorage
-- **Styling**: TailwindCSS with PostCSS
-- **i18n**: `@nuxtjs/i18n`, Italian only (`locales/it.json`)
-- **API**: Axios, backend at `/api/`
+- **Framework**: Nuxt 4 (Vue 3.5), SPA mode (`ssr: false`, Nitro preset `static`)
+- **State**: Pinia 4 stores persisted to localStorage via custom plugin (`plugins/persistence.client.ts`)
+- **Styling**: Tailwind CSS 4 via `@tailwindcss/vite` plugin (CSS-first config in `assets/css/tailwind.css`)
+- **i18n**: `@nuxtjs/i18n` v10 (vue-i18n v11), Italian only (`locales/it.json`)
+- **API**: `$fetch` wrapped in `composables/useApi.ts`, backend at `/api/`
 - **Calendar**: Google Calendar integration for importing events
 - **Jira**: OAuth 2.0 + PKCE popup flow to fetch daily Jira activity (tickets touched that day)
 - **GitLab**: OAuth 2.0 + PKCE popup flow to fetch daily GitLab commits (push events)
+- **PWA**: `@vite-pwa/nuxt` v1
+- **Build**: `nuxt generate` outputs to `.output/public/`, deployed to Cloudflare Pages
+- **Node**: 22 LTS (via Volta)
 
-## Vuex Modules
+## Pinia Stores
 
-- `store/projects.js` — User-created local project shortcuts (aliases to Wethod projects/areas)
-- `store/presets.js` — User-created note presets shown when the notes field is empty
-- `store/entries.js` — Daily timesheet entries
-- `store/user.js` — Auth token, user info
-- `store/apiData.js` — Cached Wethod project data
-- `store/preferences.js` — UI preferences (confirm on submit, business unit filter, theme, high contrast)
+- `stores/projects.ts` — User-created local project shortcuts (aliases to Wethod projects/areas)
+- `stores/presets.ts` — User-created note presets shown when the notes field is empty
+- `stores/entries.ts` — Daily timesheet entries
+- `stores/user.ts` — Auth token, user info, integration tokens (Jira, GitLab, GCal)
+- `stores/apiData.ts` — Cached Wethod project data
+- `stores/preferences.ts` — UI preferences (confirm on submit, business unit filter, theme, high contrast)
+
+## Composables
+
+- `composables/useApi.ts` — API client wrapping `$fetch` with auth headers and 401 handling
+- `composables/useEventBus.ts` — Cross-component event bus using `mitt`
+- `composables/useLiveToday.ts` — Reactive `today` ref that updates at midnight
 
 ## Key Decisions
 
 - **Note presets**: Global note presets (not project-scoped). Appear only when notes field is focused + empty. Keyboard navigation: ArrowDown enters presets mode, ArrowLeft/Right navigates, Enter selects, ArrowUp/Esc exits. Stored same as projects with soft-delete pattern. Backend API endpoint remains `pills` for backward compatibility.
-- **Persistence**: All Vuex modules (including presets) persisted to localStorage. Soft-deleted items pruned after 40 days.
-- **Sync**: Projects and presets sync to backend via PUT on mutation. Entries are local-only until explicitly submitted.
-- **Keyboard navigation**: Full keyboard nav via `plugins/keyboard-shortcuts.js`. Global shortcuts only fire when user is not typing in an input.
-- **External integrations (Jira/GitLab)**: Same pattern — OAuth popup with PKCE, server-side token exchange via Cloudflare Pages Function, activity proxy, modal UI. Tokens stored in `user` Vuex module with expiration. Auth routes bypass the main auth middleware. Both token exchange endpoints use server-side env vars (`*_CLIENT_SECRET`) while client-side only exposes `*_CLIENT_ID` via `nuxt.config.js env`. Refresh tokens are persisted alongside access tokens; when an access token expires, the client silently refreshes via the same server-side endpoint (`grant_type: refresh_token`) before falling back to the full OAuth popup flow. Jira rotates refresh tokens on each use (new one returned and stored).
+- **Persistence**: All Pinia stores persisted to localStorage under the key `progethod`. Migration from old `vuex` key happens automatically on first load. Soft-deleted items pruned after 40 days.
+- **Sync**: Projects and presets sync to backend via PUT on mutation (`plugins/sync.client.ts`). Entries are local-only until explicitly submitted.
+- **Keyboard navigation**: Full keyboard nav via `plugins/keyboard-shortcuts.client.ts`. Global shortcuts only fire when user is not typing in an input.
+- **External integrations (Jira/GitLab)**: Same pattern — OAuth popup with PKCE, server-side token exchange via Cloudflare Pages Function, activity proxy, modal UI. Tokens stored in `user` Pinia store with expiration. Auth routes bypass the main auth middleware. Both token exchange endpoints use server-side env vars (`*_CLIENT_SECRET`) while client-side only exposes `*_CLIENT_ID` via `runtimeConfig.public`. Refresh tokens are persisted alongside access tokens; when an access token expires, the client silently refreshes via the same server-side endpoint (`grant_type: refresh_token`) before falling back to the full OAuth popup flow. Jira rotates refresh tokens on each use (new one returned and stored).
 - **Month stats reference date**: Month label, tracked days, working days, and office days are computed from `weekAnchor` (= today + weekOffset), not from `days[0]` (Monday of the week). This ensures that when a week spans two months, the stats reflect the month the user is "anchored to" (i.e. today's month for the current week).
 - **Office days**: Sourced from Wethod, not local entries. The `/api/office-days` endpoint fetches `timetrackingboard` for each working day in the month range (5 concurrent requests) and returns dates where any project area has `internal` hours > 0. In Wethod's data model, `internal` = office, `remote` = home.
-- **Theming**: 4-mode system — light, dark, light+high-contrast, dark+high-contrast. Colors are defined as semantic CSS custom properties in `assets/css/theme.css` and referenced by Tailwind via `tailwind.config.js` color extensions. Palette layers cascade via `.dark` and `.high-contrast` classes on `<html>`. Base themes are colorblind-safe (emerald for success, not pure green). High contrast targets WCAG AAA. Theme preference (`auto`/`light`/`dark`) and `highContrast` boolean are stored in `store/preferences.js`. `plugins/theme.js` applies classes to `<html>` and listens to `prefers-color-scheme` for auto mode. Settings UI lives in the user dropdown menu in `layouts/default.vue`. Per-location identity colors (amber/blue/cyan/purple/slate in `LocationInput.vue`) remain as direct Tailwind classes with `dark:` variants, safelisted in tailwind config. No other component should use hardcoded color classes — always use semantic tokens (`text-ink`, `bg-card`, `border-stroke`, `text-accent-fg`, etc.).
+- **Theming**: 4-mode system — light, dark, light+high-contrast, dark+high-contrast. Colors are defined as semantic CSS custom properties in `assets/css/theme.css` and registered as Tailwind utilities via `@theme inline` in `assets/css/tailwind.css`. Palette layers cascade via `.dark` and `.high-contrast` classes on `<html>`. Base themes are colorblind-safe (emerald for success, not pure green). High contrast targets WCAG AAA. Theme preference (`auto`/`light`/`dark`) and `highContrast` boolean are stored in `stores/preferences.ts`. `plugins/theme.client.ts` applies classes to `<html>` and listens to `prefers-color-scheme` for auto mode. Settings UI lives in the user dropdown menu in `layouts/default.vue`. Per-location identity colors (amber/blue/cyan/purple/slate in `LocationInput.vue`) remain as direct Tailwind classes with `dark:` variants. No other component should use hardcoded color classes — always use semantic tokens (`text-ink`, `bg-card`, `border-stroke`, `text-accent-fg`, etc.). Style blocks using `@apply` must include `@reference "~/assets/css/tailwind.css"` at the top.
 - **Holidays**: Fetched from `/api/holidays` (Factorial iCal proxy). Holidays are excluded from calendar interactions the same way weekends are (non-clickable, non-selectable in drag). Displayed in MonthCalendar widget with disabled styling. On main weekly timesheet, holidays render as a badge on the day stat bar. Data is `[{ date, name }]`.
 - **Leave display (main page)**: Ferie and Permesso are merged into a single "Assenze" badge on the weekly timesheet (`DayInputItem`). They remain separate on the `/ferie` calendar page.
 - **Allocation request notes**: System-generated notes matching `Allocation request imported on ...` are stripped when pre-filling the edit modal. The notes field only contains user-authored content.

@@ -1,5 +1,5 @@
 <template>
-  <transition name="hint-fade">
+  <Transition name="hint-fade">
     <div v-if="visible" class="fixed bottom-6 right-6 z-50">
       <div class="bg-card border border-stroke rounded-xl shadow-xl px-4 py-3 text-sm min-w-[160px]">
         <span class="block text-xs font-semibold text-ink-faint uppercase tracking-wider mb-2">
@@ -15,33 +15,34 @@
         </div>
       </div>
     </div>
-  </transition>
+  </Transition>
 </template>
 
-<script>
-export default {
-  data: () => ({ visible: false }),
-  computed: {
-    integrations () {
-      return [
-        { key: 'c', label: 'Calendar' },
-        { key: 'j', label: 'Jira' },
-        { key: 'g', label: 'GitLab' }
-      ]
-    }
-  },
-  mounted () {
-    this.$nuxt.$on('shortcut:integration-hint', this.setVisibility)
-  },
-  beforeDestroy () {
-    this.$nuxt.$off('shortcut:integration-hint', this.setVisibility)
-  },
-  methods: {
-    setVisibility (show) {
-      this.visible = show
-    }
-  }
+<script setup>
+import { ref, onMounted, onBeforeUnmount } from 'vue'
+
+const { t: $t } = useI18n()
+const eventBus = useEventBus()
+
+const visible = ref(false)
+
+const integrations = [
+  { key: 'c', label: 'Calendar' },
+  { key: 'j', label: 'Jira' },
+  { key: 'g', label: 'GitLab' },
+]
+
+function setVisibility(show) {
+  visible.value = show
 }
+
+onMounted(() => {
+  eventBus.on('shortcut:integration-hint', setVisibility)
+})
+
+onBeforeUnmount(() => {
+  eventBus.off('shortcut:integration-hint', setVisibility)
+})
 </script>
 
 <style scoped>
@@ -51,7 +52,7 @@ export default {
 .hint-fade-leave-active {
   transition: opacity 0.1s ease, transform 0.1s ease;
 }
-.hint-fade-enter,
+.hint-fade-enter-from,
 .hint-fade-leave-to {
   opacity: 0;
   transform: translateY(8px);

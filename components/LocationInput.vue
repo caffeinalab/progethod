@@ -14,35 +14,23 @@
         :title="$t(option.label)"
         @click="select(option.key)"
       >
-        <component
-          :is="option.icon"
-          width="14"
-          height="14"
-          fill="none"
-          stroke="currentColor"
-        />
+        <component :is="option.icon" :size="14" />
         <span>{{ $t(option.label) }}</span>
       </button>
     </div>
 
     <!-- Per-row: icon button with dropdown picker -->
-    <div v-else class="relative">
+    <div v-else class="relative" ref="pickerContainer">
       <button
         class="flex items-center justify-center w-10 h-10 rounded-lg border border-stroke-muted bg-card shadow transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-focus-ring"
         :class="disabled
           ? 'text-ink-disabled cursor-default'
-          : 'cursor-pointer hover:bg-card-hover hover:border-stroke ' + activeIconColor"
+          : 'cursor-pointer hover:bg-card-hover hover:border-stroke location-icon-color'"
         :disabled="disabled"
         :title="$t(selectedOption.label)"
         @click="pickerOpen = !pickerOpen"
       >
-        <component
-          :is="selectedOption.icon"
-          width="16"
-          height="16"
-          fill="none"
-          stroke="currentColor"
-        />
+        <component :is="selectedOption.icon" :size="16" />
       </button>
       <div
         v-if="pickerOpen && !disabled"
@@ -52,16 +40,10 @@
           v-for="option in options"
           :key="option.key"
           class="w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-card-hover"
-          :class="value === option.key ? activeClassesFor(option) : 'text-ink-secondary'"
+          :class="modelValue === option.key ? 'location-active font-medium' : 'text-ink-secondary'"
           @click="selectAndClose(option.key)"
         >
-          <component
-            :is="option.icon"
-            width="16"
-            height="16"
-            fill="none"
-            stroke="currentColor"
-          />
+          <component :is="option.icon" :size="16" />
           <span>{{ $t(option.label) }}</span>
         </button>
       </div>
@@ -69,110 +51,73 @@
   </div>
 </template>
 
-<script>
-import {
-  BuildingIcon,
-  HomeIcon,
-  CarIcon,
-  ClockIcon,
-  MoonIcon
-} from 'vue-tabler-icons'
+<script setup lang="ts">
+import { ref, computed, onMounted, onBeforeUnmount, markRaw } from 'vue'
+import { IconHome, IconBuilding, IconCar, IconClock, IconMoon } from '@tabler/icons-vue'
 
-const LOCATION_OPTIONS = [
-  { key: 'home', label: 'home', icon: 'HomeIcon' },
-  { key: 'office', label: 'office', icon: 'BuildingIcon' },
-  { key: 'travel', label: 'travel', icon: 'CarIcon' },
-  { key: 'overtime', label: 'overtime', icon: 'ClockIcon' },
-  { key: 'night_shift', label: 'night_shift', icon: 'MoonIcon' }
+const { t: $t } = useI18n()
+
+const props = defineProps<{
+  modelValue: string
+  variant?: 'icon' | 'text'
+  disabled?: boolean
+}>()
+
+const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
+
+const pickerContainer = ref<HTMLElement | null>(null)
+const pickerOpen = ref(false)
+
+const options = [
+  { key: 'home', label: 'home', icon: markRaw(IconHome) },
+  { key: 'office', label: 'office', icon: markRaw(IconBuilding) },
+  { key: 'travel', label: 'travel', icon: markRaw(IconCar) },
+  { key: 'overtime', label: 'overtime', icon: markRaw(IconClock) },
+  { key: 'night_shift', label: 'night_shift', icon: markRaw(IconMoon) },
 ]
 
-export default {
-  components: {
-    BuildingIcon,
-    HomeIcon,
-    CarIcon,
-    ClockIcon,
-    MoonIcon
-  },
-  props: {
-    value: {
-      type: String,
-      default: 'home'
-    },
-    disabled: {
-      type: Boolean,
-      default: false
-    },
-    variant: {
-      type: String,
-      default: 'icon',
-      validator: val => ['icon', 'text'].includes(val)
-    }
-  },
-  data () {
-    return {
-      pickerOpen: false
-    }
-  },
-  computed: {
-    options () {
-      return LOCATION_OPTIONS
-    },
-    selectedOption () {
-      return LOCATION_OPTIONS.find(option => option.key === this.value) || LOCATION_OPTIONS[0]
-    },
-    activeIconColor () {
-      return 'location-icon-color'
-    }
-  },
-  mounted () {
-    this._onClickOutside = (event) => {
-      if (!this.$el.contains(event.target)) {
-        this.pickerOpen = false
-      }
-    }
-    document.addEventListener('click', this._onClickOutside)
-  },
-  beforeDestroy () {
-    document.removeEventListener('click', this._onClickOutside)
-  },
-  methods: {
-    select (place) {
-      this.$emit('input', place)
-    },
-    selectAndClose (place) {
-      this.select(place)
-      this.pickerOpen = false
-    },
-    activeClassesFor () {
-      return 'location-active font-medium'
-    },
-    optionClasses (option) {
-      const isActive = this.value === option.key
-      if (this.disabled) {
-        return isActive
-          ? 'text-ink-inverse bg-ink-disabled cursor-default'
-          : 'text-ink-disabled cursor-default'
-      }
-      if (isActive) {
-        return 'location-active cursor-default'
-      }
-      return 'text-ink-muted location-hover'
-    }
+const selectedOption = computed(() =>
+  options.find(option => option.key === props.modelValue) || options[0]
+)
+
+function select(place: string) {
+  emit('update:modelValue', place)
+}
+
+function selectAndClose(place: string) {
+  select(place)
+  pickerOpen.value = false
+}
+
+function optionClasses(option: typeof options[number]) {
+  const isActive = props.modelValue === option.key
+  if (props.disabled) {
+    return isActive
+      ? 'text-ink-inverse bg-ink-disabled cursor-default'
+      : 'text-ink-disabled cursor-default'
+  }
+  if (isActive) return 'location-active cursor-default'
+  return 'text-ink-muted location-hover'
+}
+
+function onClickOutside(event: MouseEvent) {
+  if (!pickerContainer.value?.contains(event.target as Node)) {
+    pickerOpen.value = false
   }
 }
+
+onMounted(() => { document.addEventListener('click', onClickOutside) })
+onBeforeUnmount(() => { document.removeEventListener('click', onClickOutside) })
 </script>
 
 <style scoped>
 .location-icon-color {
   color: var(--color-location);
 }
-
 .location-active {
   color: var(--color-location-text);
   background-color: var(--color-location-soft);
 }
-
 .location-hover:hover {
   color: var(--color-location-text);
   background-color: var(--color-location-soft);

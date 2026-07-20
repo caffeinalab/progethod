@@ -1,7 +1,7 @@
 <template>
-  <modal :value="value" @input="emitChange">
-    <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-danger-soft border border-danger border-opacity-20">
-      <alert-triangle-icon width="24" height="24" class="text-danger" />
+  <Modal :model-value="modelValue" @update:model-value="emit('update:modelValue', $event)">
+    <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-danger-soft border border-danger/20">
+      <IconAlertTriangle :size="24" class="text-danger" />
     </div>
     <p class="text-lg font-semibold mt-4 text-ink text-center">
       {{ $t('about_to_nuke_timesheet') }}
@@ -10,14 +10,14 @@
       {{ $t('nuke_timesheet_warning') }}
     </p>
     <div v-if="isSubmitting && !isExpired" class="w-full mt-4">
-      <progress-bar :fill="sentPercentage" />
+      <ProgressBar :fill="sentPercentage" />
     </div>
-    <alert v-if="isExpired" class="w-full mt-4" level="error" :message="$t('session_expired')" />
+    <Alert v-if="isExpired" class="w-full mt-4" level="error" :message="$t('session_expired')" />
     <div v-if="!isExpired" class="flex items-center gap-3 mt-6 w-full">
       <button
         v-if="!isSubmitting"
         class="flex-1 px-4 py-2.5 rounded-lg border border-stroke bg-card text-sm font-medium text-ink hover:bg-card-hover transition-colors focus:outline-none focus:ring-2 focus:ring-focus-ring"
-        @click="emitChange(false)"
+        @click="emit('update:modelValue', false)"
       >
         {{ $t('calendar_page.cancel') }}
       </button>
@@ -34,102 +34,69 @@
         disabled
       >
         <span class="inline-flex items-center gap-2">
-          <loader-icon width="16" height="16" class="animate-spin" />
+          <IconLoader :size="16" class="animate-spin" />
           {{ $t('please_wait_sending') }}
         </span>
       </button>
     </div>
-  </modal>
+  </Modal>
 </template>
 
-<script>
-import { AlertTriangleIcon, LoaderIcon } from 'vue-tabler-icons'
+<script setup>
+import { ref, computed } from 'vue'
+import { IconAlertTriangle, IconLoader } from '@tabler/icons-vue'
 import pLimit from 'p-limit'
-import { mapGetters, mapMutations } from 'vuex'
 import { prepareForCleanup } from '~/utils/timesheetMapper'
+
+const { t: $t } = useI18n()
+const api = useApi()
+const userStore = useUserStore()
+const entriesStore = useEntriesStore()
+const eventBus = useEventBus()
 
 const limit = pLimit(5)
 
-export default {
-  components: {
-    AlertTriangleIcon,
-    LoaderIcon
-  },
-  props: {
-    value: {
-      type: Boolean,
-      default: true
-    },
-    dayEntries: {
-      type: Array,
-      default: () => []
-    },
-    day: {
-      type: String,
-      required: true
-    }
-  },
-  data () {
-    return {
-      isSubmitting: false,
-      sentData: 0,
-      dataToSend: []
-    }
-  },
-  computed: {
-    sentPercentage () {
-      const total = this.dataToSend?.length || 0
-      return Math.floor((this.sentData * 100 / total) || 0)
-    },
-    ...mapGetters({
-      isExpired: 'user/isTokenExpired'
-    })
-  },
-  methods: {
-    emitChange (value) {
-      this.$emit('input', value)
-    },
-    async submit () {
-      const employeeId = this.$store.getters['user/info'].employee_id
-      this.isSubmitting = true
-      this.sentData = 0
+const props = defineProps({
+  modelValue: { type: Boolean, default: true },
+  dayEntries: { type: Array, default: () => [] },
+  day: { type: String, required: true },
+})
 
-      const { data } = await this.$axios.$get('timetrackingboard', {
-        params: {
-          date: this.day
-        }
-      })
+const emit = defineEmits(['update:modelValue'])
 
-      // La response di /timetrackingboard è { code, status, data: [...] };
-      // can_edit=false sono progetti su cui Wethod rifiuterebbe il POST di
-      // azzeramento (whitelist/scope/automatic), quindi vanno esclusi qui.
-      const editableProjects = data.filter(entry => entry.can_edit === true)
-      this.dataToSend = prepareForCleanup(editableProjects, employeeId)
+const isSubmitting = ref(false)
+const sentData = ref(0)
+const dataToSend = ref([])
 
-      // TODO Error handling
-      await Promise.all(
-        this.dataToSend.map(
-          entry => limit(
-            async () => {
-              await this.$axios.post('timetracking', entry)
-              this.sentData++
-            }
-          )
-        )
-      )
+const isExpired = computed(() => userStore.isTokenExpired)
 
-      this.dayEntries.forEach(({ id }) => this.syncEntry({ id, synced: false }))
+const sentPercentage = computed(() => {
+  const total = dataToSend.value?.length || 0
+  return Math.floor((sentData.value * 100 / total) || 0)
+})
 
-      this.emitChange(false)
-      this.isSubmitting = false
-      this.$nuxt.$emit('tracked-hours:refresh')
-    },
-    ...mapMutations({
-      syncEntry: 'entries/setSyncState'
-    })
-  }
+async function submit() {
+  const employeeId = userStore.info?.employee_id
+  isSubmitting.value = true
+  sentData.value = 0
+
+  const response = await api.$get('timetrackingboard', { params: { date: props.day } })
+  const editableProjects = (response.data || []).filter((entry) => entry.can_edit === true)
+  dataToSend.value = prepareForCleanup(editableProjects, employeeId)
+
+  await Promise.all(
+    dataToSend.value.map(
+      (entry) => limit(async () => {
+        await api.$post('timetracking', entry)
+        sentData.value++
+      }),
+    ),
+  )
+
+  props.dayEntries.forEach(({ id }) => entriesStore.setSyncState({ id, synced: false }))
+
+  emit('update:modelValue', false)
+  isSubmitting.value = false
+  eventBus.emit('tracked-hours:refresh')
 }
 </script>
-
-<style>
-</style>

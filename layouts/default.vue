@@ -1,6 +1,5 @@
 <template>
   <div class="bg-page w-full h-full min-h-screen">
-    <!-- Navigation starts -->
     <nav class="w-full mx-auto bg-card shadow fixed top-0 z-10">
       <div class="container px-6 justify-between h-16 flex items-center lg:items-stretch mx-auto">
         <div class="h-full flex items-center">
@@ -9,9 +8,7 @@
               id="logo"
               class="logo-img"
               aria-label="Home"
-              enable-background="new 0 0 300 300"
               height="44"
-              viewBox="0 0 300 300"
               width="43"
               src="/progethod.svg"
             >
@@ -49,41 +46,38 @@
             <div class="h-full flex items-center border-r border-stroke-muted px-4" />
             <div class="w-full h-full flex">
               <div class="w-32 h-full flex items-center justify-center border-r border-stroke-muted cursor-pointer text-ink-secondary">
-                <loader-icon
-                  v-if="isUpdating"
-                  width="28"
-                  height="28"
+                <IconLoader
+                  v-if="apiDataStore.isUpdating"
+                  :size="28"
                   class="animate-spin"
                 />
-                <circle-check-icon
-                  v-if="!isUpdating && !isTokenExpired"
-                  width="28"
-                  height="28"
+                <IconCircleCheck
+                  v-if="!apiDataStore.isUpdating && !userStore.isTokenExpired"
+                  :size="28"
                   class="text-success"
-                  stroke-width="1.5"
+                  :stroke-width="1.5"
                 />
-                <circle-x-icon
-                  v-if="!isUpdating && isTokenExpired"
-                  width="28"
-                  height="28"
+                <IconCircleX
+                  v-if="!apiDataStore.isUpdating && userStore.isTokenExpired"
+                  :size="28"
                   class="text-danger"
-                  stroke-width="1.5"
+                  :stroke-width="1.5"
                 />
               </div>
-              <div aria-haspopup="true" class="w-full flex items-center justify-end relative" @click.stop="dropdownHandler($event)">
+              <div aria-haspopup="true" class="w-full flex items-center justify-end relative" @click.stop="showDropdown = !showDropdown">
                 <ul v-show="showDropdown" class="p-2 w-60 border border-stroke-muted bg-card absolute rounded-lg z-40 right-0 top-full mt-2 shadow-lg">
                   <li
                     class="cursor-pointer text-ink-secondary text-sm leading-3 tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none"
                     @click="showGuide = true"
                   >
-                    <info-circle-icon width="20" height="20" stroke-width="1.5" />
+                    <IconInfoCircle :size="20" :stroke-width="1.5" />
                     <span class="ml-2">{{ $t('guide_button') }}</span>
                   </li>
                   <li
                     class="cursor-pointer text-ink-secondary text-sm leading-3 tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none"
-                    @click="$nuxt.$emit('shortcut:show-help')"
+                    @click="eventBus.emit('shortcut:show-help')"
                   >
-                    <keyboard-icon width="20" height="20" stroke-width="1.5" />
+                    <IconKeyboard :size="20" :stroke-width="1.5" />
                     <span class="ml-2">{{ $t('keyboard_shortcuts_button') }}</span>
                   </li>
                   <li class="border-t border-stroke-muted my-2" />
@@ -91,21 +85,21 @@
                     class="cursor-pointer text-ink-secondary text-sm leading-3 tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none"
                     @click="backup()"
                   >
-                    <database-export-icon width="20" height="20" stroke-width="1.5" />
+                    <IconDatabaseExport :size="20" :stroke-width="1.5" />
                     <span class="ml-2">{{ $t('backup') }}</span>
                   </li>
                   <li
                     class="cursor-pointer text-ink-secondary text-sm leading-3 tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none"
                     @click="restore()"
                   >
-                    <database-import-icon width="20" height="20" stroke-width="1.5" />
+                    <IconDatabaseImport :size="20" :stroke-width="1.5" />
                     <span class="ml-2">{{ $t('restore') }}</span>
                   </li>
                   <li
                     class="cursor-pointer text-ink-secondary text-sm leading-3 tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none"
-                    @click="updateProjects()"
+                    @click="updateProjectsFromApi()"
                   >
-                    <refresh-icon width="20" height="20" stroke-width="1.5" />
+                    <IconRefresh :size="20" :stroke-width="1.5" />
                     <span class="ml-2">{{ $t('update_projects') }}</span>
                   </li>
                   <li class="border-t border-stroke-muted my-2" />
@@ -116,44 +110,44 @@
                         v-for="option in themeOptions"
                         :key="option.value"
                         class="flex-1 flex items-center justify-center gap-1 py-1 text-xs rounded transition-colors"
-                        :class="currentTheme === option.value
+                        :class="preferencesStore.theme === option.value
                           ? 'bg-accent-soft text-accent-fg font-semibold'
                           : 'text-ink-muted hover:text-ink-secondary hover:bg-card-hover'"
-                        @click.stop="setTheme(option.value)"
+                        @click.stop="preferencesStore.setTheme(option.value)"
                       >
-                        <component :is="option.icon" width="14" height="14" />
+                        <component :is="option.icon" :size="14" />
                         {{ option.label }}
                       </button>
                     </div>
                   </li>
                   <li
                     class="cursor-pointer text-ink-secondary text-sm leading-3 tracking-normal py-2 hover:text-accent-fg flex items-center justify-between focus:text-accent-fg focus:outline-none"
-                    @click.stop="toggleHighContrast"
+                    @click.stop="preferencesStore.setHighContrast(!preferencesStore.highContrast)"
                   >
                     <span>{{ $t('high_contrast') }}</span>
                     <span
                       class="toggle-track relative inline-flex flex-shrink-0 rounded-full transition-colors duration-200"
-                      :class="highContrast ? 'bg-accent-hover' : 'bg-ink-disabled'"
+                      :class="preferencesStore.highContrast ? 'bg-accent-hover' : 'bg-ink-disabled'"
                     >
                       <span
                         class="toggle-knob inline-block rounded-full bg-card shadow transform transition-transform duration-200"
-                        :class="highContrast ? 'translate-x-3' : 'translate-x-0'"
+                        :class="preferencesStore.highContrast ? 'translate-x-3' : 'translate-x-0'"
                       />
                     </span>
                   </li>
                   <li class="border-t border-stroke-muted my-2" />
                   <li
                     class="cursor-pointer text-ink-secondary text-sm leading-3 tracking-normal py-2 hover:text-accent-fg flex items-center justify-between focus:text-accent-fg focus:outline-none"
-                    @click.stop="toggleConfirmOnSubmit"
+                    @click.stop="preferencesStore.setRequireSubmitConfirmation(!preferencesStore.isConfirmOnSubmitRequired)"
                   >
                     <span>{{ $t('require_confirm_on_submit_short') }}</span>
                     <span
                       class="toggle-track relative inline-flex flex-shrink-0 rounded-full transition-colors duration-200"
-                      :class="isConfirmOnSubmitRequired ? 'bg-accent-hover' : 'bg-ink-disabled'"
+                      :class="preferencesStore.isConfirmOnSubmitRequired ? 'bg-accent-hover' : 'bg-ink-disabled'"
                     >
                       <span
                         class="toggle-knob inline-block rounded-full bg-card shadow transform transition-transform duration-200"
-                        :class="isConfirmOnSubmitRequired ? 'translate-x-3' : 'translate-x-0'"
+                        :class="preferencesStore.isConfirmOnSubmitRequired ? 'translate-x-3' : 'translate-x-0'"
                       />
                     </span>
                   </li>
@@ -161,7 +155,7 @@
                 <img v-if="avatarUrl" class="rounded-full h-10 w-10 object-cover cursor-pointer" :src="avatarUrl" alt="User avatar">
                 <span v-else class="inline-flex items-center justify-center h-10 w-10 rounded-full bg-accent text-ink-inverse text-sm font-bold cursor-pointer select-none">{{ userInitials }}</span>
                 <p class="text-ink text-sm ml-2 cursor-pointer">
-                  {{ `${userInfo.name} ${userInfo.surname}` }}
+                  {{ `${userStore.info.name} ${userStore.info.surname}` }}
                 </p>
               </div>
             </div>
@@ -169,350 +163,198 @@
         </div>
 
         <div class="visible xl:hidden flex items-center">
-          <ul class="z-40 p-2 border-r border-stroke-muted bg-card absolute rounded-lg top-0 left-0 right-0 shadow mt-16 md:mt-16 hidden">
-            <NuxtLink to="/" class="h-full flex items-center">
-              <li class="flex xl:hidden cursor-pointer text-ink-secondary text-base leading-3 tracking-normal mt-2 py-3 hover:text-accent-fg focus:text-accent-fg focus:outline-none capitalize">
-                <div class="flex items-center">
-                  <span class="leading-6 ml-2 font-bold"> {{ $t('timesheet') }} </span>
-                </div>
-              </li>
-            </NuxtLink>
-            <NuxtLink to="/projects" class="h-full flex items-center">
-              <li class="flex xl:hidden cursor-pointer text-ink-secondary text-base leading-3 tracking-normal mt-2 py-3 hover:text-accent-fg focus:text-accent-fg focus:outline-none capitalize">
-                <div class="flex items-center">
-                  <span class="leading-6 ml-2 font-bold"> {{ $t('projects') }} </span>
-                </div>
-              </li>
-            </NuxtLink>
-            <NuxtLink to="/presets" class="h-full flex items-center">
-              <li class="flex xl:hidden cursor-pointer text-ink-secondary text-base leading-3 tracking-normal mt-2 py-3 hover:text-accent-fg focus:text-accent-fg focus:outline-none capitalize">
-                <div class="flex items-center">
-                  <span class="leading-6 ml-2 font-bold"> {{ $t('presets.nav') }} </span>
-                </div>
-              </li>
-            </NuxtLink>
-            <NuxtLink to="/ferie" class="h-full flex items-center">
-              <li class="flex xl:hidden cursor-pointer text-ink-secondary text-base leading-3 tracking-normal mt-2 py-3 hover:text-accent-fg focus:text-accent-fg focus:outline-none capitalize">
-                <div class="flex items-center">
-                  <span class="leading-6 ml-2 font-bold"> {{ $t('calendar_page.nav') }} </span>
-                </div>
-              </li>
-            </NuxtLink>
-            <li>
-              <hr class="border-b border-stroke w-full">
-            </li>
-            <li class="ml-2 cursor-pointer text-ink-secondary text-sm leading-3 tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none">
-              <div class="flex items-center">
-                <div class="w-12 cursor-pointer flex text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-white transition duration-150 ease-in-out">
-                  <img v-if="avatarUrl" class="rounded-full h-10 w-10 object-cover" :src="avatarUrl" alt="User avatar">
-                  <span v-else class="inline-flex items-center justify-center h-10 w-10 rounded-full bg-accent text-ink-inverse text-sm font-bold select-none">{{ userInitials }}</span>
-                </div>
-                <p class="leading-6 text-base ml-1 cursor-pointer">
-                  {{ `${userInfo.name} ${userInfo.surname}` }}
-                </p>
-                <div class="sm:ml-2 text-ink-inverse relative">
-                  <chevron-down-icon
-                    class="icon icon-tabler icon-tabler-chevron-down cursor-pointer"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    stroke-width="1.5"
-                    stroke="currentColor"
-                    fill="none"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </div>
-              </div>
-            </li>
-            <li class="ml-2 text-ink-disabled text-base leading-3 tracking-normal py-2 focus:outline-none">
-              <div class="flex items-center">
-                <user-icon
-                  class="icon icon-tabler icon-tabler-user"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  stroke-width="1.5"
-                  stroke="currentColor"
-                  fill="none"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-                <span class="leading-6 ml-2">Profile</span>
-              </div>
-            </li>
-            <li
-              class="ml-2 cursor-pointer text-ink-secondary text-base leading-3 tracking-normal py-2 hover:text-accent-fg focus:text-accent-fg focus:outline-none"
-              @click="showGuide = true"
-            >
-              <div class="flex items-center">
-                <info-circle-icon width="24" height="24" stroke-width="1.5" />
-                <span class="leading-6 ml-2">{{ $t('guide_button') }}</span>
-              </div>
-            </li>
-            <li
-              class="ml-2 cursor-pointer text-ink-secondary text-base leading-3 tracking-normal py-2 hover:text-accent-fg focus:text-accent-fg focus:outline-none"
-              @click="$nuxt.$emit('shortcut:show-help')"
-            >
-              <div class="flex items-center">
-                <keyboard-icon width="24" height="24" stroke-width="1.5" />
-                <span class="leading-6 ml-2">{{ $t('keyboard_shortcuts_button') }}</span>
-              </div>
-            </li>
-            <li class="border-t border-stroke-muted my-2 ml-2" />
-            <li
-              class="ml-2 cursor-pointer text-ink-secondary text-base leading-3 tracking-normal py-2 hover:text-accent-fg focus:text-accent-fg focus:outline-none"
-              @click="backup()"
-            >
-              <div class="flex items-center">
-                <database-export-icon width="24" height="24" stroke-width="1.5" />
-                <span class="leading-6 ml-2">{{ $t('backup') }}</span>
-              </div>
-            </li>
-            <li
-              class="ml-2 cursor-pointer text-ink-secondary text-base leading-3 tracking-normal py-2 hover:text-accent-fg focus:text-accent-fg focus:outline-none"
-              @click="restore()"
-            >
-              <div class="flex items-center">
-                <database-import-icon width="24" height="24" stroke-width="1.5" />
-                <span class="leading-6 ml-2">{{ $t('restore') }}</span>
-              </div>
-            </li>
-            <li
-              class="ml-2 cursor-pointer text-ink-secondary text-base leading-3 tracking-normal py-2 hover:text-accent-fg focus:text-accent-fg focus:outline-none"
-              @click="updateProjects()"
-            >
-              <div class="flex items-center">
-                <refresh-icon width="24" height="24" stroke-width="1.5" />
-                <span class="leading-6 ml-2">{{ $t('update_projects') }}</span>
-              </div>
-            </li>
-            <li class="border-t border-stroke-muted my-2 ml-2" />
-            <li class="ml-2 mr-2 py-2">
-              <span class="text-xs font-semibold text-ink-faint uppercase tracking-wider">{{ $t('theme_label') }}</span>
-              <div class="flex items-center gap-1 mt-1.5">
-                <button
-                  v-for="option in themeOptions"
-                  :key="'m-' + option.value"
-                  class="flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors"
-                  :class="currentTheme === option.value
-                    ? 'bg-accent-soft text-accent-fg font-semibold'
-                    : 'text-ink-muted hover:text-ink-secondary hover:bg-card-hover'"
-                  @click.stop="setTheme(option.value)"
-                >
-                  <component :is="option.icon" width="14" height="14" />
-                  {{ option.label }}
-                </button>
-              </div>
-            </li>
-            <li
-              class="ml-2 mr-2 cursor-pointer text-ink-secondary text-base leading-3 tracking-normal py-2 hover:text-accent-fg focus:text-accent-fg focus:outline-none"
-              @click.stop="toggleHighContrast"
-            >
-              <div class="flex items-center justify-between">
-                <span class="leading-6">{{ $t('high_contrast') }}</span>
-                <span
-                  class="toggle-track relative inline-flex flex-shrink-0 rounded-full transition-colors duration-200"
-                  :class="highContrast ? 'bg-accent-hover' : 'bg-ink-disabled'"
-                >
-                  <span
-                    class="toggle-knob inline-block rounded-full bg-card shadow transform transition-transform duration-200"
-                    :class="highContrast ? 'translate-x-3' : 'translate-x-0'"
-                  />
-                </span>
-              </div>
-            </li>
-            <li
-              class="ml-2 mr-2 cursor-pointer text-ink-secondary text-base leading-3 tracking-normal py-2 hover:text-accent-fg focus:text-accent-fg focus:outline-none"
-              @click.stop="toggleConfirmOnSubmit"
-            >
-              <div class="flex items-center justify-between">
-                <span class="leading-6">{{ $t('require_confirm_on_submit_short') }}</span>
-                <span
-                  class="toggle-track relative inline-flex flex-shrink-0 rounded-full transition-colors duration-200"
-                  :class="isConfirmOnSubmitRequired ? 'bg-accent-hover' : 'bg-ink-disabled'"
-                >
-                  <span
-                    class="toggle-knob inline-block rounded-full bg-card shadow transform transition-transform duration-200"
-                    :class="isConfirmOnSubmitRequired ? 'translate-x-3' : 'translate-x-0'"
-                  />
-                </span>
-              </div>
-            </li>
-          </ul>
-
-          <menu-icon
+          <button
             aria-haspopup="true"
             aria-label="Main Menu"
-            class="show-m-menu icon icon-tabler icon-tabler-menu text-ink"
-            width="28"
-            height="28"
-            viewBox="0 0 24 24"
-            stroke-width="1.5"
-            stroke="currentColor"
-            fill="none"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            @click="MenuHandler($event, true)"
-          />
-          <div class="hidden close-m-menu text-ink" @click="MenuHandler($event, false)">
-            <svg
-              aria-label="Close"
-              :xmlns="xmlns"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              stroke-width="1.5"
-              stroke="currentColor"
-              fill="none"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path stroke="none" d="M0 0h24v24H0z" />
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </div>
+            class="text-ink"
+            @click="showMobileMenu = !showMobileMenu"
+          >
+            <IconMenu :size="28" :stroke-width="1.5" />
+          </button>
         </div>
       </div>
+
+      <!-- Mobile menu -->
+      <div v-if="showMobileMenu" class="xl:hidden border-t border-stroke-muted bg-card shadow-lg">
+        <ul class="p-4 space-y-2">
+          <li><NuxtLink to="/" class="block py-2 text-ink-secondary hover:text-accent-fg capitalize" @click="showMobileMenu = false">{{ $t('timesheet') }}</NuxtLink></li>
+          <li><NuxtLink to="/projects" class="block py-2 text-ink-secondary hover:text-accent-fg capitalize" @click="showMobileMenu = false">{{ $t('projects') }}</NuxtLink></li>
+          <li><NuxtLink to="/presets" class="block py-2 text-ink-secondary hover:text-accent-fg capitalize" @click="showMobileMenu = false">{{ $t('presets.nav') }}</NuxtLink></li>
+          <li><NuxtLink to="/ferie" class="block py-2 text-ink-secondary hover:text-accent-fg capitalize" @click="showMobileMenu = false">{{ $t('calendar_page.nav') }}</NuxtLink></li>
+          <li class="border-t border-stroke-muted my-2" />
+          <li class="flex items-center gap-3 py-2">
+            <img v-if="avatarUrl" class="rounded-full h-10 w-10 object-cover" :src="avatarUrl" alt="User avatar">
+            <span v-else class="inline-flex items-center justify-center h-10 w-10 rounded-full bg-accent text-ink-inverse text-sm font-bold select-none">{{ userInitials }}</span>
+            <span class="text-ink text-sm">{{ `${userStore.info.name} ${userStore.info.surname}` }}</span>
+          </li>
+          <li class="border-t border-stroke-muted my-2" />
+          <li>
+            <button class="w-full flex items-center gap-2 py-2 text-ink-secondary hover:text-accent-fg" @click="showGuide = true; showMobileMenu = false">
+              <IconInfoCircle :size="20" :stroke-width="1.5" />
+              <span>{{ $t('guide_button') }}</span>
+            </button>
+          </li>
+          <li>
+            <button class="w-full flex items-center gap-2 py-2 text-ink-secondary hover:text-accent-fg" @click="eventBus.emit('shortcut:show-help'); showMobileMenu = false">
+              <IconKeyboard :size="20" :stroke-width="1.5" />
+              <span>{{ $t('keyboard_shortcuts_button') }}</span>
+            </button>
+          </li>
+          <li class="border-t border-stroke-muted my-2" />
+          <li>
+            <button class="w-full flex items-center gap-2 py-2 text-ink-secondary hover:text-accent-fg" @click="backup(); showMobileMenu = false">
+              <IconDatabaseExport :size="20" :stroke-width="1.5" />
+              <span>{{ $t('backup') }}</span>
+            </button>
+          </li>
+          <li>
+            <button class="w-full flex items-center gap-2 py-2 text-ink-secondary hover:text-accent-fg" @click="restore(); showMobileMenu = false">
+              <IconDatabaseImport :size="20" :stroke-width="1.5" />
+              <span>{{ $t('restore') }}</span>
+            </button>
+          </li>
+          <li>
+            <button class="w-full flex items-center gap-2 py-2 text-ink-secondary hover:text-accent-fg" @click="updateProjectsFromApi(); showMobileMenu = false">
+              <IconRefresh :size="20" :stroke-width="1.5" />
+              <span>{{ $t('update_projects') }}</span>
+            </button>
+          </li>
+          <li class="border-t border-stroke-muted my-2" />
+          <li class="py-2">
+            <span class="text-xs font-semibold text-ink-faint uppercase tracking-wider">{{ $t('theme_label') }}</span>
+            <div class="flex items-center gap-1 mt-1.5">
+              <button
+                v-for="option in themeOptions"
+                :key="option.value"
+                class="flex-1 flex items-center justify-center gap-1 py-1.5 text-xs rounded transition-colors"
+                :class="preferencesStore.theme === option.value
+                  ? 'bg-accent-soft text-accent-fg font-semibold'
+                  : 'text-ink-muted hover:text-ink-secondary hover:bg-card-hover'"
+                @click.stop="preferencesStore.setTheme(option.value)"
+              >
+                <component :is="option.icon" :size="14" />
+                {{ option.label }}
+              </button>
+            </div>
+          </li>
+          <li>
+            <button
+              class="w-full flex items-center justify-between py-2 text-ink-secondary hover:text-accent-fg"
+              @click.stop="preferencesStore.setHighContrast(!preferencesStore.highContrast)"
+            >
+              <span>{{ $t('high_contrast') }}</span>
+              <span
+                class="toggle-track relative inline-flex flex-shrink-0 rounded-full transition-colors duration-200"
+                :class="preferencesStore.highContrast ? 'bg-accent-hover' : 'bg-ink-disabled'"
+              >
+                <span
+                  class="toggle-knob inline-block rounded-full bg-card shadow transform transition-transform duration-200"
+                  :class="preferencesStore.highContrast ? 'translate-x-3' : 'translate-x-0'"
+                />
+              </span>
+            </button>
+          </li>
+          <li>
+            <button
+              class="w-full flex items-center justify-between py-2 text-ink-secondary hover:text-accent-fg"
+              @click.stop="preferencesStore.setRequireSubmitConfirmation(!preferencesStore.isConfirmOnSubmitRequired)"
+            >
+              <span>{{ $t('require_confirm_on_submit_short') }}</span>
+              <span
+                class="toggle-track relative inline-flex flex-shrink-0 rounded-full transition-colors duration-200"
+                :class="preferencesStore.isConfirmOnSubmitRequired ? 'bg-accent-hover' : 'bg-ink-disabled'"
+              >
+                <span
+                  class="toggle-knob inline-block rounded-full bg-card shadow transform transition-transform duration-200"
+                  :class="preferencesStore.isConfirmOnSubmitRequired ? 'translate-x-3' : 'translate-x-0'"
+                />
+              </span>
+            </button>
+          </li>
+        </ul>
+      </div>
     </nav>
-    <!-- Navigation ends -->
-    <Nuxt />
-    <keyboard-shortcuts-help />
-    <integration-hint />
-    <app-guide-modal v-model="showGuide" />
-    <dev-auth-bar />
+
+    <slot />
+    <DevAuthBar />
+    <KeyboardShortcutsHelp />
+    <IntegrationHint />
+    <AppGuideModal v-model="showGuide" />
   </div>
 </template>
 
-<script>
-import { mapGetters, mapMutations } from 'vuex'
+<script setup lang="ts">
 import {
-  ChevronDownIcon,
-  CircleCheckIcon,
-  CircleXIcon,
-  DatabaseExportIcon,
-  DatabaseImportIcon,
-  DeviceDesktopIcon,
-  InfoCircleIcon,
-  KeyboardIcon,
-  MenuIcon,
-  MoonIcon,
-  LoaderIcon,
-  RefreshIcon,
-  SunIcon,
-  UserIcon
-} from 'vue-tabler-icons'
+  IconCircleCheck,
+  IconCircleX,
+  IconDatabaseExport,
+  IconDatabaseImport,
+  IconDeviceDesktop,
+  IconInfoCircle,
+  IconKeyboard,
+  IconLoader,
+  IconMenu,
+  IconMoon,
+  IconRefresh,
+  IconSun,
+} from '@tabler/icons-vue'
 import { getBackupData, getBackupFile, triggerFileDownload, askForBackupFile, restoreBackup } from '~/utils/backupRestore'
 import { updateApiData } from '~/utils/updateApiData'
 
-export default {
-  components: {
-    ChevronDownIcon,
-    CircleCheckIcon,
-    CircleXIcon,
-    DatabaseExportIcon,
-    DatabaseImportIcon,
-    DeviceDesktopIcon,
-    InfoCircleIcon,
-    KeyboardIcon,
-    LoaderIcon,
-    MenuIcon,
-    MoonIcon,
-    RefreshIcon,
-    SunIcon,
-    UserIcon
-  },
-  data () {
-    return {
-      xmlns: 'http://www.w3.org/2000/svg',
-      xlink: 'http://www.w3.org/1999/xlink',
-      showDropdown: false,
-      showGuide: false
-    }
-  },
-  computed: {
-    ...mapGetters({
-      userInfo: 'user/info',
-      isUpdating: 'apiData/isUpdating',
-      isTokenExpired: 'user/isTokenExpired',
-      isConfirmOnSubmitRequired: 'preferences/isConfirmOnSubmitRequired',
-      currentTheme: 'preferences/theme',
-      highContrast: 'preferences/highContrast',
-      profilePicUrl: 'user/profilePicUrl'
-    }),
-    avatarUrl () {
-      return this.profilePicUrl || this.userInfo.pic || null
-    },
-    userInitials () {
-      const first = (this.userInfo.name || '')[0] || ''
-      const last = (this.userInfo.surname || '')[0] || ''
-      return (first + last).toUpperCase() || '?'
-    },
-    themeOptions () {
-      return [
-        { value: 'auto', label: 'Auto', icon: 'DeviceDesktopIcon' },
-        { value: 'light', label: this.$t('theme_light'), icon: 'SunIcon' },
-        { value: 'dark', label: this.$t('theme_dark'), icon: 'MoonIcon' }
-      ]
-    }
-  },
-  mounted () {
-    document.addEventListener('click', this.closeDropdown)
-  },
-  beforeDestroy () {
-    document.removeEventListener('click', this.closeDropdown)
-  },
-  methods: {
-    dropdownHandler () {
-      this.showDropdown = !this.showDropdown
-    },
-    closeDropdown () {
-      this.showDropdown = false
-    },
-    MenuHandler (el, val) {
-      const MainList = el.currentTarget.parentElement.getElementsByTagName('ul')[0]
-      const closeIcon = el.currentTarget.parentElement.getElementsByClassName('close-m-menu')[0]
-      const showIcon = el.currentTarget.parentElement.getElementsByClassName('show-m-menu')[0]
-      if (val) {
-        MainList.classList.remove('hidden')
-        el.currentTarget.classList.add('hidden')
-        closeIcon.classList.remove('hidden')
-      } else {
-        showIcon.classList.remove('hidden')
-        MainList.classList.add('hidden')
-        el.currentTarget.classList.add('hidden')
-      }
-    },
-    backup () {
-      triggerFileDownload(getBackupFile(getBackupData(this.$store)))
-    },
-    async restore () {
-      const backupFile = await askForBackupFile()
-      if (backupFile) {
-        await restoreBackup(backupFile, this.$store)
-      }
-    },
-    async updateProjects () {
-      await updateApiData(this.$axios, this.$store)
-    },
-    toggleConfirmOnSubmit () {
-      this.setRequireSubmitConfirmation(!this.isConfirmOnSubmitRequired)
-    },
-    toggleHighContrast () {
-      this.setHighContrastMutation(!this.highContrast)
-    },
-    ...mapMutations({
-      setRequireSubmitConfirmation: 'preferences/setRequireSubmitConfirmation',
-      setTheme: 'preferences/setTheme',
-      setHighContrastMutation: 'preferences/setHighContrast'
-    })
+const { t } = useI18n()
+const userStore = useUserStore()
+const apiDataStore = useApiDataStore()
+const preferencesStore = usePreferencesStore()
+const eventBus = useEventBus()
+
+const showDropdown = ref(false)
+const showGuide = ref(false)
+const showMobileMenu = ref(false)
+
+const avatarUrl = computed(() => userStore.profilePicUrl || userStore.info.pic || null)
+const userInitials = computed(() => {
+  const first = (userStore.info.name || '')[0] || ''
+  const last = (userStore.info.surname || '')[0] || ''
+  return (first + last).toUpperCase() || '?'
+})
+
+const themeOptions = computed(() => [
+  { value: 'auto' as const, label: 'Auto', icon: IconDeviceDesktop },
+  { value: 'light' as const, label: t('theme_light'), icon: IconSun },
+  { value: 'dark' as const, label: t('theme_dark'), icon: IconMoon },
+])
+
+function backup() {
+  triggerFileDownload(getBackupFile(getBackupData()))
+}
+
+async function restore() {
+  const backupFile = await askForBackupFile()
+  if (backupFile) {
+    await restoreBackup(backupFile)
   }
 }
+
+async function updateProjectsFromApi() {
+  await updateApiData()
+}
+
+function closeDropdown() {
+  showDropdown.value = false
+}
+
+onMounted(() => {
+  document.addEventListener('click', closeDropdown)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', closeDropdown)
+})
 </script>
 
-<style lang="postcss">
-  .navbar > .nuxt-link-exact-active {
+<style>
+  @reference "~/assets/css/tailwind.css";
+  .navbar > .router-link-exact-active {
     @apply border-b-2 border-accent text-accent-fg;
   }
 

@@ -3,9 +3,7 @@
     <div class="mx-auto container max-w-2xl bg-card shadow rounded-lg p-6 lg:p-8">
       <div class="flex items-center justify-between mb-6">
         <div>
-          <h1 class="text-2xl font-bold text-ink">
-            {{ $t('projects') }}
-          </h1>
+          <h1 class="text-2xl font-bold text-ink">{{ $t('projects') }}</h1>
           <p class="text-sm text-ink-muted mt-1">
             {{ $t('projects_description') }}<br>
             {{ $t('projects_description_2') }}
@@ -16,17 +14,13 @@
           :title="$t('projects_cleanup_tooltip')"
           @click="cleanupStale"
         >
-          <trash-x-icon size="16" />
+          <IconTrashX :size="16" />
           <span class="hidden sm:inline">{{ $t('projects_cleanup') }}</span>
         </button>
       </div>
 
-      <!-- Cleanup feedback -->
-      <p v-if="cleanupMessage" class="text-sm text-ink-muted mb-4 transition-opacity">
-        {{ cleanupMessage }}
-      </p>
+      <p v-if="cleanupMessage" class="text-sm text-ink-muted mb-4 transition-opacity">{{ cleanupMessage }}</p>
 
-      <!-- Add new project -->
       <div class="flex gap-2 mb-6">
         <input
           ref="newProjectInput"
@@ -44,11 +38,10 @@
           :disabled="!newProjectName.trim()"
           @click="addProject"
         >
-          <plus-icon size="20" />
+          <IconPlus :size="20" />
         </button>
       </div>
 
-      <!-- Projects list -->
       <div v-if="projects.length" class="space-y-2">
         <div
           v-for="project in projects"
@@ -62,128 +55,93 @@
             </span>
             <div v-if="project.linkedProject" class="flex items-center gap-1.5 text-xs text-ink-muted truncate">
               {{ project.linkedProject }}
-              <template v-if="project.linkedArea">
-                &middot; {{ project.linkedArea }}
-              </template>
+              <template v-if="project.linkedArea"> &middot; {{ project.linkedArea }}</template>
             </div>
-            <div v-else-if="project.stale" class="text-xs text-warning-text">
-              {{ $t('projects_stale_hint') }}
-            </div>
+            <div v-else-if="project.stale" class="text-xs text-warning-text">{{ $t('projects_stale_hint') }}</div>
           </div>
           <div class="flex items-center gap-1 flex-shrink-0">
-            <button
-              class="p-1.5 text-ink-faint hover:text-accent-fg rounded transition-colors"
-              :title="$t('edit')"
-              @click="edit(project.id)"
-            >
-              <edit-icon size="16" />
+            <button class="p-1.5 text-ink-faint hover:text-accent-fg rounded transition-colors" :title="$t('edit')" @click="edit(project.id)">
+              <IconEdit :size="16" />
             </button>
-            <button
-              class="p-1.5 text-ink-faint hover:text-danger rounded transition-colors"
-              :title="$t('delete')"
-              @click="removeProject(project.id)"
-            >
-              <trash-icon size="16" />
+            <button class="p-1.5 text-ink-faint hover:text-danger rounded transition-colors" :title="$t('delete')" @click="projectsStore.remove(project.id)">
+              <IconTrash :size="16" />
             </button>
           </div>
         </div>
       </div>
 
-      <!-- Empty state -->
       <div v-else class="text-center py-12 text-ink-faint">
-        <briefcase-icon size="48" class="mx-auto mb-3 opacity-50" />
-        <p class="text-sm">
-          {{ $t('projects_empty') }}
-        </p>
+        <IconBriefcase :size="48" class="mx-auto mb-3 opacity-50" />
+        <p class="text-sm">{{ $t('projects_empty') }}</p>
       </div>
     </div>
   </div>
 </template>
 
-<script>
-import { PlusIcon, EditIcon, TrashIcon, BriefcaseIcon, TrashXIcon } from 'vue-tabler-icons'
-import { mapMutations, mapGetters, mapActions } from 'vuex'
+<script setup lang="ts">
+import { IconPlus, IconEdit, IconTrash, IconBriefcase, IconTrashX } from '@tabler/icons-vue'
 import { updateApiData } from '~/utils/updateApiData'
 
-export default {
-  components: {
-    PlusIcon,
-    EditIcon,
-    TrashIcon,
-    TrashXIcon,
-    BriefcaseIcon
-  },
-  middleware: 'auth',
-  data () {
-    return {
-      newProjectName: '',
-      cleanupMessage: ''
-    }
-  },
-  computed: {
-    projects () {
-      const linkedProjects = this.apiDataProjects
+definePageMeta({ middleware: 'auth' })
 
-      return this.visibleProjects.map((project) => {
-        let linkedProject = null
-        let linkedArea = null
+const { t } = useI18n()
+const router = useRouter()
+const projectsStore = useProjectsStore()
+const apiDataStore = useApiDataStore()
 
-        if (project.linkedProjectId) {
-          linkedProject = linkedProjects.find(({ id }) => project.linkedProjectId === id)
-          if (linkedProject && project.linkedAreaId) {
-            linkedArea = linkedProject.areas.find(({ id }) => project.linkedAreaId === id)
-          }
-        }
+const newProjectName = ref('')
+const newProjectInput = ref<HTMLInputElement | null>(null)
+const cleanupMessage = ref('')
 
-        return {
-          name: project.name,
-          id: project.id,
-          linkedProject: linkedProject?.name || '',
-          linkedArea: linkedArea?.name || '',
-          stale: !linkedProject
-        }
-      }).sort((a, b) => a.name.localeCompare(b.name))
-    },
-    staleProjects () {
-      return this.projects.filter(p => p.stale)
-    },
-    ...mapGetters({
-      visibleProjects: 'projects/visibleProjects',
-      apiDataProjects: 'apiData/projects'
-    })
-  },
-  methods: {
-    async addProject () {
-      const name = this.newProjectName.trim()
-      if (!name) { return }
-      const project = await this.addProjectAction(name)
-      this.newProjectName = ''
-      this.$router.push(this.localeLocation({ name: 'projects-id', params: { id: project.id } }))
-    },
-    edit (id) {
-      this.$router.push(this.localeLocation({ name: 'projects-id', params: { id } }))
-    },
-    async cleanupStale () {
-      this.cleanupMessage = this.$t('projects_cleanup_loading')
-      await updateApiData(this.$axios, this.$store)
+const projects = computed(() => {
+  const linkedProjects = apiDataStore.projects
+  return projectsStore.visibleProjects.map((project) => {
+    let linkedProject = null
+    let linkedArea = null
 
-      const stale = this.staleProjects
-      if (!stale.length) {
-        this.cleanupMessage = this.$t('projects_no_stale')
-        setTimeout(() => { this.cleanupMessage = '' }, 3000)
-        return
+    if (project.linkedProjectId) {
+      linkedProject = linkedProjects.find(({ id }) => project.linkedProjectId === id)
+      if (linkedProject && project.linkedAreaId) {
+        linkedArea = linkedProject.areas.find(({ id }) => project.linkedAreaId === id)
       }
-      this.removeManyProjects(stale.map(p => p.id))
-      this.cleanupMessage = this.$t('projects_stale_removed', { count: stale.length })
-      setTimeout(() => { this.cleanupMessage = '' }, 3000)
-    },
-    ...mapActions({
-      addProjectAction: 'projects/add'
-    }),
-    ...mapMutations({
-      removeProject: 'projects/remove',
-      removeManyProjects: 'projects/removeMany'
-    })
+    }
+
+    return {
+      name: project.name,
+      id: project.id,
+      linkedProject: linkedProject?.name || '',
+      linkedArea: linkedArea?.name || '',
+      stale: !linkedProject && !!project.linkedProjectId,
+    }
+  }).sort((first, second) => first.name.localeCompare(second.name))
+})
+
+const staleProjects = computed(() => projects.value.filter(project => project.stale))
+
+async function addProject() {
+  const name = newProjectName.value.trim()
+  if (!name) { return }
+  const project = projectsStore.add(name)
+  newProjectName.value = ''
+  router.push(`/projects/${project.id}`)
+}
+
+function edit(id: string) {
+  router.push(`/projects/${id}`)
+}
+
+async function cleanupStale() {
+  cleanupMessage.value = t('projects_cleanup_loading')
+  await updateApiData()
+
+  const stale = staleProjects.value
+  if (!stale.length) {
+    cleanupMessage.value = t('projects_no_stale')
+    setTimeout(() => { cleanupMessage.value = '' }, 3000)
+    return
   }
+  projectsStore.removeMany(stale.map(project => project.id))
+  cleanupMessage.value = t('projects_stale_removed', { count: stale.length })
+  setTimeout(() => { cleanupMessage.value = '' }, 3000)
 }
 </script>

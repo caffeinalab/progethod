@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+}
+
+@theme inline {
+  --color-page: var(--color-page);
+  --color-card: var(--color-card);
+  --color-card-dim: var(--color-card-dim);
+  --color-card-hover: var(--color-card-hover);
+
+  --color-ink: var(--color-ink);
+  --color-ink-secondary: var(--color-ink-secondary);
+  --color-ink-muted: var(--color-ink-muted);
+  --color-ink-faint: var(--color-ink-faint);
+  --color-ink-disabled: var(--color-ink-disabled);
+  --color-ink-inverse: var(--color-ink-inverse);
+
+  --color-stroke: var(--color-stroke);
+  --color-stroke-muted: var(--color-stroke-muted);
+
+  --color-accent: var(--color-accent);
+  --color-accent-hover: var(--color-accent-hover);
+  --color-accent-soft: var(--color-accent-soft);
+  --color-accent-fg: var(--color-accent-fg);
+
+  --color-focus-ring: var(--color-focus-ring);
+
+  --color-success: var(--color-success);
+  --color-success-soft: var(--color-success-soft);
+  --color-success-text: var(--color-success-text);
+
+  --color-warning: var(--color-warning);
+  --color-warning-soft: var(--color-warning-soft);
+  --color-warning-text: var(--color-warning-text);
+
+  --color-danger: var(--color-danger);
+  --color-danger-soft: var(--color-danger-soft);
+  --color-danger-text: var(--color-danger-text);
+
+  --color-vacation: var(--color-vacation);
+  --color-vacation-soft: var(--color-vacation-soft);
+  --color-vacation-text: var(--color-vacation-text);
+
+  --color-leaves: var(--color-leaves);
+  --color-leaves-soft: var(--color-leaves-soft);
+  --color-leaves-text: var(--color-leaves-text);
+
+  --color-pending: var(--color-pending);
+  --color-pending-soft: var(--color-pending-soft);
+  --color-pending-text: var(--color-pending-text);
+}
+
+@source "../../../components/**/*.vue";
+@source "../../../layouts/**/*.vue";
+@source "../../../pages/**/*.vue";
+@source "../../../composables/**/*.ts";
+@source "../../../plugins/**/*.ts";
+@source "../../../app.vue";
+@source "../../../error.vue";

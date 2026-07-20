@@ -1,36 +1,28 @@
 <template>
-  <transition name="fade">
-    <div v-if="value" class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto" @click.self="close">
-      <div class="fixed inset-0 bg-black bg-opacity-40" @click="close" />
+  <Transition name="fade">
+    <div v-if="modelValue" class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto" @click.self="close">
+      <div class="fixed inset-0 bg-black/40" @click="close" />
       <div class="relative bg-card rounded-xl shadow-2xl max-w-lg w-full max-h-[85vh] min-h-0 flex flex-col my-auto">
         <div class="flex items-center justify-between p-6 pb-0">
           <div class="flex items-center gap-2">
             <img class="logo-img" src="/progethod.svg" width="28" height="28" alt="Progethod">
-            <h2 class="text-lg font-bold text-ink">
-              Progethod
-            </h2>
-            <span class="text-xs text-ink-faint font-mono">v1.0</span>
+            <h2 class="text-lg font-bold text-ink">Progethod</h2>
+            <span class="text-xs text-ink-faint font-mono">v2.0</span>
           </div>
           <button class="text-ink-faint hover:text-ink-secondary p-1" @click="close">
-            <x-icon size="20" />
+            <IconX :size="20" />
           </button>
         </div>
 
         <div ref="scrollArea" class="overflow-y-auto custom-scrollbar p-6 space-y-6" @scroll="onScroll">
-          <!-- Intro -->
-          <p class="text-sm text-ink-secondary">
-            {{ $t('guide.intro') }}
-          </p>
+          <p class="text-sm text-ink-secondary">{{ $t('guide.intro') }}</p>
 
-          <!-- Local Projects -->
           <section>
             <h3 class="text-sm font-bold text-ink mb-2 flex items-center gap-1.5">
-              <bookmark-icon size="16" class="text-accent" />
+              <IconBookmark :size="16" class="text-accent" />
               {{ $t('guide.local_projects_title') }}
             </h3>
-            <p class="text-sm text-ink-secondary mb-2">
-              {{ $t('guide.local_projects_desc') }}
-            </p>
+            <p class="text-sm text-ink-secondary mb-2">{{ $t('guide.local_projects_desc') }}</p>
             <ul class="text-sm text-ink-secondary space-y-1 ml-4 list-disc">
               <li>{{ $t('guide.local_projects_1') }}</li>
               <li>{{ $t('guide.local_projects_2') }}</li>
@@ -39,67 +31,48 @@
             </ul>
           </section>
 
-          <!-- Magic Tags -->
           <section>
             <h3 class="text-sm font-bold text-ink mb-2 flex items-center gap-1.5">
-              <calendar-time-icon size="16" class="text-accent" />
+              <IconCalendarTime :size="16" class="text-accent" />
               {{ $t('guide.magic_tags_title') }}
             </h3>
-            <p class="text-sm text-ink-secondary">
-              {{ $t('guide.magic_tags_desc') }}
-            </p>
+            <p class="text-sm text-ink-secondary">{{ $t('guide.magic_tags_desc') }}</p>
           </section>
 
-          <!-- Wethod conversion -->
           <section>
             <h3 class="text-sm font-bold text-ink mb-2 flex items-center gap-1.5">
-              <alert-triangle-icon size="16" class="text-warning" />
+              <IconAlertTriangle :size="16" class="text-warning" />
               {{ $t('guide.wethod_conversion_title') }}
             </h3>
-            <p class="text-sm text-ink-secondary mb-2">
-              {{ $t('guide.wethod_conversion_desc') }}
-            </p>
+            <p class="text-sm text-ink-secondary mb-2">{{ $t('guide.wethod_conversion_desc') }}</p>
             <div class="bg-warning-soft border border-warning rounded-lg p-3 text-xs text-warning-text">
-              <p class="font-semibold mb-1">
-                {{ $t('guide.wethod_conversion_example_title') }}
-              </p>
-              <p>
-                {{ $t('guide.wethod_conversion_example') }}
-              </p>
+              <p class="font-semibold mb-1">{{ $t('guide.wethod_conversion_example_title') }}</p>
+              <p>{{ $t('guide.wethod_conversion_example') }}</p>
             </div>
           </section>
 
-          <!-- Submission -->
           <section>
             <h3 class="text-sm font-bold text-ink mb-2 flex items-center gap-1.5">
-              <send-icon size="16" class="text-accent" />
+              <IconSend :size="16" class="text-accent" />
               {{ $t('guide.submission_title') }}
             </h3>
-            <p class="text-sm text-ink-secondary">
-              {{ $t('guide.submission_desc') }}
-            </p>
+            <p class="text-sm text-ink-secondary">{{ $t('guide.submission_desc') }}</p>
           </section>
 
-          <!-- Keyboard shortcuts -->
           <section>
             <h3 class="text-sm font-bold text-ink mb-2 flex items-center gap-1.5">
-              <keyboard-icon size="16" class="text-accent" />
+              <IconKeyboard :size="16" class="text-accent" />
               {{ $t('guide.keyboard_title') }}
             </h3>
-            <p class="text-sm text-ink-secondary">
-              {{ $t('guide.keyboard_desc') }}
-            </p>
+            <p class="text-sm text-ink-secondary">{{ $t('guide.keyboard_desc') }}</p>
           </section>
 
-          <!-- Presets -->
           <section>
             <h3 class="text-sm font-bold text-ink mb-2 flex items-center gap-1.5">
-              <tag-icon size="16" class="text-accent" />
+              <IconTag :size="16" class="text-accent" />
               {{ $t('guide.presets_title') }}
             </h3>
-            <p class="text-sm text-ink-secondary mb-2">
-              {{ $t('guide.presets_desc') }}
-            </p>
+            <p class="text-sm text-ink-secondary mb-2">{{ $t('guide.presets_desc') }}</p>
             <ul class="text-sm text-ink-secondary space-y-1 ml-4 list-disc">
               <li>{{ $t('guide.presets_1') }}</li>
               <li>{{ $t('guide.presets_2') }}</li>
@@ -107,15 +80,12 @@
             </ul>
           </section>
 
-          <!-- Integrations -->
           <section>
             <h3 class="text-sm font-bold text-ink mb-2 flex items-center gap-1.5">
-              <plug-icon size="16" class="text-accent" />
+              <IconPlug :size="16" class="text-accent" />
               {{ $t('guide.integrations_title') }}
             </h3>
-            <p class="text-sm text-ink-secondary mb-2">
-              {{ $t('guide.integrations_desc') }}
-            </p>
+            <p class="text-sm text-ink-secondary mb-2">{{ $t('guide.integrations_desc') }}</p>
             <ul class="text-sm text-ink-secondary space-y-1 ml-4 list-disc">
               <li>{{ $t('guide.integrations_1') }}</li>
               <li>{{ $t('guide.integrations_2') }}</li>
@@ -124,129 +94,90 @@
             </ul>
           </section>
 
-          <!-- Work location -->
           <section>
             <h3 class="text-sm font-bold text-ink mb-2 flex items-center gap-1.5">
-              <map-pin-icon size="16" class="text-accent" />
+              <IconMapPin :size="16" class="text-accent" />
               {{ $t('guide.location_title') }}
             </h3>
-            <p class="text-sm text-ink-secondary">
-              {{ $t('guide.location_desc') }}
-            </p>
+            <p class="text-sm text-ink-secondary">{{ $t('guide.location_desc') }}</p>
           </section>
 
-          <!-- Theme -->
           <section>
             <h3 class="text-sm font-bold text-ink mb-2 flex items-center gap-1.5">
-              <palette-icon size="16" class="text-accent" />
+              <IconPalette :size="16" class="text-accent" />
               {{ $t('guide.theme_title') }}
             </h3>
-            <p class="text-sm text-ink-secondary mb-2">
-              {{ $t('guide.theme_desc') }}
-            </p>
+            <p class="text-sm text-ink-secondary mb-2">{{ $t('guide.theme_desc') }}</p>
             <ul class="text-sm text-ink-secondary space-y-1 ml-4 list-disc">
               <li>{{ $t('guide.theme_1') }}</li>
               <li>{{ $t('guide.theme_2') }}</li>
             </ul>
           </section>
 
-          <!-- Backup -->
           <section>
             <h3 class="text-sm font-bold text-ink mb-2 flex items-center gap-1.5">
-              <database-export-icon size="16" class="text-accent" />
+              <IconDatabaseExport :size="16" class="text-accent" />
               {{ $t('guide.backup_title') }}
             </h3>
-            <p class="text-sm text-ink-secondary">
-              {{ $t('guide.backup_desc') }}
-            </p>
+            <p class="text-sm text-ink-secondary">{{ $t('guide.backup_desc') }}</p>
           </section>
 
-          <!-- Support -->
           <div class="border-t border-stroke-muted pt-4">
-            <p class="text-xs text-ink-faint text-center">
-              {{ $t('guide.support') }}
-            </p>
+            <p class="text-xs text-ink-faint text-center">{{ $t('guide.support') }}</p>
           </div>
         </div>
         <div v-show="!scrolledToBottom" class="flex items-center justify-center py-2 border-t border-stroke-muted">
-          <chevron-down-icon size="16" class="text-ink-disabled animate-bounce" />
+          <IconChevronDown :size="16" class="text-ink-disabled animate-bounce" />
         </div>
       </div>
     </div>
-  </transition>
+  </Transition>
 </template>
 
-<script>
+<script setup>
+import { ref, watch, nextTick } from 'vue'
 import {
-  XIcon,
-  BookmarkIcon,
-  CalendarTimeIcon,
-  AlertTriangleIcon,
-  SendIcon,
-  KeyboardIcon,
-  DatabaseExportIcon,
-  TagIcon,
-  PlugIcon,
-  MapPinIcon,
-  PaletteIcon,
-  ChevronDownIcon
-} from 'vue-tabler-icons'
+  IconX, IconBookmark, IconCalendarTime, IconAlertTriangle,
+  IconSend, IconKeyboard, IconDatabaseExport, IconTag,
+  IconPlug, IconMapPin, IconPalette, IconChevronDown,
+} from '@tabler/icons-vue'
 
-export default {
-  components: {
-    XIcon,
-    BookmarkIcon,
-    CalendarTimeIcon,
-    AlertTriangleIcon,
-    SendIcon,
-    KeyboardIcon,
-    DatabaseExportIcon,
-    TagIcon,
-    PlugIcon,
-    MapPinIcon,
-    PaletteIcon,
-    ChevronDownIcon
-  },
-  props: {
-    value: {
-      type: Boolean,
-      default: false
-    }
-  },
-  data: () => ({ scrolledToBottom: false }),
-  watch: {
-    value (isVisible) {
-      if (isVisible) {
-        this.$nextTick(() => this.checkScroll())
-      } else {
-        this.scrolledToBottom = false
-      }
-    }
-  },
-  methods: {
-    close () {
-      this.$emit('input', false)
-    },
-    onScroll () {
-      this.checkScroll()
-    },
-    checkScroll () {
-      const element = this.$refs.scrollArea
-      if (!element) { return }
-      const threshold = 4
-      this.scrolledToBottom = element.scrollHeight - element.scrollTop - element.clientHeight < threshold
-    }
-  }
+const { t: $t } = useI18n()
+
+const props = defineProps({
+  modelValue: { type: Boolean, default: false },
+})
+
+const emit = defineEmits(['update:modelValue'])
+
+const scrolledToBottom = ref(false)
+const scrollArea = ref(null)
+
+function close() {
+  emit('update:modelValue', false)
 }
+
+function onScroll() {
+  checkScroll()
+}
+
+function checkScroll() {
+  const element = scrollArea.value
+  if (!element) return
+  const threshold = 4
+  scrolledToBottom.value = element.scrollHeight - element.scrollTop - element.clientHeight < threshold
+}
+
+watch(() => props.modelValue, (isVisible) => {
+  if (isVisible) {
+    nextTick(() => checkScroll())
+  } else {
+    scrolledToBottom.value = false
+  }
+})
 </script>
 
 <style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.15s ease;
-}
-.fade-enter,
-.fade-leave-to {
-  opacity: 0;
-}
+.fade-enter-active, .fade-leave-active { transition: opacity 0.15s ease; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
 </style>

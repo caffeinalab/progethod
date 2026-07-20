@@ -1,18 +1,12 @@
 <template>
   <div class="pt-20">
-    <!-- Page title starts -->
-
-    <div v-if="isTokenExpired" class="container px-6 mx-auto mt-4 mb-4">
+    <div v-if="userStore.isTokenExpired" class="container px-6 mx-auto mt-4 mb-4">
       <div class="bg-warning-soft border border-warning rounded-lg p-4">
         <div class="flex items-start gap-2">
-          <alert-triangle-icon class="text-warning flex-shrink-0 mt-0.5" size="20" />
+          <IconAlertTriangle class="text-warning flex-shrink-0 mt-0.5" :size="20" />
           <div class="flex-1">
-            <p class="text-base font-bold text-warning-text">
-              {{ $t('session_expired') }}
-            </p>
-            <p class="text-sm text-warning-text mt-1">
-              {{ $t('session_expired_hint') }}
-            </p>
+            <p class="text-base font-bold text-warning-text">{{ $t('session_expired') }}</p>
+            <p class="text-sm text-warning-text mt-1">{{ $t('session_expired_hint') }}</p>
             <button
               class="text-sm text-warning-text underline mt-2 hover:opacity-80 transition-opacity"
               @click="showExtensionGuide = !showExtensionGuide"
@@ -20,11 +14,8 @@
               {{ showExtensionGuide ? $t('calendar_page.cancel') : $t('login_instructions') }}
             </button>
             <ol v-if="showExtensionGuide" class="list-decimal list-inside space-y-2 mt-3 text-sm text-warning-text">
-              <li>
-                {{ $t('login_tutorial.step_1') }}<a class="underline font-semibold" target="_blank" :href="loginExtensionUrl">{{ $t('login_tutorial.step_1_cta_store') }}</a>{{ $t('login_tutorial.step_1_alt') }}<a class="underline font-semibold" href="/progethod-extension.zip" download>{{ $t('login_tutorial.step_1_cta_download') }}</a>
-              </li>
-              <li>
-                {{ $t('login_tutorial.step_2') }}
+              <li>{{ $t('login_tutorial.step_1') }}<a class="underline font-semibold" target="_blank" :href="config.public.loginExtensionUrl">{{ $t('login_tutorial.step_1_cta_store') }}</a>{{ $t('login_tutorial.step_1_alt') }}<a class="underline font-semibold" href="/progethod-extension.zip" download>{{ $t('login_tutorial.step_1_cta_download') }}</a></li>
+              <li>{{ $t('login_tutorial.step_2') }}
                 <ol class="list-[lower-alpha] list-inside ml-4 mt-1 space-y-1">
                   <li>{{ $t('login_tutorial.step_2a') }}</li>
                   <li v-html="$t('login_tutorial.step_2b')" />
@@ -39,30 +30,24 @@
         </div>
       </div>
     </div>
-    <alert v-if="holidaysFetchFailed" :message="$t('holidays_error')" level="warning" dismissable @dismiss="holidaysFetchFailed = false" />
-    <alert v-if="showMonthEndReminder && !monthEndReminderDismissed" :message="$t('month_end_reminder')" level="warning" dismissable @dismiss="dismissMonthEndReminder" />
+
+    <Alert v-if="holidaysFetchFailed" :message="$t('holidays_error')" level="warning" dismissable @dismiss="holidaysFetchFailed = false" />
+    <Alert v-if="showMonthEndReminder && !monthEndReminderDismissed" :message="$t('month_end_reminder')" level="warning" dismissable @dismiss="dismissMonthEndReminder" />
+
     <div class="my-6 lg:my-12 container px-6 mx-auto pb-4 border-b border-stroke">
       <div class="flex items-center gap-3">
         <div class="inline-flex items-center bg-card border border-stroke-muted rounded-lg shadow">
-          <button
-            class="p-2.5 text-ink-muted hover:bg-card-hover rounded-l-lg transition-colors focus:outline-none"
-            :title="$t('previous_week')"
-            @click="weekOffset--"
-          >
-            <chevron-left-icon size="18" />
+          <button class="p-2.5 text-ink-muted hover:bg-card-hover rounded-l-lg transition-colors focus:outline-none" :title="$t('previous_week')" @click="weekOffset--">
+            <IconChevronLeft :size="18" />
           </button>
           <span
             class="px-4 py-2 text-sm font-semibold text-ink border-l border-r border-stroke-muted select-none cursor-pointer hover:bg-card-hover transition-colors"
-            @click.stop="$refs.monthCalendar && $refs.monthCalendar.toggle()"
+            @click.stop="monthCalendarRef?.toggle()"
           >
             {{ weekLabel }}
           </span>
-          <button
-            class="p-2.5 text-ink-muted hover:bg-card-hover rounded-r-lg transition-colors focus:outline-none"
-            :title="$t('next_week')"
-            @click="weekOffset++"
-          >
-            <chevron-right-icon size="18" />
+          <button class="p-2.5 text-ink-muted hover:bg-card-hover rounded-r-lg transition-colors focus:outline-none" :title="$t('next_week')" @click="weekOffset++">
+            <IconChevronRight :size="18" />
           </button>
         </div>
         <button
@@ -76,24 +61,17 @@
 
       <div class="flex items-stretch gap-3 mt-4">
         <template v-if="trackedHoursLoading">
-          <div class="stat-card animate-pulse">
-            <span class="inline-block w-20 h-4 bg-stroke-muted rounded" />
-          </div>
-          <div class="stat-card animate-pulse">
-            <span class="inline-block w-20 h-4 bg-stroke-muted rounded" />
-          </div>
+          <div class="stat-card animate-pulse"><span class="inline-block w-20 h-4 bg-stroke-muted rounded" /></div>
+          <div class="stat-card animate-pulse"><span class="inline-block w-20 h-4 bg-stroke-muted rounded" /></div>
         </template>
         <template v-else>
-          <!-- Week stat -->
           <div class="stat-card">
             <span class="stat-label">{{ $t('week_short') }}</span>
             <span class="stat-value">{{ weekTrackedTotal + '/' + weekExpectedHours + 'h' }}</span>
           </div>
-
-          <!-- Month stat -->
-          <div class="stat-card cursor-pointer hover:bg-card-hover hover:border-stroke transition-colors" @click.stop="$refs.monthCalendar.toggle()">
-            <month-calendar
-              ref="monthCalendar"
+          <div class="stat-card cursor-pointer hover:bg-card-hover hover:border-stroke transition-colors" @click.stop="monthCalendarRef?.toggle()">
+            <MonthCalendar
+              ref="monthCalendarRef"
               :reference-date="weekAnchor"
               :tracked-hours="calendarTrackedHours"
               :holidays="holidays"
@@ -103,43 +81,36 @@
             />
             <span class="stat-value">{{ monthTrackedDays + '/' + monthWorkingDays }}</span>
           </div>
-
-          <!-- Office days check -->
           <div class="stat-card">
-            <button
-              class="inline-flex items-center gap-1.5 text-sm font-bold text-ink hover:bg-card-hover hover:border-stroke transition-colors"
-              @click="showOfficeDaysModal = true"
-            >
-              <building-icon size="14" />
+            <button class="inline-flex items-center gap-1.5 text-sm font-bold text-ink hover:bg-card-hover hover:border-stroke transition-colors" @click="showOfficeDaysModal = true">
+              <IconBuilding :size="14" />
               {{ $t('office_days_check_button') }}
             </button>
           </div>
         </template>
-
-        <business-unit-filter v-if="businessUnitsEnabled" class="ml-auto" />
+        <BusinessUnitFilter v-if="userStore.businessUnitsEnabled" class="ml-auto" />
       </div>
     </div>
-    <!-- Page title ends -->
+
     <div class="container mx-auto px-6">
-      <!-- Remove class [ h-64 ] when adding a card block -->
-      <!-- Remove class [ border-dashed border-2 border-gray-300 ] to remove dotted border -->
       <div
         v-for="(day, index) of days"
         :key="day.toString()"
         class="day-card w-full rounded-lg border mb-5 p-2 shadow-sm transition-shadow duration-150"
         :class="dayCardClasses(day, index)"
       >
-        <day-input-item
-          :ref="'day-' + index"
+        <DayInputItem
+          :ref="(el: any) => { dayRefs[index] = el }"
           :day="day"
           :focused="navigating && insideDay && focusedDayIndex === index"
-          :wethod-hours="trackedHoursByDay[$dateFns.format(day, 'yyyy-MM-dd')]"
-          :leave-hours="leaveHoursByDay[$dateFns.format(day, 'yyyy-MM-dd')]"
-          :holiday-name="holidaysByDate[$dateFns.format(day, 'yyyy-MM-dd')]"
+          :wethod-hours="trackedHoursByDay[formatDate(day, 'yyyy-MM-dd')]"
+          :leave-hours="leaveHoursByDay[formatDate(day, 'yyyy-MM-dd')]"
+          :holiday-name="holidaysByDate[formatDate(day, 'yyyy-MM-dd')]"
         />
       </div>
     </div>
-    <office-days-modal
+
+    <OfficeDaysModal
       v-model="showOfficeDaysModal"
       :month-tracked-hours="monthTrackedHours"
       :month-from="monthFrom"
@@ -150,450 +121,285 @@
   </div>
 </template>
 
-<script>
-import { AlertTriangleIcon, ChevronLeftIcon, ChevronRightIcon, BuildingIcon } from 'vue-tabler-icons'
-import { isSameDay, startOfMonth, endOfMonth, subDays, getDay, isAfter, isBefore } from 'date-fns'
-import { mapGetters } from 'vuex'
-import DayInputItem from '~/components/DayInputItem'
-import BusinessUnitFilter from '~/components/BusinessUnitFilter'
-import OfficeDaysModal from '~/components/OfficeDaysModal'
-import liveToday from '~/mixins/liveToday'
+<script setup lang="ts">
+import { IconAlertTriangle, IconChevronLeft, IconChevronRight, IconBuilding } from '@tabler/icons-vue'
+import { isSameDay, startOfMonth, endOfMonth, subDays, getDay, isAfter, isBefore, addWeeks, startOfWeek, addDays, format as formatDate } from 'date-fns'
+import { it } from 'date-fns/locale'
 
-export default {
-  components: {
-    AlertTriangleIcon,
-    ChevronLeftIcon,
-    ChevronRightIcon,
-    BuildingIcon,
-    DayInputItem,
-    BusinessUnitFilter,
-    OfficeDaysModal
-  },
-  mixins: [liveToday],
-  middleware: 'auth',
-  data () {
-    const queryWeek = parseInt(this.$route.query.week, 10)
-    const dismissedAt = localStorage.getItem('monthEndReminderDismissedAt')
-    const isDismissed = dismissedAt && (Date.now() - parseInt(dismissedAt, 10)) < 24 * 60 * 60 * 1000
-    return {
-      weekOffset: Number.isFinite(queryWeek) ? queryWeek : 0,
-      weekTrackedHours: [],
-      monthTrackedHours: [],
-      calendarTrackedHours: [],
-      trackedHoursLoading: false,
-      showOfficeDaysModal: false,
-      weekVacationHours: [],
-      holidays: [],
-      holidaysFetchFailed: false,
-      focusedDayIndex: null,
-      insideDay: false,
-      navigating: false,
-      monthEndReminderDismissed: !!isDismissed,
-      showExtensionGuide: false,
-      loginExtensionUrl: process.env.loginExtensionUrl
+definePageMeta({ middleware: 'auth' })
+
+const config = useRuntimeConfig()
+const userStore = useUserStore()
+const eventBus = useEventBus()
+const api = useApi()
+const { today } = useLiveToday()
+const route = useRoute()
+const router = useRouter()
+
+const queryWeek = parseInt(route.query.week as string, 10)
+const weekOffset = ref(Number.isFinite(queryWeek) ? queryWeek : 0)
+const weekTrackedHours = ref<Array<{ date: string; value: number }>>([])
+const monthTrackedHours = ref<Array<{ date: string; value: number }>>([])
+const calendarTrackedHours = ref<Array<{ date: string; value: number }>>([])
+const trackedHoursLoading = ref(false)
+const showOfficeDaysModal = ref(false)
+const weekVacationHours = ref<Array<{ date: string; amount: number; projectId: number }>>([])
+const holidays = ref<Array<{ date: string; name: string }>>([])
+const holidaysFetchFailed = ref(false)
+const focusedDayIndex = ref<number | null>(null)
+const insideDay = ref(false)
+const navigating = ref(false)
+const showExtensionGuide = ref(false)
+const monthCalendarRef = ref<any>(null)
+const dayRefs = ref<Record<number, any>>({})
+
+const dismissedAt = typeof localStorage !== 'undefined' ? localStorage.getItem('monthEndReminderDismissedAt') : null
+const monthEndReminderDismissed = ref(!!(dismissedAt && (Date.now() - parseInt(dismissedAt, 10)) < 24 * 60 * 60 * 1000))
+
+const weekAnchor = computed(() => addWeeks(today.value, weekOffset.value))
+const days = computed(() => {
+  const monday = startOfWeek(weekAnchor.value, { weekStartsOn: 1 })
+  return Array.from({ length: 7 }, (_, index) => addDays(monday, index))
+})
+const weekLabel = computed(() => {
+  const start = formatDate(days.value[0], 'd MMM', { locale: it })
+  const end = formatDate(days.value[6], 'd MMM yyyy', { locale: it })
+  return `${start} – ${end}`
+})
+const weekFrom = computed(() => formatDate(days.value[0], 'yyyy-MM-dd'))
+const weekTo = computed(() => formatDate(days.value[6], 'yyyy-MM-dd'))
+const monthFrom = computed(() => formatDate(startOfMonth(weekAnchor.value), 'yyyy-MM-dd'))
+const monthTo = computed(() => formatDate(endOfMonth(weekAnchor.value), 'yyyy-MM-dd'))
+const weekTrackedTotal = computed(() => weekTrackedHours.value.reduce((sum, entry) => sum + (entry.value || 0), 0))
+const monthTrackedDays = computed(() => monthTrackedHours.value.filter(entry => entry.value >= 8).length)
+const weekExpectedHours = computed(() => {
+  const holidaysInWeek = holidays.value.filter((holiday) => {
+    if (holiday.date < weekFrom.value || holiday.date > weekTo.value) { return false }
+    const dow = new Date(holiday.date + 'T00:00:00').getDay()
+    return dow !== 0 && dow !== 6
+  }).length
+  return 40 - (holidaysInWeek * 8)
+})
+const monthWorkingDays = computed(() => {
+  let workingDays = 0
+  let current = startOfMonth(weekAnchor.value)
+  const end = endOfMonth(weekAnchor.value)
+  while (current <= end) {
+    const dayOfWeek = current.getDay()
+    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+      const dateKey = formatDate(current, 'yyyy-MM-dd')
+      if (!holidaysByDate.value[dateKey]) { workingDays++ }
     }
-  },
-  computed: {
-    ...mapGetters({
-      isTokenExpired: 'user/isTokenExpired',
-      businessUnitsEnabled: 'user/businessUnitsEnabled'
-    }),
-    weekAnchor () {
-      return this.$dateFns.addWeeks(this.today, this.weekOffset)
-    },
-    days () {
-      const monday = this.$dateFns.startOfWeek(this.weekAnchor, { weekStartsOn: 1 })
-      return Array.from({ length: 7 }, (_, index) => this.$dateFns.addDays(monday, index))
-    },
-    weekLabel () {
-      const monday = this.days[0]
-      const sunday = this.days[6]
-      const start = this.$dateFns.format(monday, 'd MMM')
-      const end = this.$dateFns.format(sunday, 'd MMM yyyy')
-      return `${start} – ${end}`
-    },
-    weekFrom () {
-      return this.$dateFns.format(this.days[0], 'yyyy-MM-dd')
-    },
-    weekTo () {
-      return this.$dateFns.format(this.days[6], 'yyyy-MM-dd')
-    },
-    monthFrom () {
-      return this.$dateFns.format(startOfMonth(this.weekAnchor), 'yyyy-MM-dd')
-    },
-    monthTo () {
-      return this.$dateFns.format(endOfMonth(this.weekAnchor), 'yyyy-MM-dd')
-    },
-    weekTrackedTotal () {
-      return this.weekTrackedHours.reduce((sum, entry) => sum + (entry.value || 0), 0)
-    },
-    monthTrackedDays () {
-      return this.monthTrackedHours.filter(entry => entry.value >= 8).length
-    },
-    weekExpectedHours () {
-      const holidaysInWeek = this.holidays.filter((holiday) => {
-        if (holiday.date < this.weekFrom || holiday.date > this.weekTo) {
-          return false
-        }
-        const dow = new Date(holiday.date + 'T00:00:00').getDay()
-        return dow !== 0 && dow !== 6
-      }).length
-      return 40 - (holidaysInWeek * 8)
-    },
-    monthWorkingDays () {
-      let workingDays = 0
-      let current = startOfMonth(this.weekAnchor)
-      const end = endOfMonth(this.weekAnchor)
-      while (current <= end) {
-        const dayOfWeek = current.getDay()
-        if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-          const dateKey = this.$dateFns.format(current, 'yyyy-MM-dd')
-          if (!this.holidaysByDate[dateKey]) {
-            workingDays++
-          }
-        }
-        current = this.$dateFns.addDays(current, 1)
-      }
-      return workingDays
-    },
-    monthLabel () {
-      return this.$dateFns.format(this.weekAnchor, 'MMMM yyyy')
-    },
-    trackedHoursByDay () {
-      const map = {}
-      for (const entry of this.weekTrackedHours) {
-        map[entry.date] = entry.value
-      }
-      return map
-    },
-    leaveHoursByDay () {
-      const map = {}
-      for (const entry of this.weekVacationHours) {
-        if (entry.projectId === 83 || entry.projectId === 90) {
-          map[entry.date] = (map[entry.date] || 0) + entry.amount
-        }
-      }
-      return map
-    },
-    holidaysByDate () {
-      const map = {}
-      for (const holiday of this.holidays) {
-        map[holiday.date] = holiday.name
-      }
-      return map
-    },
-    showMonthEndReminder () {
-      const monthEnd = endOfMonth(this.today)
-      let cursor = new Date(monthEnd)
-      const lastWorkingDays = []
-
-      while (lastWorkingDays.length < 2) {
-        const dow = getDay(cursor)
-        if (dow !== 0 && dow !== 6) {
-          lastWorkingDays.push(cursor)
-        }
-        cursor = subDays(cursor, 1)
-      }
-
-      const rangeStart = lastWorkingDays[lastWorkingDays.length - 1]
-      return !isBefore(this.today, rangeStart) && !isAfter(this.today, monthEnd)
-    }
-  },
-  watch: {
-    weekOffset (value) {
-      const query = value === 0 ? {} : { week: String(value) }
-      if (this.$route.query.week !== query.week) {
-        this.$router.replace({ query })
-      }
-      this.fetchTrackedHours()
-      this.fetchVacationHours()
-    }
-  },
-  mounted () {
-    this.fetchTrackedHours()
-    this.fetchVacationHours()
-    this.fetchHolidays()
-    this.scrollToToday()
-    this.$nuxt.$on('tracked-hours:refresh', this.debouncedRefresh)
-    this.$nuxt.$on('shortcut:prev-week', this.prevWeek)
-    this.$nuxt.$on('shortcut:next-week', this.nextWeek)
-    this.$nuxt.$on('shortcut:current-week', this.goCurrentWeek)
-    this.$nuxt.$on('shortcut:focus-prev', this.focusPrev)
-    this.$nuxt.$on('shortcut:focus-next', this.focusNext)
-    this.$nuxt.$on('shortcut:add-entry', this.addEntryToFocused)
-    this.$nuxt.$on('shortcut:import-gcal', this.importGcalToFocused)
-    this.$nuxt.$on('shortcut:import-jira', this.importJiraToFocused)
-    this.$nuxt.$on('shortcut:import-gitlab', this.importGitlabToFocused)
-    this.$nuxt.$on('shortcut:enter-day', this.enterDay)
-    this.$nuxt.$on('shortcut:exit-day', this.exitDay)
-    document.addEventListener('mousedown', this.deactivateNav)
-  },
-  beforeDestroy () {
-    this.$nuxt.$off('tracked-hours:refresh', this.debouncedRefresh)
-    this.$nuxt.$off('shortcut:prev-week', this.prevWeek)
-    this.$nuxt.$off('shortcut:next-week', this.nextWeek)
-    this.$nuxt.$off('shortcut:current-week', this.goCurrentWeek)
-    this.$nuxt.$off('shortcut:focus-prev', this.focusPrev)
-    this.$nuxt.$off('shortcut:focus-next', this.focusNext)
-    this.$nuxt.$off('shortcut:add-entry', this.addEntryToFocused)
-    this.$nuxt.$off('shortcut:import-gcal', this.importGcalToFocused)
-    this.$nuxt.$off('shortcut:import-jira', this.importJiraToFocused)
-    this.$nuxt.$off('shortcut:import-gitlab', this.importGitlabToFocused)
-    this.$nuxt.$off('shortcut:enter-day', this.enterDay)
-    this.$nuxt.$off('shortcut:exit-day', this.exitDay)
-    document.removeEventListener('mousedown', this.deactivateNav)
-  },
-  methods: {
-    isToday (day) {
-      return isSameDay(day, this.today)
-    },
-    dayCardClasses (day, index) {
-      const classes = []
-
-      if (this.isToday(day)) {
-        classes.push('border-accent bg-accent-soft')
-      } else {
-        classes.push('border-stroke')
-      }
-      if (this.navigating && this.focusedDayIndex === index && !this.insideDay) {
-        classes.push('ring-2 ring-focus-ring ring-offset-2 ring-offset-page')
-      }
-      return classes
-    },
-    deactivateNav () {
-      this.navigating = false
-      this.insideDay = false
-    },
-    activateNav () {
-      this.navigating = true
-      if (this.focusedDayIndex === null) { this.focusedDayIndex = 0 }
-    },
-    prevWeek () {
-      this.weekOffset--
-    },
-    nextWeek () {
-      this.weekOffset++
-    },
-    goCurrentWeek () {
-      this.weekOffset = 0
-    },
-    enterDay () {
-      this.activateNav()
-      if (!this.insideDay) {
-        this.insideDay = true
-        const dayComponent = this.getFocusedDayComponent()
-        if (dayComponent) { dayComponent.focusFirstEntry() }
-      } else {
-        const dayComponent = this.getFocusedDayComponent()
-        if (dayComponent) { dayComponent.editCurrentEntry() }
-      }
-    },
-    exitDay () {
-      if (this.insideDay) {
-        this.insideDay = false
-        document.activeElement?.blur()
-      } else {
-        this.navigating = false
-      }
-    },
-    focusPrev () {
-      this.activateNav()
-      if (this.insideDay) {
-        const dayComponent = this.getFocusedDayComponent()
-        if (dayComponent) { dayComponent.focusPrevEntry() }
-        return
-      }
-      if (this.focusedDayIndex > 0) {
-        this.focusedDayIndex--
-      }
-      this.scrollFocusedIntoView()
-    },
-    focusNext () {
-      this.activateNav()
-      if (this.insideDay) {
-        const dayComponent = this.getFocusedDayComponent()
-        if (dayComponent) { dayComponent.focusNextEntry() }
-        return
-      }
-      if (this.focusedDayIndex < this.days.length - 1) {
-        this.focusedDayIndex++
-      }
-      this.scrollFocusedIntoView()
-    },
-    scrollFocusedIntoView () {
-      this.$nextTick(() => {
-        const ref = this.$refs['day-' + this.focusedDayIndex]
-        const element = Array.isArray(ref) ? ref[0]?.$el : ref?.$el
-        if (!element) { return }
-        const navHeight = 64
-        const rect = element.getBoundingClientRect()
-        if (rect.top < navHeight) {
-          window.scrollBy({ top: rect.top - navHeight - 8, behavior: 'smooth' })
-        } else if (rect.bottom > window.innerHeight) {
-          element.scrollIntoView({ block: 'end', behavior: 'smooth' })
-        }
-      })
-    },
-    addEntryToFocused () {
-      const dayComponent = this.getFocusedDayComponent()
-      if (dayComponent) { dayComponent.addEntry() }
-    },
-    importGcalToFocused () {
-      const dayComponent = this.getFocusedDayComponent()
-      if (dayComponent) { dayComponent.fetchGCal() }
-    },
-    importJiraToFocused () {
-      const dayComponent = this.getFocusedDayComponent()
-      if (dayComponent) { dayComponent.handleJiraClick() }
-    },
-    importGitlabToFocused () {
-      const dayComponent = this.getFocusedDayComponent()
-      if (dayComponent) { dayComponent.handleGitlabClick() }
-    },
-    getFocusedDayComponent () {
-      if (this.focusedDayIndex === null) { this.focusedDayIndex = 0 }
-      const ref = this.$refs['day-' + this.focusedDayIndex]
-      return Array.isArray(ref) ? ref[0] : ref
-    },
-    async fetchTrackedHours () {
-      if (!this.$store.getters['user/canMakeRequests']) {
-        return
-      }
-      const snapshotOffset = this.weekOffset
-      this.trackedHoursLoading = true
-      try {
-        const employeeId = this.$store.getters['user/info'].employee_id || ''
-        const [weekResponse, monthResponse] = await Promise.all([
-          this.$axios.$get('tracked-hours', {
-            params: { from: this.weekFrom, to: this.weekTo, employeeId }
-          }),
-          this.$axios.$get('tracked-hours', {
-            params: { from: this.monthFrom, to: this.monthTo, employeeId }
-          })
-        ])
-        if (this.weekOffset !== snapshotOffset) {
-          return
-        }
-        if (Array.isArray(weekResponse?.data)) {
-          this.weekTrackedHours = weekResponse.data
-        }
-        if (Array.isArray(monthResponse?.data)) {
-          this.monthTrackedHours = monthResponse.data
-          this.calendarTrackedHours = monthResponse.data
-        }
-      } catch {
-        // API unreachable — tracked hours will remain empty
-      } finally {
-        if (this.weekOffset === snapshotOffset) {
-          this.trackedHoursLoading = false
-        }
-      }
-    },
-    async fetchVacationHours () {
-      if (!this.$store.getters['user/canMakeRequests']) {
-        return
-      }
-      const snapshotOffset = this.weekOffset
-      try {
-        const employeeId = this.$store.getters['user/info'].employee_id
-        const response = await this.$axios.$get('planningboard', {
-          params: { from: this.weekFrom, to: this.weekTo }
-        })
-        if (this.weekOffset !== snapshotOffset) {
-          return
-        }
-        const plannings = response?.data?.plannings || {}
-        const entries = []
-        for (const group of Object.values(plannings)) {
-          if (!Array.isArray(group)) { continue }
-          for (const planning of group) {
-            if (
-              planning.employee_id === employeeId &&
-              (planning.project_id === 83 || planning.project_id === 90)
-            ) {
-              entries.push({ date: planning.day, amount: planning.amount, projectId: planning.project_id })
-            }
-          }
-        }
-        this.weekVacationHours = entries
-      } catch {
-        // API unreachable — vacation hours will remain empty
-      }
-    },
-    async fetchHolidays () {
-      try {
-        const response = await this.$axios.$get('holidays')
-        this.holidays = response?.data || []
-        this.holidaysFetchFailed = false
-      } catch {
-        this.holidays = []
-        this.holidaysFetchFailed = true
-      }
-    },
-    debouncedRefresh () {
-      setTimeout(() => {
-        this.fetchTrackedHours()
-        this.fetchVacationHours()
-      }, 800)
-    },
-    onCalendarDayClick (dateKey) {
-      const targetDate = new Date(dateKey)
-      const targetMonday = this.$dateFns.startOfWeek(targetDate, { weekStartsOn: 1 })
-      const todayMonday = this.$dateFns.startOfWeek(this.today, { weekStartsOn: 1 })
-      const diffMs = targetMonday.getTime() - todayMonday.getTime()
-      const diffWeeks = Math.round(diffMs / (7 * 24 * 60 * 60 * 1000))
-      this.weekOffset = diffWeeks
-    },
-    async onCalendarMonthChanged ({ from, to }) {
-      if (from === this.monthFrom && to === this.monthTo) {
-        this.calendarTrackedHours = this.monthTrackedHours
-        return
-      }
-      if (!this.$store.getters['user/canMakeRequests']) {
-        this.calendarTrackedHours = []
-        return
-      }
-      try {
-        const employeeId = this.$store.getters['user/info'].employee_id || ''
-        const response = await this.$axios.$get('tracked-hours', {
-          params: { from, to, employeeId }
-        })
-        if (Array.isArray(response?.data)) {
-          this.calendarTrackedHours = response.data
-        }
-      } catch {
-        this.calendarTrackedHours = []
-      }
-    },
-    dismissMonthEndReminder () {
-      this.monthEndReminderDismissed = true
-      localStorage.setItem('monthEndReminderDismissedAt', String(Date.now()))
-    },
-    scrollToToday () {
-      if (this.weekOffset !== 0) { return }
-      const todayIndex = this.days.findIndex(day => isSameDay(day, this.today))
-      if (todayIndex < 0) { return }
-      this.$nextTick(() => {
-        const ref = this.$refs['day-' + todayIndex]
-        const element = Array.isArray(ref) ? ref[0]?.$el : ref?.$el
-        if (element) {
-          element.scrollIntoView({ block: 'center', behavior: 'smooth' })
-        }
-      })
+    current = addDays(current, 1)
+  }
+  return workingDays
+})
+const monthLabel = computed(() => formatDate(weekAnchor.value, 'MMMM yyyy', { locale: it }))
+const trackedHoursByDay = computed(() => {
+  const map: Record<string, number> = {}
+  for (const entry of weekTrackedHours.value) { map[entry.date] = entry.value }
+  return map
+})
+const leaveHoursByDay = computed(() => {
+  const map: Record<string, number> = {}
+  for (const entry of weekVacationHours.value) {
+    if (entry.projectId === 83 || entry.projectId === 90) {
+      map[entry.date] = (map[entry.date] || 0) + entry.amount
     }
   }
+  return map
+})
+const holidaysByDate = computed(() => {
+  const map: Record<string, string> = {}
+  for (const holiday of holidays.value) { map[holiday.date] = holiday.name }
+  return map
+})
+const showMonthEndReminder = computed(() => {
+  const monthEnd = endOfMonth(today.value)
+  let cursor = new Date(monthEnd)
+  const lastWorkingDays: Date[] = []
+  while (lastWorkingDays.length < 2) {
+    const dow = getDay(cursor)
+    if (dow !== 0 && dow !== 6) { lastWorkingDays.push(cursor) }
+    cursor = subDays(cursor, 1)
+  }
+  const rangeStart = lastWorkingDays[lastWorkingDays.length - 1]
+  return !isBefore(today.value, rangeStart) && !isAfter(today.value, monthEnd)
+})
+
+watch(weekOffset, (value) => {
+  const query = value === 0 ? {} : { week: String(value) }
+  if (route.query.week !== (query as any).week) {
+    router.replace({ query })
+  }
+  fetchTrackedHours()
+  fetchVacationHours()
+})
+
+function dayCardClasses(day: Date, index: number): string[] {
+  const classes: string[] = []
+  if (isSameDay(day, today.value)) { classes.push('border-accent bg-accent-soft') }
+  else { classes.push('border-stroke') }
+  if (navigating.value && focusedDayIndex.value === index && !insideDay.value) {
+    classes.push('ring-2 ring-focus-ring ring-offset-2 ring-offset-page')
+  }
+  return classes
 }
+
+function deactivateNav() { navigating.value = false; insideDay.value = false }
+function activateNav() { navigating.value = true; if (focusedDayIndex.value === null) { focusedDayIndex.value = 0 } }
+
+function getFocusedDayComponent() {
+  if (focusedDayIndex.value === null) { focusedDayIndex.value = 0 }
+  return dayRefs.value[focusedDayIndex.value]
+}
+
+function scrollFocusedIntoView() {
+  nextTick(() => {
+    const component = dayRefs.value[focusedDayIndex.value!]
+    const element = component?.$el
+    if (!element) { return }
+    const navHeight = 64
+    const rect = element.getBoundingClientRect()
+    if (rect.top < navHeight) { window.scrollBy({ top: rect.top - navHeight - 8, behavior: 'smooth' }) }
+    else if (rect.bottom > window.innerHeight) { element.scrollIntoView({ block: 'end', behavior: 'smooth' }) }
+  })
+}
+
+async function fetchTrackedHours() {
+  if (!userStore.canMakeRequests) { return }
+  const snapshotOffset = weekOffset.value
+  trackedHoursLoading.value = true
+  try {
+    const employeeId = userStore.info.employee_id || ''
+    const [weekResponse, monthResponse] = await Promise.all([
+      api.$get<{ data: Array<{ date: string; value: number }> }>('tracked-hours', { params: { from: weekFrom.value, to: weekTo.value, employeeId } }),
+      api.$get<{ data: Array<{ date: string; value: number }> }>('tracked-hours', { params: { from: monthFrom.value, to: monthTo.value, employeeId } }),
+    ])
+    if (weekOffset.value !== snapshotOffset) { return }
+    if (Array.isArray(weekResponse?.data)) { weekTrackedHours.value = weekResponse.data }
+    if (Array.isArray(monthResponse?.data)) { monthTrackedHours.value = monthResponse.data; calendarTrackedHours.value = monthResponse.data }
+  } catch { /* empty */ } finally {
+    if (weekOffset.value === snapshotOffset) { trackedHoursLoading.value = false }
+  }
+}
+
+async function fetchVacationHours() {
+  if (!userStore.canMakeRequests) { return }
+  const snapshotOffset = weekOffset.value
+  try {
+    const employeeId = userStore.info.employee_id
+    const response = await api.$get<{ data: { plannings: Record<string, Array<{ employee_id: number; project_id: number; day: string; amount: number }>> } }>('planningboard', { params: { from: weekFrom.value, to: weekTo.value } })
+    if (weekOffset.value !== snapshotOffset) { return }
+    const plannings = response?.data?.plannings || {}
+    const entries: Array<{ date: string; amount: number; projectId: number }> = []
+    for (const group of Object.values(plannings)) {
+      if (!Array.isArray(group)) { continue }
+      for (const planning of group) {
+        if (planning.employee_id === employeeId && (planning.project_id === 83 || planning.project_id === 90)) {
+          entries.push({ date: planning.day, amount: planning.amount, projectId: planning.project_id })
+        }
+      }
+    }
+    weekVacationHours.value = entries
+  } catch { /* empty */ }
+}
+
+async function fetchHolidays() {
+  try {
+    const response = await api.$get<{ data: Array<{ date: string; name: string }> }>('holidays')
+    holidays.value = response?.data || []
+    holidaysFetchFailed.value = false
+  } catch { holidays.value = []; holidaysFetchFailed.value = true }
+}
+
+function debouncedRefresh() { setTimeout(() => { fetchTrackedHours(); fetchVacationHours() }, 800) }
+
+function onCalendarDayClick(dateKey: string) {
+  const targetDate = new Date(dateKey)
+  const targetMonday = startOfWeek(targetDate, { weekStartsOn: 1 })
+  const todayMonday = startOfWeek(today.value, { weekStartsOn: 1 })
+  const diffMs = targetMonday.getTime() - todayMonday.getTime()
+  weekOffset.value = Math.round(diffMs / (7 * 24 * 60 * 60 * 1000))
+}
+
+async function onCalendarMonthChanged({ from, to }: { from: string; to: string }) {
+  if (from === monthFrom.value && to === monthTo.value) { calendarTrackedHours.value = monthTrackedHours.value; return }
+  if (!userStore.canMakeRequests) { calendarTrackedHours.value = []; return }
+  try {
+    const employeeId = userStore.info.employee_id || ''
+    const response = await api.$get<{ data: Array<{ date: string; value: number }> }>('tracked-hours', { params: { from, to, employeeId } })
+    if (Array.isArray(response?.data)) { calendarTrackedHours.value = response.data }
+  } catch { calendarTrackedHours.value = [] }
+}
+
+function dismissMonthEndReminder() {
+  monthEndReminderDismissed.value = true
+  localStorage.setItem('monthEndReminderDismissedAt', String(Date.now()))
+}
+
+function scrollToToday() {
+  if (weekOffset.value !== 0) { return }
+  const todayIndex = days.value.findIndex(day => isSameDay(day, today.value))
+  if (todayIndex < 0) { return }
+  nextTick(() => {
+    const component = dayRefs.value[todayIndex]
+    const element = component?.$el
+    if (element) { element.scrollIntoView({ block: 'center', behavior: 'smooth' }) }
+  })
+}
+
+onMounted(() => {
+  fetchTrackedHours()
+  fetchVacationHours()
+  fetchHolidays()
+  scrollToToday()
+  eventBus.on('tracked-hours:refresh', debouncedRefresh)
+  eventBus.on('shortcut:prev-week', () => weekOffset.value--)
+  eventBus.on('shortcut:next-week', () => weekOffset.value++)
+  eventBus.on('shortcut:current-week', () => { weekOffset.value = 0 })
+  eventBus.on('shortcut:focus-prev', () => {
+    activateNav()
+    if (insideDay.value) { getFocusedDayComponent()?.focusPrevEntry(); return }
+    if (focusedDayIndex.value! > 0) { focusedDayIndex.value!-- }
+    scrollFocusedIntoView()
+  })
+  eventBus.on('shortcut:focus-next', () => {
+    activateNav()
+    if (insideDay.value) { getFocusedDayComponent()?.focusNextEntry(); return }
+    if (focusedDayIndex.value! < days.value.length - 1) { focusedDayIndex.value!++ }
+    scrollFocusedIntoView()
+  })
+  eventBus.on('shortcut:add-entry', () => { getFocusedDayComponent()?.addEntry() })
+  eventBus.on('shortcut:import-gcal', () => { getFocusedDayComponent()?.fetchGCal() })
+  eventBus.on('shortcut:import-jira', () => { getFocusedDayComponent()?.handleJiraClick() })
+  eventBus.on('shortcut:import-gitlab', () => { getFocusedDayComponent()?.handleGitlabClick() })
+  eventBus.on('shortcut:enter-day', () => {
+    activateNav()
+    if (!insideDay.value) { insideDay.value = true; getFocusedDayComponent()?.focusFirstEntry() }
+    else { getFocusedDayComponent()?.editCurrentEntry() }
+  })
+  eventBus.on('shortcut:exit-day', () => {
+    if (insideDay.value) { insideDay.value = false; (document.activeElement as HTMLElement)?.blur() }
+    else { navigating.value = false }
+  })
+  document.addEventListener('mousedown', deactivateNav)
+})
+
+onBeforeUnmount(() => {
+  eventBus.off('tracked-hours:refresh', debouncedRefresh)
+  document.removeEventListener('mousedown', deactivateNav)
+})
 </script>
 
-<style lang="postcss">
+<style>
+  @reference "~/assets/css/tailwind.css";
   .stat-card {
     @apply flex items-center gap-2 px-4 py-2 bg-card rounded-lg border border-stroke-muted shadow text-sm;
   }
-
   .stat-label {
     @apply text-ink-muted font-medium;
   }
-
   .stat-value {
     @apply text-ink font-bold tabular-nums;
   }

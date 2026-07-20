@@ -1,5 +1,5 @@
 <template>
-  <div v-click-outside="close" class="relative inline-block">
+  <div class="relative inline-block">
     <span
       class="stat-label capitalize cursor-pointer transition-colors"
       @click.stop="toggle"
@@ -40,9 +40,8 @@
         >
           {{ dayName }}
         </div>
-        <template v-for="cell in calendarCells">
+        <template v-for="cell in calendarCells" :key="cell.key">
           <div
-            :key="cell.key"
             class="w-8 h-8 flex items-center justify-center rounded-md text-xs font-medium mx-auto"
             :class="[cellClasses(cell), isClickable(cell) ? 'cursor-pointer hover:ring-2 hover:ring-focus-ring transition-shadow' : '']"
             :title="cellTitle(cell)"
@@ -74,216 +73,182 @@
   </div>
 </template>
 
-<script>
-import { startOfMonth, endOfMonth, getDay, isSameDay } from 'date-fns'
-import liveToday from '~/mixins/liveToday'
+<script setup>
+import { ref, computed, watch, onBeforeUnmount } from 'vue'
+import { startOfMonth, endOfMonth, getDay, isSameDay, addMonths, addDays, format } from 'date-fns'
+import { it } from 'date-fns/locale'
 
-export default {
-  mixins: [liveToday],
-  directives: {
-    clickOutside: {
-      bind (element, binding) {
-        element._clickOutsideHandler = (event) => {
-          if (!element.contains(event.target)) {
-            binding.value(event)
-          }
-        }
-        setTimeout(() => {
-          document.addEventListener('click', element._clickOutsideHandler)
-        }, 0)
-      },
-      unbind (element) {
-        document.removeEventListener('click', element._clickOutsideHandler)
-      }
-    }
-  },
-  props: {
-    referenceDate: {
-      type: Date,
-      required: true
-    },
-    trackedHours: {
-      type: Array,
-      default: () => []
-    },
-    holidays: {
-      type: Array,
-      default: () => []
-    },
-    label: {
-      type: String,
-      required: true
-    }
-  },
-  data: () => ({
-    open: false,
-    monthOffset: 0
-  }),
-  computed: {
-    displayedMonth () {
-      if (this.monthOffset === 0) {
-        return this.referenceDate
-      }
-      return this.$dateFns.addMonths(startOfMonth(this.referenceDate), this.monthOffset)
-    },
-    displayedMonthLabel () {
-      return this.$dateFns.format(this.displayedMonth, 'MMMM yyyy')
-    },
-    weekdayHeaders () {
-      return ['Lu', 'Ma', 'Me', 'Gi', 'Ve', 'Sa', 'Do']
-    },
-    trackedByDate () {
-      const map = {}
-      for (const entry of this.trackedHours) {
-        map[entry.date] = entry.value
-      }
-      return map
-    },
-    holidaysByDate () {
-      const map = {}
-      for (const holiday of this.holidays) {
-        map[holiday.date] = holiday.name
-      }
-      return map
-    },
-    calendarCells () {
-      const monthStart = startOfMonth(this.displayedMonth)
-      const monthEnd = endOfMonth(this.displayedMonth)
+const { t: $t } = useI18n()
+const { today } = useLiveToday()
 
-      const startDow = getDay(monthStart)
-      const leadingBlanks = startDow === 0 ? 6 : startDow - 1
+const props = defineProps({
+  referenceDate: { type: Date, required: true },
+  trackedHours: { type: Array, default: () => [] },
+  holidays: { type: Array, default: () => [] },
+  label: { type: String, required: true },
+})
 
-      const cells = []
+const emit = defineEmits(['month-changed', 'day-click'])
 
-      for (let blank = 0; blank < leadingBlanks; blank++) {
-        cells.push({ key: `blank-${blank}`, dayNumber: null, isWeekend: false, tracked: null })
-      }
+const open = ref(false)
+const monthOffset = ref(0)
 
-      let current = new Date(monthStart)
-      while (current <= monthEnd) {
-        const dow = getDay(current)
-        const isWeekend = dow === 0 || dow === 6
-        const dateKey = this.$dateFns.format(current, 'yyyy-MM-dd')
-        const isToday = isSameDay(current, this.today)
-        const isFuture = current > this.today
-        const holidayName = this.holidaysByDate[dateKey]
+const displayedMonth = computed(() => {
+  if (monthOffset.value === 0) return props.referenceDate
+  return addMonths(startOfMonth(props.referenceDate), monthOffset.value)
+})
 
-        cells.push({
-          key: dateKey,
-          dayNumber: current.getDate(),
-          isWeekend,
-          isHoliday: !!holidayName,
-          holidayName: holidayName || '',
-          isToday,
-          isFuture,
-          tracked: this.trackedByDate[dateKey] ?? null,
-          dateKey
-        })
+const displayedMonthLabel = computed(() => {
+  return format(displayedMonth.value, 'MMMM yyyy', { locale: it })
+})
 
-        current = this.$dateFns.addDays(current, 1)
-      }
+const weekdayHeaders = ['Lu', 'Ma', 'Me', 'Gi', 'Ve', 'Sa', 'Do']
 
-      return cells
-    }
-  },
-  watch: {
-    monthOffset () {
-      const month = this.displayedMonth
-      this.$emit('month-changed', {
-        from: this.$dateFns.format(startOfMonth(month), 'yyyy-MM-dd'),
-        to: this.$dateFns.format(endOfMonth(month), 'yyyy-MM-dd')
-      })
-    },
-    open (isOpen) {
-      if (isOpen) {
-        document.addEventListener('keydown', this.handleKeydown, true)
-      } else {
-        document.removeEventListener('keydown', this.handleKeydown, true)
-      }
-    }
-  },
-  beforeDestroy () {
-    document.removeEventListener('keydown', this.handleKeydown, true)
-  },
-  methods: {
-    handleKeydown (event) {
-      if (!this.open) { return }
-      switch (event.key) {
-        case 'ArrowLeft':
-          event.preventDefault()
-          event.stopImmediatePropagation()
-          this.monthOffset--
-          break
-        case 'ArrowRight':
-          event.preventDefault()
-          event.stopImmediatePropagation()
-          this.monthOffset++
-          break
-        case 'Escape':
-          event.preventDefault()
-          event.stopImmediatePropagation()
-          this.close()
-          break
-      }
-    },
-    toggle () {
-      this.open = !this.open
-      if (this.open) {
-        this.monthOffset = 0
-      }
-    },
-    close () {
-      this.open = false
-    },
-    isClickable (cell) {
-      return cell.dayNumber && !cell.isWeekend && !cell.isHoliday
-    },
-    onCellClick (cell) {
-      if (this.isClickable(cell)) {
-        this.$emit('day-click', cell.dateKey)
-        this.close()
-      }
-    },
-    cellClasses (cell) {
-      if (!cell.dayNumber) {
-        return ''
-      }
-      if (cell.isWeekend || cell.isHoliday) {
-        return 'text-ink-disabled'
-      }
-      if (cell.isFuture) {
-        return 'text-ink-faint bg-card-dim'
-      }
-      if (cell.isToday) {
-        const base = this.trackedColorClasses(cell.tracked)
-        return base + ' ring-2 ring-focus-ring ring-offset-1 ring-offset-card'
-      }
-      return this.trackedColorClasses(cell.tracked)
-    },
-    trackedColorClasses (tracked) {
-      if (tracked === null || tracked === undefined) {
-        return 'cal-cell--none'
-      }
-      if (tracked === 0) {
-        return 'cal-cell--danger'
-      }
-      if (tracked >= 8) {
-        return 'cal-cell--success'
-      }
-      return 'cal-cell--warning'
-    },
-    cellTitle (cell) {
-      if (!cell.dayNumber || cell.isWeekend) {
-        return ''
-      }
-      if (cell.isHoliday) {
-        return cell.holidayName
-      }
-      if (cell.tracked === null || cell.tracked === undefined) {
-        return this.$t('month_calendar.no_data')
-      }
-      return `${cell.tracked}h`
-    }
+const trackedByDate = computed(() => {
+  const map = {}
+  for (const entry of props.trackedHours) {
+    map[entry.date] = entry.value
+  }
+  return map
+})
+
+const holidaysByDate = computed(() => {
+  const map = {}
+  for (const holiday of props.holidays) {
+    map[holiday.date] = holiday.name
+  }
+  return map
+})
+
+const calendarCells = computed(() => {
+  const monthStart = startOfMonth(displayedMonth.value)
+  const monthEnd = endOfMonth(displayedMonth.value)
+  const startDow = getDay(monthStart)
+  const leadingBlanks = startDow === 0 ? 6 : startDow - 1
+  const cells = []
+
+  for (let blank = 0; blank < leadingBlanks; blank++) {
+    cells.push({ key: `blank-${blank}`, dayNumber: null, isWeekend: false, tracked: null })
+  }
+
+  let current = new Date(monthStart)
+  while (current <= monthEnd) {
+    const dow = getDay(current)
+    const isWeekend = dow === 0 || dow === 6
+    const dateKey = format(current, 'yyyy-MM-dd')
+    const isToday = isSameDay(current, today.value)
+    const isFuture = current > today.value
+    const holidayName = holidaysByDate.value[dateKey]
+
+    cells.push({
+      key: dateKey,
+      dayNumber: current.getDate(),
+      isWeekend,
+      isHoliday: !!holidayName,
+      holidayName: holidayName || '',
+      isToday,
+      isFuture,
+      tracked: trackedByDate.value[dateKey] ?? null,
+      dateKey,
+    })
+
+    current = addDays(current, 1)
+  }
+
+  return cells
+})
+
+watch(monthOffset, () => {
+  const month = displayedMonth.value
+  emit('month-changed', {
+    from: format(startOfMonth(month), 'yyyy-MM-dd'),
+    to: format(endOfMonth(month), 'yyyy-MM-dd'),
+  })
+})
+
+function handleKeydown(event) {
+  if (!open.value) return
+  switch (event.key) {
+    case 'ArrowLeft':
+      event.preventDefault()
+      event.stopImmediatePropagation()
+      monthOffset.value--
+      break
+    case 'ArrowRight':
+      event.preventDefault()
+      event.stopImmediatePropagation()
+      monthOffset.value++
+      break
+    case 'Escape':
+      event.preventDefault()
+      event.stopImmediatePropagation()
+      close()
+      break
   }
 }
+
+watch(open, (isOpen) => {
+  if (isOpen) {
+    document.addEventListener('keydown', handleKeydown, true)
+    document.addEventListener('click', handleOutsideClick)
+  } else {
+    document.removeEventListener('keydown', handleKeydown, true)
+    document.removeEventListener('click', handleOutsideClick)
+  }
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('keydown', handleKeydown, true)
+  document.removeEventListener('click', handleOutsideClick)
+})
+
+function handleOutsideClick() {
+  close()
+}
+
+function toggle() {
+  open.value = !open.value
+  if (open.value) monthOffset.value = 0
+}
+
+function close() {
+  open.value = false
+}
+
+function isClickable(cell) {
+  return cell.dayNumber && !cell.isWeekend && !cell.isHoliday
+}
+
+function onCellClick(cell) {
+  if (isClickable(cell)) {
+    emit('day-click', cell.dateKey)
+    close()
+  }
+}
+
+function trackedColorClasses(tracked) {
+  if (tracked === null || tracked === undefined) return 'cal-cell--none'
+  if (tracked === 0) return 'cal-cell--danger'
+  if (tracked >= 8) return 'cal-cell--success'
+  return 'cal-cell--warning'
+}
+
+function cellClasses(cell) {
+  if (!cell.dayNumber) return ''
+  if (cell.isWeekend || cell.isHoliday) return 'text-ink-disabled'
+  if (cell.isFuture) return 'text-ink-faint bg-card-dim'
+  if (cell.isToday) {
+    return trackedColorClasses(cell.tracked) + ' ring-2 ring-focus-ring ring-offset-1 ring-offset-card'
+  }
+  return trackedColorClasses(cell.tracked)
+}
+
+function cellTitle(cell) {
+  if (!cell.dayNumber || cell.isWeekend) return ''
+  if (cell.isHoliday) return cell.holidayName
+  if (cell.tracked === null || cell.tracked === undefined) return $t('month_calendar.no_data')
+  return `${cell.tracked}h`
+}
+
+defineExpose({ toggle })
 </script>

@@ -1,14 +1,14 @@
 <template>
-  <transition name="fade">
-    <div v-if="value" class="fixed inset-0 z-50 flex items-center justify-center p-4" @click.self="close">
-      <div class="fixed inset-0 bg-black bg-opacity-40" @click="close" />
+  <Transition name="fade">
+    <div v-if="modelValue" class="fixed inset-0 z-50 flex items-center justify-center p-4" @click.self="close">
+      <div class="fixed inset-0 bg-black/40" @click="close" />
       <div class="relative bg-card rounded-xl shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col">
         <div class="flex items-center justify-between px-5 pt-5 pb-3">
           <h2 class="text-base font-bold text-ink">
             {{ $t('jira.modal_title') }}
           </h2>
           <button class="text-ink-faint hover:text-ink-secondary p-1" @click="close">
-            <x-icon size="20" />
+            <IconX :size="20" />
           </button>
         </div>
 
@@ -29,9 +29,7 @@
           </div>
 
           <div v-else-if="error" class="py-10 text-center">
-            <p class="text-sm text-danger">
-              {{ error }}
-            </p>
+            <p class="text-sm text-danger">{{ error }}</p>
             <button class="mt-3 text-sm text-accent-fg hover:underline" @click="fetchActivity">
               {{ $t('jira.retry') }}
             </button>
@@ -63,7 +61,7 @@
                           :title="$t('jira.copy_id')"
                           @click.stop="copyToClipboard(issue.key)"
                         >
-                          <copy-icon size="14" />
+                          <IconCopy :size="14" />
                         </button>
                         <span
                           v-if="copiedKey === issue.key"
@@ -72,22 +70,13 @@
                           {{ $t('jira.copied') }}
                         </span>
                       </span>
-                      <span
-                        class="ml-auto text-xs px-1.5 py-0.5 rounded-full whitespace-nowrap"
-                        :class="statusClasses(issue.status)"
-                      >
+                      <span class="ml-auto text-xs px-1.5 py-0.5 rounded-full whitespace-nowrap" :class="statusClasses(issue.status)">
                         {{ issue.status }}
                       </span>
                     </div>
-                    <p class="text-sm text-ink mt-0.5 leading-snug">
-                      {{ issue.summary }}
-                    </p>
+                    <p class="text-sm text-ink mt-0.5 leading-snug">{{ issue.summary }}</p>
                   </div>
-                  <check-icon
-                    v-if="addedKeys.includes(issue.key)"
-                    size="18"
-                    class="text-success flex-shrink-0"
-                  />
+                  <IconCheck v-if="addedKeys.includes(issue.key)" :size="18" class="text-success flex-shrink-0" />
                 </li>
               </ul>
             </div>
@@ -99,138 +88,126 @@
         </div>
       </div>
     </div>
-  </transition>
+  </Transition>
 </template>
 
-<script>
-import { XIcon, CopyIcon, CheckIcon } from 'vue-tabler-icons'
+<script setup>
+import { ref, computed, watch, nextTick, onBeforeUnmount } from 'vue'
+import { IconX, IconCopy, IconCheck } from '@tabler/icons-vue'
 import { getJiraActivity } from '~/utils/jira'
 
-export default {
-  components: { XIcon, CopyIcon, CheckIcon },
-  props: {
-    value: {
-      type: Boolean,
-      default: false
-    },
-    day: {
-      type: String,
-      required: true
-    }
-  },
-  data () {
-    return {
-      loading: false,
-      error: null,
-      issues: [],
-      searchQuery: '',
-      copiedKey: null,
-      addedKeys: []
-    }
-  },
-  computed: {
-    groupedIssues () {
-      const groups = {}
-      for (const issue of this.issues) {
-        const project = issue.project || 'Altro'
-        if (!groups[project]) {
-          groups[project] = []
-        }
-        groups[project].push(issue)
-      }
-      return Object.entries(groups)
-        .map(([project, issues]) => ({ project, issues }))
-        .sort((a, b) => b.issues.length - a.issues.length)
-    },
-    filteredGroups () {
-      if (!this.searchQuery.trim()) {
-        return this.groupedIssues
-      }
-      const query = this.searchQuery.toLowerCase()
-      return this.groupedIssues
-        .map(group => ({
-          project: group.project,
-          issues: group.issues.filter(issue =>
-            issue.key.toLowerCase().includes(query) ||
-            issue.summary.toLowerCase().includes(query) ||
-            issue.status.toLowerCase().includes(query) ||
-            (issue.project || '').toLowerCase().includes(query)
-          )
-        }))
-        .filter(group => group.issues.length > 0)
-    }
-  },
-  watch: {
-    value (open) {
-      if (open) {
-        this.searchQuery = ''
-        this.addedKeys = []
-        this.fetchActivity()
-        this.$nextTick(() => {
-          this.$refs.searchInput?.focus()
-        })
-        document.body.style.overflow = 'hidden'
-      } else {
-        document.body.style.overflow = ''
-      }
-    }
-  },
-  beforeDestroy () {
+const { t: $t } = useI18n()
+
+const props = defineProps({
+  modelValue: { type: Boolean, default: false },
+  day: { type: String, required: true },
+})
+
+const emit = defineEmits(['update:modelValue', 'select'])
+
+const loading = ref(false)
+const error = ref(null)
+const issues = ref([])
+const searchQuery = ref('')
+const copiedKey = ref(null)
+const addedKeys = ref([])
+const searchInput = ref(null)
+
+const groupedIssues = computed(() => {
+  const groups = {}
+  for (const issue of issues.value) {
+    const project = issue.project || 'Altro'
+    if (!groups[project]) groups[project] = []
+    groups[project].push(issue)
+  }
+  return Object.entries(groups)
+    .map(([project, items]) => ({ project, issues: items }))
+    .sort((a, b) => b.issues.length - a.issues.length)
+})
+
+const filteredGroups = computed(() => {
+  if (!searchQuery.value.trim()) return groupedIssues.value
+  const query = searchQuery.value.toLowerCase()
+  return groupedIssues.value
+    .map((group) => ({
+      project: group.project,
+      issues: group.issues.filter((issue) =>
+        issue.key.toLowerCase().includes(query) ||
+        issue.summary.toLowerCase().includes(query) ||
+        issue.status.toLowerCase().includes(query) ||
+        (issue.project || '').toLowerCase().includes(query),
+      ),
+    }))
+    .filter((group) => group.issues.length > 0)
+})
+
+watch(() => props.modelValue, (open) => {
+  if (open) {
+    searchQuery.value = ''
+    addedKeys.value = []
+    fetchActivity()
+    nextTick(() => searchInput.value?.focus())
+    document.body.style.overflow = 'hidden'
+  } else {
     document.body.style.overflow = ''
-  },
-  methods: {
-    close () {
-      this.$emit('input', false)
-    },
-    async fetchActivity () {
-      this.loading = true
-      this.error = null
-      try {
-        this.issues = await getJiraActivity(this.day)
-      } catch (err) {
-        console.error('Jira fetch failed:', err)
-        this.error = err.response?.data?.message || err.message || 'Errore Jira'
-      } finally {
-        this.loading = false
-      }
-    },
-    selectIssue (issue) {
-      this.$emit('select', issue)
-      if (!this.addedKeys.includes(issue.key)) {
-        this.addedKeys.push(issue.key)
-      }
-    },
-    async copyToClipboard (text) {
-      try {
-        await navigator.clipboard.writeText(text)
-        this.copiedKey = text
-        setTimeout(() => { this.copiedKey = null }, 1500)
-      } catch {
-        const textArea = document.createElement('textarea')
-        textArea.value = text
-        textArea.style.position = 'fixed'
-        textArea.style.opacity = '0'
-        document.body.appendChild(textArea)
-        textArea.select()
-        document.execCommand('copy')
-        document.body.removeChild(textArea)
-        this.copiedKey = text
-        setTimeout(() => { this.copiedKey = null }, 1500)
-      }
-    },
-    statusClasses (status) {
-      const lower = (status || '').toLowerCase()
-      if (lower.includes('done') || lower.includes('chiuso') || lower.includes('completat')) {
-        return 'bg-success-soft text-success-text'
-      }
-      if (lower.includes('progress') || lower.includes('corso') || lower.includes('review')) {
-        return 'bg-accent-soft text-accent-fg'
-      }
-      if (lower.includes('test')) {
-        return 'bg-warning-soft text-warning-text'
-      }
-      return 'bg-card-hover text-ink-secondary'
-    }
+  }
+})
+
+onBeforeUnmount(() => {
+  document.body.style.overflow = ''
+})
+
+function close() {
+  emit('update:modelValue', false)
+}
+
+async function fetchActivity() {
+  loading.value = true
+  error.value = null
+  try {
+    issues.value = await getJiraActivity(props.day)
+  } catch (err) {
+    console.error('Jira fetch failed:', err)
+    error.value = err.response?.data?.message || err.message || 'Errore Jira'
+  } finally {
+    loading.value = false
   }
 }
+
+function selectIssue(issue) {
+  emit('select', issue)
+  if (!addedKeys.value.includes(issue.key)) {
+    addedKeys.value.push(issue.key)
+  }
+}
+
+async function copyToClipboard(text) {
+  try {
+    await navigator.clipboard.writeText(text)
+  } catch {
+    const textArea = document.createElement('textarea')
+    textArea.value = text
+    textArea.style.position = 'fixed'
+    textArea.style.opacity = '0'
+    document.body.appendChild(textArea)
+    textArea.select()
+    document.execCommand('copy')
+    document.body.removeChild(textArea)
+  }
+  copiedKey.value = text
+  setTimeout(() => { copiedKey.value = null }, 1500)
+}
+
+function statusClasses(status) {
+  const lower = (status || '').toLowerCase()
+  if (lower.includes('done') || lower.includes('chiuso') || lower.includes('completat')) return 'bg-success-soft text-success-text'
+  if (lower.includes('progress') || lower.includes('corso') || lower.includes('review')) return 'bg-accent-soft text-accent-fg'
+  if (lower.includes('test')) return 'bg-warning-soft text-warning-text'
+  return 'bg-card-hover text-ink-secondary'
+}
 </script>
+
+<style scoped>
+.fade-enter-active, .fade-leave-active { transition: opacity 0.15s ease; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
+</style>

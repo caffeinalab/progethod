@@ -1,5 +1,5 @@
 <template>
-  <modal :value="value" @input="emitChange">
+  <Modal :model-value="modelValue" @update:model-value="emit('update:modelValue', $event)">
     <img src="https://i.ibb.co/QDMrqK5/Saly-10.png">
     <p class="text-base sm:text-lg md:text-2xl font-bold md:leading-6 mt-6 text-ink text-center">
       {{ $t('about_to_submit_timesheet') }}
@@ -9,131 +9,105 @@
     </p>
     <div>
       <div class="w-full my-2 h-12 transition-opacity opacity-0" :class="{ 'opacity-100': isSubmitting && !isExpired }">
-        <progress-bar :fill="sentPercentage" />
+        <ProgressBar :fill="sentPercentage" />
       </div>
     </div>
-    <alert v-if="isExpired" class="w-full" level="error" :message="$t('session_expired')" />
-    <alert v-if="isError" class="w-full" level="error" :message="errorMessage" />
+    <Alert v-if="isExpired" class="w-full" level="error" :message="$t('session_expired')" />
+    <Alert v-if="isError" class="w-full" level="error" :message="errorMessage" />
     <div v-if="!isExpired && !isError && isConfirmOnSubmitRequired" class="flex items-center justify-center mt-4 sm:mt-6 w-full">
       <button
         :disabled="isSubmitting"
         class="px-6 py-2 bg-accent disabled:bg-ink-muted text-ink-inverse disabled:text-ink-faint disabled:cursor-default focus:outline-none hover:bg-accent-hover mx-2 my-2 rounded-lg"
         @click="submit()"
       >
-        <send-icon width="20" height="20" />
+        <IconSend :size="20" />
       </button>
     </div>
-  </modal>
+  </Modal>
 </template>
 
-<script>
-import { SendIcon } from 'vue-tabler-icons'
+<script setup>
+import { ref, computed, watch, nextTick } from 'vue'
+import { IconSend } from '@tabler/icons-vue'
 import pLimit from 'p-limit'
-import { mapGetters, mapMutations } from 'vuex'
+
+const { t: $t } = useI18n()
+const api = useApi()
+const userStore = useUserStore()
+const entriesStore = useEntriesStore()
+const preferencesStore = usePreferencesStore()
+const eventBus = useEventBus()
 
 const limit = pLimit(5)
 
-export default {
-  components: {
-    SendIcon
-  },
-  props: {
-    value: {
-      type: Boolean,
-      default: true
-    },
-    timesheetData: {
-      type: Array,
-      default: () => []
-    }
-  },
-  data () {
-    return {
-      isSubmitting: false,
-      isError: false,
-      errorMessage: '',
-      sentData: 0
-    }
-  },
-  computed: {
-    dataToSend () {
-      return this.timesheetData || []
-    },
-    sentPercentage () {
-      const total = this.timesheetData?.length || 0
-      return Math.floor((this.sentData * 100 / total) || 0)
-    },
-    ...mapGetters({
-      isExpired: 'user/isTokenExpired',
-      isConfirmOnSubmitRequired: 'preferences/isConfirmOnSubmitRequired'
-    })
-  },
-  watch: {
-    value: {
-      handler (newVal, oldVal) {
-        if (newVal !== oldVal && newVal === true && !this.isExpired && !this.isConfirmOnSubmitRequired) {
-          this.$nextTick(() => this.submit())
-        }
-      }
-    }
-  },
-  methods: {
-    emitChange (value) {
-      this.$emit('input', value)
-    },
-    async submit () {
-      this.isSubmitting = true
-      this.sentData = 0
+const props = defineProps({
+  modelValue: { type: Boolean, default: true },
+  timesheetData: { type: Array, default: () => [] },
+})
 
-      // TODO Error handling
-      await Promise.all(
-        this.dataToSend.map(
-          entry => limit(
-            async () => {
-              const { internalIds, debugProjectName, ...requestData } = entry
+const emit = defineEmits(['update:modelValue'])
 
-              let data = {}
+const isSubmitting = ref(false)
+const isError = ref(false)
+const errorMessage = ref('')
+const sentData = ref(0)
 
-              try {
-                const response = await this.$axios.post('timetracking', requestData)
-                data = response.data
-              } catch (err) {
-                console.error(err)
-                data = {
-                  code: err.response?.status || 500,
-                  message: err.message
-                }
-              }
+const isExpired = computed(() => userStore.isTokenExpired)
+const isConfirmOnSubmitRequired = computed(() => preferencesStore.requireConfirmationOnSubmit)
 
-              if (data.code !== 200) {
-                this.isSubmitting = false
-                this.isError = true
-                this.errorMessage = this.$t('errors.unexpected_status_code', {
-                  code: data.code || '',
-                  message: data.message || '',
-                  project: debugProjectName
-                })
-                throw new Error(this.errorMessage)
-              }
+const sentPercentage = computed(() => {
+  const total = props.timesheetData?.length || 0
+  return Math.floor((sentData.value * 100 / total) || 0)
+})
 
-              // await new Promise(resolve => setTimeout(() => resolve(requestData), 2000))
-              this.sentData++
-              internalIds.forEach(id => this.syncEntry({ id, synced: true }))
+watch(() => props.modelValue, (newVal, oldVal) => {
+  if (newVal !== oldVal && newVal === true && !isExpired.value && !isConfirmOnSubmitRequired.value) {
+    nextTick(() => submit())
+  }
+})
+
+async function submit() {
+  isSubmitting.value = true
+  sentData.value = 0
+  isError.value = false
+
+  try {
+    await Promise.all(
+      (props.timesheetData || []).map(
+        (entry) => limit(async () => {
+          const { internalIds, debugProjectName, ...requestData } = entry
+          let data = {}
+
+          try {
+            data = await api.$post('timetracking', requestData)
+          } catch (err) {
+            data = {
+              code: err.response?.status || 500,
+              message: err.message,
             }
-          )
-        )
-      )
+          }
 
-      this.emitChange(false)
-      this.isSubmitting = false
-      this.$nuxt.$emit('tracked-hours:refresh')
-    },
-    ...mapMutations({
-      syncEntry: 'entries/setSyncState'
-    })
+          if (data.code !== 200) {
+            isSubmitting.value = false
+            isError.value = true
+            errorMessage.value = $t('errors.unexpected_status_code', {
+              code: data.code || '',
+              message: data.message || '',
+              project: debugProjectName,
+            })
+            throw new Error(errorMessage.value)
+          }
+
+          sentData.value++
+          internalIds.forEach((id) => entriesStore.setSyncState({ id, synced: true }))
+        }),
+      ),
+    )
+
+    emit('update:modelValue', false)
+    eventBus.emit('tracked-hours:refresh')
+  } finally {
+    isSubmitting.value = false
   }
 }
 </script>
-
-<style>
-</style>

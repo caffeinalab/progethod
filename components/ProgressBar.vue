@@ -16,17 +16,10 @@
   </div>
 </template>
 
-<script>
-export default {
-  props: {
-    fill: {
-      default: 0,
-      type: Number
-    }
-  }
-}
+<script setup lang="ts">
+const { t: $t } = useI18n()
+
+defineProps<{
+  fill: number
+}>()
 </script>
-
-<style>
-
-</style>

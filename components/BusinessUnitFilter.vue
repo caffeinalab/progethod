@@ -6,9 +6,8 @@
     >
       <span>{{ $t('business_unit') }}</span>
       <span class="ml-1 text-ink-muted text-xs font-normal">({{ selectedCount }}/{{ allBusinessUnits.length }})</span>
-      <chevron-down-icon
-        width="16"
-        height="16"
+      <IconChevronDown
+        :size="16"
         class="ml-1 text-ink-faint transition-transform"
         :class="{ 'rotate-180': isOpen }"
       />
@@ -50,7 +49,7 @@
               stroke-linecap="round"
             ><line x1="3" y1="6" x2="9" y2="6" /></svg>
           </span>
-          <input type="checkbox" class="sr-only" :checked="allSelected" :indeterminate.prop="someSelected" @change="toggleAll">
+          <input type="checkbox" class="sr-only" :checked="allSelected" :indeterminate="someSelected" @change="toggleAll">
           <span class="text-sm font-medium text-ink">{{ $t('select_all') }}</span>
         </label>
       </div>
@@ -84,75 +83,60 @@
   </div>
 </template>
 
-<script>
-import { ChevronDownIcon } from 'vue-tabler-icons'
-import { mapGetters, mapMutations } from 'vuex'
+<script setup>
+import { ref, computed } from 'vue'
+import { IconChevronDown } from '@tabler/icons-vue'
 import { updateApiData } from '~/utils/updateApiData'
 
-export default {
-  components: {
-    ChevronDownIcon
-  },
-  data () {
-    return {
-      isOpen: false
-    }
-  },
-  computed: {
-    ...mapGetters({
-      allBusinessUnits: 'user/businessUnits',
-      selectedBusinessUnitIds: 'preferences/selectedBusinessUnitIds'
-    }),
-    allBuIds () {
-      return this.allBusinessUnits.map(businessUnit => businessUnit.id)
-    },
-    effectiveSelection () {
-      if (this.selectedBusinessUnitIds === null) {
-        return this.allBuIds
-      }
-      return this.selectedBusinessUnitIds
-    },
-    selectedCount () {
-      return this.effectiveSelection.length
-    },
-    allSelected () {
-      return this.selectedCount === this.allBusinessUnits.length
-    },
-    someSelected () {
-      return this.selectedCount > 0 && !this.allSelected
-    }
-  },
-  methods: {
-    ...mapMutations({
-      setSelectedBusinessUnitIds: 'preferences/setSelectedBusinessUnitIds'
-    }),
-    isSelected (buId) {
-      return this.effectiveSelection.includes(buId)
-    },
-    toggle (buId) {
-      const current = [...this.effectiveSelection]
-      const index = current.indexOf(buId)
-      if (index >= 0) {
-        current.splice(index, 1)
-      } else {
-        current.push(buId)
-      }
-      this.applySelection(current)
-    },
-    toggleAll () {
-      if (this.allSelected) {
-        this.applySelection([])
-      } else {
-        this.applySelection(null)
-      }
-    },
-    applySelection (ids) {
-      if (ids !== null && ids.length === this.allBusinessUnits.length) {
-        ids = null
-      }
-      this.setSelectedBusinessUnitIds(ids)
-      updateApiData(this.$axios, this.$store)
-    }
+const { t: $t } = useI18n()
+const userStore = useUserStore()
+const preferencesStore = usePreferencesStore()
+
+const isOpen = ref(false)
+
+const allBusinessUnits = computed(() => userStore.businessUnits || [])
+const selectedBusinessUnitIds = computed(() => preferencesStore.selectedBusinessUnitIds)
+
+const allBuIds = computed(() => allBusinessUnits.value.map((bu) => bu.id))
+
+const effectiveSelection = computed(() => {
+  if (selectedBusinessUnitIds.value === null) return allBuIds.value
+  return selectedBusinessUnitIds.value
+})
+
+const selectedCount = computed(() => effectiveSelection.value.length)
+const allSelected = computed(() => selectedCount.value === allBusinessUnits.value.length)
+const someSelected = computed(() => selectedCount.value > 0 && !allSelected.value)
+
+function isSelected(buId) {
+  return effectiveSelection.value.includes(buId)
+}
+
+function toggle(buId) {
+  const current = [...effectiveSelection.value]
+  const index = current.indexOf(buId)
+  if (index >= 0) {
+    current.splice(index, 1)
+  } else {
+    current.push(buId)
   }
+  applySelection(current)
+}
+
+function toggleAll() {
+  if (allSelected.value) {
+    applySelection([])
+  } else {
+    applySelection(null)
+  }
+}
+
+function applySelection(ids) {
+  let normalizedIds = ids
+  if (normalizedIds !== null && normalizedIds.length === allBusinessUnits.value.length) {
+    normalizedIds = null
+  }
+  preferencesStore.setSelectedBusinessUnitIds(normalizedIds)
+  updateApiData()
 }
 </script>

@@ -5,17 +5,17 @@
       <template v-if="selection">
         <NuxtLink
           v-if="selection.type === 'local'"
-          :to="localeLocation({ name: 'projects-id', params: { id: selection.localProject.id } })"
+          :to="{ name: 'projects-id', params: { id: selection.localProject.id } }"
         >
-          <alert-triangle-icon v-if="!isSelectionLinked" class="text-warning" size="16" />
-          <external-link-icon v-if="isSelectionLinked" class="text-ink-faint" size="16" />
+          <IconAlertTriangle v-if="!isSelectionLinked" class="text-warning" :size="16" />
+          <IconExternalLink v-if="isSelectionLinked" class="text-ink-faint" :size="16" />
         </NuxtLink>
-        <check-icon v-else-if="selection.type === 'wethod'" class="text-success" size="16" />
+        <IconCheck v-else-if="selection.type === 'wethod'" class="text-success" :size="16" />
       </template>
     </div>
 
     <!-- Unified project search -->
-    <div class="w-full h-full relative" @keydown.escape="escapeField">
+    <div ref="projectColumn" class="w-full h-full relative" @keydown.escape="escapeField">
       <!-- Search input (visible when editing or nothing selected) -->
       <input
         v-if="editing"
@@ -55,7 +55,7 @@
           </template>
         </span>
 
-        <chevron-down-icon v-if="!disabled" class="flex-shrink-0 text-ink-faint" size="16" />
+        <IconChevronDown v-if="!disabled" class="flex-shrink-0 text-ink-faint" :size="16" />
 
         <div class="selection-tooltip absolute z-50 left-0 top-full mt-1 px-3 py-2 bg-card text-ink text-xs rounded-lg border border-stroke shadow-xl pointer-events-none whitespace-nowrap">
           <template v-if="selection.type === 'local'">
@@ -87,27 +87,27 @@
           <button
             v-for="(localProject, localIndex) in filteredLocalProjects"
             :key="'local-' + localProject.id"
-            :ref="'option-' + flatIndexForLocal(localIndex)"
+            :ref="(element) => setOptionRef(flatIndexForLocal(localIndex), element)"
             class="w-full text-left px-3 py-2 text-sm rounded flex items-center gap-2 transition-colors"
             :class="highlightedIndex === flatIndexForLocal(localIndex) ? 'bg-accent-soft' : 'hover:bg-card-hover'"
             @click="selectLocalProject(localProject)"
             @mouseenter="highlightedIndex = flatIndexForLocal(localIndex)"
           >
             <span class="font-medium text-ink truncate">{{ localProject.name }}</span>
-            <alert-triangle-icon v-if="!localProject.linkedProjectId" class="text-warning flex-shrink-0" size="14" />
+            <IconAlertTriangle v-if="!localProject.linkedProjectId" class="text-warning flex-shrink-0" :size="14" />
           </button>
         </div>
 
         <!-- Create new (when no exact local match) -->
         <div v-if="showCreateOption" class="p-1">
           <button
-            :ref="'option-' + createOptionIndex"
+            :ref="(element) => setOptionRef(createOptionIndex, element)"
             class="w-full text-left px-3 py-2 text-sm rounded flex items-center gap-2 transition-colors"
             :class="highlightedIndex === createOptionIndex ? 'bg-accent-soft' : 'hover:bg-card-hover'"
             @click="createLocalProject"
             @mouseenter="highlightedIndex = createOptionIndex"
           >
-            <plus-icon size="14" class="text-accent-fg" />
+            <IconPlus :size="14" class="text-accent-fg" />
             <span class="text-accent-fg">{{ $t('create_project_inline', { name: searchQuery.trim() }) }}</span>
           </button>
         </div>
@@ -120,20 +120,16 @@
           <div class="px-3 py-1.5 text-xs font-bold text-ink-faint uppercase tracking-wider">
             Wethod
           </div>
-          <template v-for="item in filteredWethodEntries">
-            <!-- Project group header -->
+          <template v-for="item in filteredWethodEntries" :key="item.isHeader ? 'wh-' + item.project.id : 'wha-' + item.project.id + '-' + item.area.id">
             <div
               v-if="item.isHeader"
-              :key="'wh-' + item.project.id"
               class="px-3 py-1.5 text-sm font-medium text-ink-muted truncate"
             >
               {{ item.project.name }}
             </div>
-            <!-- Area (selectable) -->
             <button
               v-else
-              :key="'wha-' + item.project.id + '-' + item.area.id"
-              :ref="'option-' + item.flatIndex"
+              :ref="(element) => setOptionRef(item.flatIndex, element)"
               class="w-full text-left pl-7 pr-3 py-1.5 text-sm rounded flex items-center gap-2 transition-colors"
               :class="highlightedIndex === item.flatIndex ? 'bg-accent-soft' : 'hover:bg-card-hover'"
               @click="selectWethodArea(item.project, item.area)"
@@ -145,7 +141,7 @@
           </template>
         </div>
 
-        <!-- No results at all -->
+        <!-- No results -->
         <div v-if="!filteredLocalProjects.length && !filteredWethodEntries.length && !showCreateOption" class="px-3 py-4 text-sm text-ink-faint text-center">
           {{ $t('select_project') }}
         </div>
@@ -154,19 +150,19 @@
 
     <!-- Duration -->
     <div>
-      <duration-input
-        ref="duration"
-        v-model="duration"
+      <DurationInput
+        ref="durationRef"
+        :model-value="duration"
         :disabled="disabled"
-        @input="hasUpdated"
-        @userSubmit="handleSubmit"
+        @update:model-value="onDurationChange"
+        @user-submit="handleSubmit"
       />
     </div>
 
     <!-- Notes -->
     <div class="w-full relative">
       <input
-        ref="notes"
+        ref="notesInput"
         v-model="notes"
         class="text-ink focus:outline-none focus:border focus:border-accent bg-card font-normal w-full h-10 flex items-center pl-3 text-sm border-stroke rounded-lg border shadow"
         :class="{ 'text-ink-disabled': disabled, 'text-ink-secondary': !disabled }"
@@ -183,7 +179,6 @@
       <!-- Preset suggestions -->
       <div
         v-if="showPresets || quickCreateActive"
-        ref="presetsContainer"
         class="absolute z-40 left-0 top-full mt-1 flex flex-wrap items-center gap-1.5 p-2 bg-card border border-stroke-muted rounded-lg shadow-md max-w-md"
       >
         <button
@@ -224,478 +219,441 @@
 
     <!-- Location -->
     <div class="flex justify-center items-center" :title="$t('work_location')">
-      <location-input v-model="location" :disabled="disabled" @input="hasUpdated" />
+      <LocationInput :model-value="location" :disabled="disabled" @update:model-value="onLocationChange" />
     </div>
   </div>
 </template>
 
-<script>
-import { mapActions, mapGetters } from 'vuex'
-import { AlertTriangleIcon, ExternalLinkIcon, CheckIcon, PlusIcon, ChevronDownIcon } from 'vue-tabler-icons'
-import DurationInput from './DurationInput'
-import LocationInput from './LocationInput'
+<script setup lang="ts">
+import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
+import { IconAlertTriangle, IconExternalLink, IconCheck, IconPlus, IconChevronDown } from '@tabler/icons-vue'
 
-function stripDiacritics (text) {
+const { t: $t } = useI18n()
+const router = useRouter()
+const projectsStore = useProjectsStore()
+const apiDataStore = useApiDataStore()
+const presetsStore = usePresetsStore()
+
+const props = defineProps<{
+  modelValue: Record<string, any>
+  disabled?: boolean
+}>()
+
+const emit = defineEmits<{
+  'update:modelValue': [value: Record<string, any>]
+  'userSubmit': []
+}>()
+
+const searchInput = ref<HTMLInputElement | null>(null)
+const notesInput = ref<HTMLInputElement | null>(null)
+const durationRef = ref<any>(null)
+const quickCreateInput = ref<HTMLInputElement | null>(null)
+const projectColumn = ref<HTMLElement | null>(null)
+const optionRefs: Record<number, HTMLElement | null> = {}
+
+function setOptionRef(index: number, element: any) {
+  optionRefs[index] = element as HTMLElement | null
+}
+
+const duration = ref(0)
+const notes = ref('')
+const location = ref('home')
+const searchQuery = ref('')
+const editing = ref(true)
+const dropdownOpen = ref(false)
+const highlightedIndex = ref(0)
+const selection = ref<any>(null)
+const notesFocused = ref(false)
+const presetsNavigating = ref(false)
+const highlightedPresetIndex = ref(0)
+const quickCreateActive = ref(false)
+const quickCreateLabel = ref('')
+
+const visibleProjects = computed(() => projectsStore.visibleProjects)
+const wethodProjects = computed(() => apiDataStore.projects)
+const visiblePresets = computed(() => presetsStore.visiblePresets)
+
+const showPresets = computed(() =>
+  notesFocused.value && !notes.value && visiblePresets.value.length > 0 && !props.disabled
+)
+
+const isSelectionLinked = computed(() =>
+  selection.value?.type === 'local' && selection.value.localProject.linkedProjectId
+)
+
+const normalizedQuery = computed(() => searchQuery.value.toLowerCase().trim())
+
+const filteredLocalProjects = computed(() => {
+  if (!normalizedQuery.value) return visibleProjects.value.slice(0, 10)
+  return visibleProjects.value.filter(
+    (project: any) => fuzzyMatch(project.name, normalizedQuery.value)
+  )
+})
+
+const nonAutomaticWethodProjects = computed(() =>
+  wethodProjects.value.filter((project: any) => !project.isAutomatic)
+)
+
+const createOptionIndex = computed(() => filteredLocalProjects.value.length)
+
+const wethodFlatIndexStart = computed(() =>
+  filteredLocalProjects.value.length + (showCreateOption.value ? 1 : 0)
+)
+
+const filteredWethodEntries = computed(() => {
+  const entries: any[] = []
+  let flatIndex = wethodFlatIndexStart.value
+  const query = normalizedQuery.value
+  const projects = query ? nonAutomaticWethodProjects.value : nonAutomaticWethodProjects.value.slice(0, 15)
+
+  for (const project of projects) {
+    const projectNameMatches = fuzzyMatch(project.name, query)
+
+    let areasToShow
+    if (!query || projectNameMatches) {
+      areasToShow = project.areas
+    } else {
+      areasToShow = project.areas.filter((area: any) => {
+        const combinedText = project.name + ' ' + (area.name || '')
+        return fuzzyMatch(combinedText, query)
+      })
+    }
+
+    if (areasToShow.length === 0) continue
+
+    entries.push({ isHeader: true, project })
+    for (const area of areasToShow) {
+      entries.push({ isHeader: false, project, area, flatIndex })
+      flatIndex++
+    }
+  }
+
+  return entries
+})
+
+const totalSelectableCount = computed(() => {
+  const wethodAreaCount = filteredWethodEntries.value.filter((entry: any) => !entry.isHeader).length
+  return filteredLocalProjects.value.length + (showCreateOption.value ? 1 : 0) + wethodAreaCount
+})
+
+const hasExactLocalMatch = computed(() => {
+  if (!normalizedQuery.value) return false
+  const stripped = stripDiacritics(normalizedQuery.value)
+  return visibleProjects.value.some(
+    (project: any) => stripDiacritics(project.name.toLowerCase()) === stripped
+  )
+})
+
+const showCreateOption = computed(() =>
+  normalizedQuery.value.length > 0 && !hasExactLocalMatch.value
+)
+
+const tooltipWethodInfo = computed(() => {
+  if (selection.value?.type !== 'local' || !selection.value.localProject.linkedProjectId) return null
+  const wethodProject = wethodProjects.value.find((wp: any) => wp.id === selection.value.localProject.linkedProjectId)
+  if (!wethodProject) return null
+  const area = wethodProject.areas.find((area: any) => area.id === selection.value.localProject.linkedAreaId)
+  return { projectName: wethodProject.name, areaName: area?.name || 'Generico' }
+})
+
+watch(() => props.modelValue, (newData) => {
+  duration.value = newData.duration
+  notes.value = newData.notes
+  location.value = newData.location || 'home'
+
+  if (newData.directWethodProjectId) {
+    const wethodProject = wethodProjects.value.find((project: any) => project.id === newData.directWethodProjectId)
+    const wethodArea = wethodProject?.areas.find((area: any) => area.id === newData.directWethodAreaId)
+    selection.value = {
+      type: 'wethod',
+      wethodProjectId: newData.directWethodProjectId,
+      wethodAreaId: newData.directWethodAreaId,
+      wethodProjectName: wethodProject?.name || '?',
+      wethodAreaName: wethodArea?.name || 'Generico'
+    }
+    editing.value = false
+  } else if (newData.project) {
+    const localProject = visibleProjects.value.find((project: any) => project.id === newData.project.id)
+    if (localProject) {
+      selection.value = { type: 'local', localProject, resolvedLabel: resolveProjectLabel(localProject) }
+      editing.value = false
+    }
+  } else {
+    selection.value = null
+    editing.value = true
+  }
+}, { immediate: true, deep: true })
+
+watch(searchQuery, () => { highlightedIndex.value = 0 })
+
+function handleClickOutside(event: MouseEvent) {
+  if (!(event.target as HTMLElement)?.isConnected) return
+  if (!projectColumn.value?.contains(event.target as Node)) {
+    dropdownOpen.value = false
+    if (editing.value && selection.value) editing.value = false
+  }
+}
+
+onMounted(() => { document.addEventListener('click', handleClickOutside) })
+onBeforeUnmount(() => { document.removeEventListener('click', handleClickOutside) })
+
+function stripDiacritics(text: string) {
   return text.normalize('NFD').replace(/[\u0300-\u036F]/g, '')
 }
 
-function fuzzyMatch (text, query) {
+function fuzzyMatch(text: string, query: string) {
   const normalizedText = stripDiacritics(text.toLowerCase())
-  const normalizedQuery = stripDiacritics(query.toLowerCase().trim())
-  if (!normalizedQuery) { return true }
+  const normalizedQ = stripDiacritics(query.toLowerCase().trim())
+  if (!normalizedQ) return true
+  if (normalizedText.includes(normalizedQ)) return true
+  const tokens = normalizedQ.split(/\s+/)
+  if (tokens.length > 1 && tokens.every(token => normalizedText.includes(token))) return true
+  const initials = normalizedText.split(/[\s\-_.']+/).map(word => word[0]).filter(Boolean).join('')
+  if (initials.includes(normalizedQ)) return true
+  return false
+}
 
-  if (normalizedText.includes(normalizedQuery)) { return true }
+function resolveProjectLabel(project: any) {
+  if (!project.linkedProjectId) return null
+  const wethodProject = wethodProjects.value.find((wp: any) => wp.id === project.linkedProjectId)
+  if (!wethodProject) return null
+  const area = wethodProject.areas.find((area: any) => area.id === project.linkedAreaId)
+  return `${wethodProject.name}${area ? ' / ' + (area.name || 'Generico') : ''}`
+}
 
-  const tokens = normalizedQuery.split(/\s+/)
-  if (tokens.length > 1 && tokens.every(token => normalizedText.includes(token))) {
-    return true
+function flatIndexForLocal(localIndex: number) { return localIndex }
+
+function openDropdown() { dropdownOpen.value = true }
+function closeDropdown() { dropdownOpen.value = false }
+
+function startEditing() {
+  if (props.disabled) return
+  searchQuery.value = ''
+  editing.value = true
+  highlightedIndex.value = 0
+  nextTick(() => {
+    searchInput.value?.focus()
+    dropdownOpen.value = true
+  })
+}
+
+function moveHighlight(delta: number) {
+  if (!dropdownOpen.value) { dropdownOpen.value = true; return }
+  const total = totalSelectableCount.value
+  if (total === 0) return
+  highlightedIndex.value = (highlightedIndex.value + delta + total) % total
+  scrollHighlightedIntoView()
+}
+
+function scrollHighlightedIntoView() {
+  nextTick(() => {
+    const element = optionRefs[highlightedIndex.value]
+    element?.scrollIntoView?.({ block: 'nearest' })
+  })
+}
+
+function selectHighlighted() {
+  if (!dropdownOpen.value || totalSelectableCount.value === 0) {
+    if (showCreateOption.value) createLocalProject()
+    return
+  }
+  const index = highlightedIndex.value
+  if (index < filteredLocalProjects.value.length) {
+    selectLocalProject(filteredLocalProjects.value[index])
+    return
+  }
+  if (showCreateOption.value && index === createOptionIndex.value) {
+    createLocalProject()
+    return
+  }
+  const wethodItem = filteredWethodEntries.value.find(
+    (entry: any) => !entry.isHeader && entry.flatIndex === index
+  )
+  if (wethodItem) selectWethodArea(wethodItem.project, wethodItem.area)
+}
+
+function selectLocalProject(localProject: any) {
+  selection.value = { type: 'local', localProject, resolvedLabel: resolveProjectLabel(localProject) }
+  searchQuery.value = ''
+  editing.value = false
+  dropdownOpen.value = false
+  if (localProject.defaultNotes && !notes.value) notes.value = localProject.defaultNotes
+  emitUpdate()
+  nextTick(() => durationRef.value?.focusInput?.())
+}
+
+function selectWethodArea(project: any, area: any) {
+  selection.value = {
+    type: 'wethod',
+    wethodProjectId: project.id,
+    wethodAreaId: area.id,
+    wethodProjectName: project.name,
+    wethodAreaName: area.name || 'Generico'
+  }
+  searchQuery.value = ''
+  editing.value = false
+  dropdownOpen.value = false
+  emitUpdate()
+  nextTick(() => durationRef.value?.focusInput?.())
+}
+
+async function createLocalProject() {
+  const name = searchQuery.value.trim()
+  if (!name) return
+  const project = await projectsStore.add(name)
+  selectLocalProject(project)
+  router.push({ name: 'projects-id', params: { id: project.id } })
+}
+
+function escapeField() {
+  if (presetsNavigating.value) { presetsNavigating.value = false; return }
+  closeDropdown()
+  if (editing.value && selection.value) editing.value = false
+  ;(document.activeElement as HTMLElement)?.blur()
+}
+
+function focusProject() {
+  if (selection.value && !editing.value) startEditing()
+  else nextTick(() => searchInput.value?.focus())
+}
+
+function onDurationChange(value: number) {
+  duration.value = value
+  emitUpdate()
+}
+
+function onLocationChange(value: string) {
+  location.value = value
+  emitUpdate()
+}
+
+function emitUpdate() {
+  if (!shouldEmitUpdate()) return
+
+  const payload: Record<string, any> = {
+    ...props.modelValue,
+    duration: duration.value,
+    notes: notes.value,
+    location: location.value
   }
 
-  const initials = normalizedText.split(/[\s\-_.']+/).map(word => word[0]).filter(Boolean).join('')
-  if (initials.includes(normalizedQuery)) { return true }
+  if (selection.value?.type === 'local') {
+    payload.project = selection.value.localProject
+    delete payload.directWethodProjectId
+    delete payload.directWethodAreaId
+  } else if (selection.value?.type === 'wethod') {
+    payload.project = null
+    payload.directWethodProjectId = selection.value.wethodProjectId
+    payload.directWethodAreaId = selection.value.wethodAreaId
+  } else {
+    payload.project = undefined
+    delete payload.directWethodProjectId
+    delete payload.directWethodAreaId
+  }
+
+  emit('update:modelValue', payload)
+}
+
+function shouldEmitUpdate() {
+  if (props.modelValue.duration !== duration.value) return true
+  if (props.modelValue.notes !== notes.value) return true
+  if (props.modelValue.location !== location.value) return true
+
+  const hadLocal = !!props.modelValue.project
+  const hadWethod = !!props.modelValue.directWethodProjectId
+  const hasLocal = selection.value?.type === 'local'
+  const hasWethod = selection.value?.type === 'wethod'
+
+  if (hadLocal !== hasLocal || hadWethod !== hasWethod) return true
+  if (hasLocal && props.modelValue.project?.id !== selection.value.localProject.id) return true
+  if (hasWethod && (
+    props.modelValue.directWethodProjectId !== selection.value.wethodProjectId ||
+    props.modelValue.directWethodAreaId !== selection.value.wethodAreaId
+  )) return true
 
   return false
 }
 
-export default {
-  components: {
-    DurationInput,
-    LocationInput,
-    AlertTriangleIcon,
-    ExternalLinkIcon,
-    CheckIcon,
-    PlusIcon,
-    ChevronDownIcon
-  },
-  props: {
-    value: {
-      type: Object,
-      default: () => ({})
-    },
-    disabled: {
-      type: Boolean,
-      default: false
-    }
-  },
-  data () {
-    return {
-      duration: 0,
-      notes: '',
-      location: 'home',
-      searchQuery: '',
-      editing: true,
-      dropdownOpen: false,
-      highlightedIndex: 0,
-      selection: null,
-      notesFocused: false,
-      presetsNavigating: false,
-      highlightedPresetIndex: 0,
-      quickCreateActive: false,
-      quickCreateLabel: ''
-    }
-  },
-  computed: {
-    ...mapGetters({
-      visibleProjects: 'projects/visibleProjects',
-      wethodProjects: 'apiData/projects',
-      visiblePresets: 'presets/visiblePresets'
-    }),
-    showPresets () {
-      return this.notesFocused && !this.notes && this.visiblePresets.length > 0 && !this.disabled
-    },
-    isSelectionLinked () {
-      return this.selection?.type === 'local' && this.selection.localProject.linkedProjectId
-    },
-    normalizedQuery () {
-      return this.searchQuery.toLowerCase().trim()
-    },
-    filteredLocalProjects () {
-      if (!this.normalizedQuery) { return this.visibleProjects.slice(0, 10) }
-      return this.visibleProjects.filter(
-        project => fuzzyMatch(project.name, this.normalizedQuery)
-      )
-    },
-    nonAutomaticWethodProjects () {
-      return this.wethodProjects.filter(project => !project.isAutomatic)
-    },
-    createOptionIndex () {
-      return this.filteredLocalProjects.length
-    },
-    wethodFlatIndexStart () {
-      return this.filteredLocalProjects.length + (this.showCreateOption ? 1 : 0)
-    },
-    filteredWethodEntries () {
-      const entries = []
-      let flatIndex = this.wethodFlatIndexStart
-      const query = this.normalizedQuery
-      const projects = query ? this.nonAutomaticWethodProjects : this.nonAutomaticWethodProjects.slice(0, 15)
+function handleSubmit() {
+  if (selection.value?.type === 'local' && selection.value.localProject.requiresNotes && !notes.value) {
+    notesInput.value?.focus()
+    return
+  }
+  emit('userSubmit')
+}
 
-      for (const project of projects) {
-        const projectNameMatches = fuzzyMatch(project.name, query)
+function handleNotesEnter(event: KeyboardEvent) {
+  if (presetsNavigating.value) {
+    event.preventDefault()
+    if (highlightedPresetIndex.value >= visiblePresets.value.length) startQuickCreate()
+    else selectPreset(visiblePresets.value[highlightedPresetIndex.value])
+    return
+  }
+  handleSubmit()
+}
 
-        let areasToShow
-        if (!query || projectNameMatches) {
-          areasToShow = project.areas
-        } else {
-          areasToShow = project.areas.filter((area) => {
-            const combinedText = project.name + ' ' + (area.name || '')
-            return fuzzyMatch(combinedText, query)
-          })
-        }
+function selectPreset(preset: any) {
+  notes.value = preset.label
+  presetsNavigating.value = false
+  emitUpdate()
+}
 
-        if (areasToShow.length === 0) { continue }
+function enterPresetsSelector() {
+  if (!showPresets.value) return
+  presetsNavigating.value = true
+  highlightedPresetIndex.value = 0
+}
 
-        entries.push({ isHeader: true, project })
-        for (const area of areasToShow) {
-          entries.push({ isHeader: false, project, area, flatIndex })
-          flatIndex++
-        }
-      }
+function onNotesInput() {
+  notesFocused.value = true
+  emitUpdate()
+}
 
-      return entries
-    },
-    totalSelectableCount () {
-      const wethodAreaCount = this.filteredWethodEntries.filter(entry => !entry.isHeader).length
-      return this.filteredLocalProjects.length + (this.showCreateOption ? 1 : 0) + wethodAreaCount
-    },
-    hasExactLocalMatch () {
-      if (!this.normalizedQuery) { return false }
-      const stripped = stripDiacritics(this.normalizedQuery)
-      return this.visibleProjects.some(
-        project => stripDiacritics(project.name.toLowerCase()) === stripped
-      )
-    },
-    showCreateOption () {
-      return this.normalizedQuery.length > 0 && !this.hasExactLocalMatch
-    },
-    tooltipWethodInfo () {
-      if (this.selection?.type !== 'local' || !this.selection.localProject.linkedProjectId) {
-        return null
-      }
-      const wethodProject = this.wethodProjects.find(wp => wp.id === this.selection.localProject.linkedProjectId)
-      if (!wethodProject) { return null }
-      const area = wethodProject.areas.find(a => a.id === this.selection.localProject.linkedAreaId)
-      return {
-        projectName: wethodProject.name,
-        areaName: area?.name || 'Generico'
-      }
-    }
-  },
-  watch: {
-    value: {
-      immediate: true,
-      deep: true,
-      handler (newData) {
-        this.duration = newData.duration
-        this.notes = newData.notes
-        this.location = newData.location || 'home'
+function handleNotesBlur() {
+  setTimeout(() => {
+    if (quickCreateActive.value) return
+    notesFocused.value = false
+    presetsNavigating.value = false
+  }, 150)
+}
 
-        if (newData.directWethodProjectId) {
-          const wethodProject = this.wethodProjects.find(project => project.id === newData.directWethodProjectId)
-          const wethodArea = wethodProject?.areas.find(area => area.id === newData.directWethodAreaId)
-          this.selection = {
-            type: 'wethod',
-            wethodProjectId: newData.directWethodProjectId,
-            wethodAreaId: newData.directWethodAreaId,
-            wethodProjectName: wethodProject?.name || '?',
-            wethodAreaName: wethodArea?.name || 'Generico'
-          }
-          this.editing = false
-        } else if (newData.project) {
-          const localProject = this.visibleProjects.find(project => project.id === newData.project.id)
-          if (localProject) {
-            this.selection = {
-              type: 'local',
-              localProject,
-              resolvedLabel: this.resolveProjectLabel(localProject)
-            }
-            this.editing = false
-          }
-        } else {
-          this.selection = null
-          this.editing = true
-        }
-      }
-    },
-    searchQuery () {
-      this.highlightedIndex = 0
-    }
-  },
-  mounted () {
-    document.addEventListener('click', this.handleClickOutside)
-  },
-  beforeDestroy () {
-    document.removeEventListener('click', this.handleClickOutside)
-  },
-  methods: {
-    resolveProjectLabel (project) {
-      if (!project.linkedProjectId) { return null }
-      const wethodProject = this.wethodProjects.find(wp => wp.id === project.linkedProjectId)
-      if (!wethodProject) { return null }
-      const area = wethodProject.areas.find(area => area.id === project.linkedAreaId)
-      return `${wethodProject.name}${area ? ' / ' + (area.name || 'Generico') : ''}`
-    },
-    flatIndexForLocal (localIndex) {
-      return localIndex
-    },
-    openDropdown () {
-      this.dropdownOpen = true
-    },
-    closeDropdown () {
-      this.dropdownOpen = false
-    },
-    startEditing () {
-      if (this.disabled) { return }
-      this.searchQuery = ''
-      this.editing = true
-      this.highlightedIndex = 0
-      this.$nextTick(() => {
-        this.$refs.searchInput?.focus()
-        this.dropdownOpen = true
-      })
-    },
-    moveHighlight (delta) {
-      if (!this.dropdownOpen) {
-        this.dropdownOpen = true
-        return
-      }
-      const total = this.totalSelectableCount
-      if (total === 0) { return }
-      this.highlightedIndex = (this.highlightedIndex + delta + total) % total
-      this.scrollHighlightedIntoView()
-    },
-    scrollHighlightedIntoView () {
-      this.$nextTick(() => {
-        const refArray = this.$refs['option-' + this.highlightedIndex]
-        const element = Array.isArray(refArray) ? refArray[0] : refArray
-        element?.$el?.scrollIntoView?.({ block: 'nearest' }) ||
-          element?.scrollIntoView?.({ block: 'nearest' })
-      })
-    },
-    selectHighlighted () {
-      if (!this.dropdownOpen || this.totalSelectableCount === 0) {
-        if (this.showCreateOption) {
-          this.createLocalProject()
-        }
-        return
-      }
-
-      const index = this.highlightedIndex
-
-      if (index < this.filteredLocalProjects.length) {
-        this.selectLocalProject(this.filteredLocalProjects[index])
-        return
-      }
-
-      if (this.showCreateOption && index === this.createOptionIndex) {
-        this.createLocalProject()
-        return
-      }
-
-      const wethodItem = this.filteredWethodEntries.find(
-        entry => !entry.isHeader && entry.flatIndex === index
-      )
-      if (wethodItem) {
-        this.selectWethodArea(wethodItem.project, wethodItem.area)
-      }
-    },
-    selectLocalProject (localProject) {
-      this.selection = {
-        type: 'local',
-        localProject,
-        resolvedLabel: this.resolveProjectLabel(localProject)
-      }
-      this.searchQuery = ''
-      this.editing = false
-      this.dropdownOpen = false
-
-      if (localProject.defaultNotes && !this.notes) {
-        this.notes = localProject.defaultNotes
-      }
-
-      this.hasUpdated()
-      this.$nextTick(() => this.$refs.duration?.$refs.input?.focus())
-    },
-    selectWethodArea (project, area) {
-      this.selection = {
-        type: 'wethod',
-        wethodProjectId: project.id,
-        wethodAreaId: area.id,
-        wethodProjectName: project.name,
-        wethodAreaName: area.name || 'Generico'
-      }
-      this.searchQuery = ''
-      this.editing = false
-      this.dropdownOpen = false
-
-      this.hasUpdated()
-      this.$nextTick(() => this.$refs.duration?.$refs.input?.focus())
-    },
-    async createLocalProject () {
-      const name = this.searchQuery.trim()
-      if (!name) { return }
-
-      const project = await this.addProject(name)
-      this.selectLocalProject(project)
-      this.$router.push(this.localeLocation({ name: 'projects-id', params: { id: project.id } }))
-    },
-    escapeField () {
-      if (this.presetsNavigating) {
-        this.presetsNavigating = false
-        return
-      }
-      this.closeDropdown()
-      if (this.editing && this.selection) {
-        this.editing = false
-      }
-      document.activeElement?.blur()
-    },
-    focusProject () {
-      if (this.selection && !this.editing) {
-        this.startEditing()
-      } else {
-        this.$nextTick(() => this.$refs.searchInput?.focus())
-      }
-    },
-    handleClickOutside (event) {
-      if (!event.target.isConnected) { return }
-      if (!this.$el.contains(event.target)) {
-        this.dropdownOpen = false
-        if (this.editing && this.selection) {
-          this.editing = false
-        }
-      }
-    },
-    hasUpdated () {
-      if (!this.shouldEmitUpdate()) {
-        return false
-      }
-
-      const payload = {
-        ...this.value,
-        duration: this.duration,
-        notes: this.notes,
-        location: this.location
-      }
-
-      if (this.selection?.type === 'local') {
-        payload.project = this.selection.localProject
-        delete payload.directWethodProjectId
-        delete payload.directWethodAreaId
-      } else if (this.selection?.type === 'wethod') {
-        payload.project = null
-        payload.directWethodProjectId = this.selection.wethodProjectId
-        payload.directWethodAreaId = this.selection.wethodAreaId
-      } else {
-        payload.project = undefined
-        delete payload.directWethodProjectId
-        delete payload.directWethodAreaId
-      }
-
-      this.$emit('input', payload)
-      return true
-    },
-    shouldEmitUpdate () {
-      if (this.value.duration !== this.duration) { return true }
-      if (this.value.notes !== this.notes) { return true }
-      if (this.value.location !== this.location) { return true }
-
-      const hadLocal = !!this.value.project
-      const hadWethod = !!this.value.directWethodProjectId
-      const hasLocal = this.selection?.type === 'local'
-      const hasWethod = this.selection?.type === 'wethod'
-
-      if (hadLocal !== hasLocal || hadWethod !== hasWethod) { return true }
-      if (hasLocal && this.value.project?.id !== this.selection.localProject.id) { return true }
-      if (hasWethod && (
-        this.value.directWethodProjectId !== this.selection.wethodProjectId ||
-        this.value.directWethodAreaId !== this.selection.wethodAreaId
-      )) { return true }
-
-      return false
-    },
-    handleSubmit (event) {
-      if (this.selection?.type === 'local' && this.selection.localProject.requiresNotes && !this.notes) {
-        this.$refs.notes.focus()
-        return
-      }
-      this.$emit('userSubmit', event)
-    },
-    handleNotesEnter (event) {
-      if (this.presetsNavigating) {
-        event.preventDefault()
-        if (this.highlightedPresetIndex >= this.visiblePresets.length) {
-          this.startQuickCreate()
-        } else {
-          this.selectPreset(this.visiblePresets[this.highlightedPresetIndex])
-        }
-        return
-      }
-      this.handleSubmit(event)
-    },
-    selectPreset (preset) {
-      this.notes = preset.label
-      this.presetsNavigating = false
-      this.hasUpdated()
-    },
-    enterPresetsSelector () {
-      if (!this.showPresets) { return }
-      this.presetsNavigating = true
-      this.highlightedPresetIndex = 0
-    },
-    onNotesInput () {
-      this.notesFocused = true
-      this.hasUpdated()
-    },
-    handleNotesBlur () {
-      setTimeout(() => {
-        if (this.quickCreateActive) { return }
-        this.notesFocused = false
-        this.presetsNavigating = false
-      }, 150)
-    },
-    handleNotesKeydown (event) {
-      if (!this.presetsNavigating) { return }
-
-      if (event.key === 'ArrowRight') {
-        event.preventDefault()
-        const totalItems = this.visiblePresets.length + 1
-        this.highlightedPresetIndex = (this.highlightedPresetIndex + 1) % totalItems
-      } else if (event.key === 'ArrowLeft') {
-        event.preventDefault()
-        const totalItems = this.visiblePresets.length + 1
-        this.highlightedPresetIndex = (this.highlightedPresetIndex - 1 + totalItems) % totalItems
-      } else if (event.key === 'ArrowUp') {
-        event.preventDefault()
-        this.presetsNavigating = false
-      }
-    },
-    startQuickCreate () {
-      this.quickCreateActive = true
-      this.quickCreateLabel = ''
-      this.$nextTick(() => this.$refs.quickCreateInput?.focus())
-    },
-    async confirmQuickCreate () {
-      const label = this.quickCreateLabel.trim()
-      if (!label) {
-        this.cancelQuickCreate()
-        return
-      }
-      await this.addPreset(label)
-      this.quickCreateActive = false
-      this.quickCreateLabel = ''
-      this.$refs.notes?.focus()
-    },
-    cancelQuickCreate () {
-      this.quickCreateActive = false
-      this.quickCreateLabel = ''
-    },
-    ...mapActions({
-      addProject: 'projects/add',
-      addPreset: 'presets/add'
-    })
+function handleNotesKeydown(event: KeyboardEvent) {
+  if (!presetsNavigating.value) return
+  if (event.key === 'ArrowRight') {
+    event.preventDefault()
+    const totalItems = visiblePresets.value.length + 1
+    highlightedPresetIndex.value = (highlightedPresetIndex.value + 1) % totalItems
+  } else if (event.key === 'ArrowLeft') {
+    event.preventDefault()
+    const totalItems = visiblePresets.value.length + 1
+    highlightedPresetIndex.value = (highlightedPresetIndex.value - 1 + totalItems) % totalItems
+  } else if (event.key === 'ArrowUp') {
+    event.preventDefault()
+    presetsNavigating.value = false
   }
 }
+
+function startQuickCreate() {
+  quickCreateActive.value = true
+  quickCreateLabel.value = ''
+  nextTick(() => quickCreateInput.value?.focus())
+}
+
+async function confirmQuickCreate() {
+  const label = quickCreateLabel.value.trim()
+  if (!label) { cancelQuickCreate(); return }
+  await presetsStore.add(label)
+  quickCreateActive.value = false
+  quickCreateLabel.value = ''
+  notesInput.value?.focus()
+}
+
+function cancelQuickCreate() {
+  quickCreateActive.value = false
+  quickCreateLabel.value = ''
+}
+
+defineExpose({ focusProject })
 </script>
 
 <style scoped>

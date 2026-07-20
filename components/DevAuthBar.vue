@@ -1,32 +1,29 @@
 <template>
-  <div v-if="isDevMode" class="fixed bottom-0 left-0 right-0 z-[9999]">
-    <div
-      class="mx-auto transition-all duration-200"
-      :class="expanded ? 'max-w-lg' : 'max-w-[10rem]'"
-    >
+  <div v-if="isDevMode" class="fixed top-20 right-4 z-[9999]">
+    <div class="transition-all duration-200">
       <button
         v-if="!expanded"
-        class="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-mono rounded-t-lg bg-warning-soft text-warning-text border border-b-0 border-warning-text/20 hover:bg-warning-text/20 transition-colors"
+        class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono rounded-lg bg-warning-soft text-warning-text border border-warning-text/20 hover:bg-warning-text/20 transition-colors shadow-lg"
         @click="expanded = true"
       >
-        <code-icon width="14" height="14" />
+        <IconCode :size="14" />
         {{ $t('dev_bar.label') }}
         <span v-if="hasToken" class="inline-block w-1.5 h-1.5 rounded-full" :class="isTokenExpired ? 'bg-danger' : 'bg-success'" />
       </button>
 
       <div
         v-else
-        class="rounded-t-lg bg-card border border-b-0 border-warning-text/30 shadow-lg"
+        class="w-80 rounded-lg bg-card border border-warning-text/30 shadow-xl"
       >
         <div
           class="flex items-center justify-between px-3 py-1.5 bg-warning-soft rounded-t-lg border-b border-warning-text/20 cursor-pointer"
           @click="expanded = false"
         >
           <span class="text-xs font-semibold text-warning-text flex items-center gap-1.5">
-            <code-icon width="14" height="14" />
+            <IconCode :size="14" />
             {{ $t('dev_bar.label') }}
           </span>
-          <chevron-down-icon width="14" height="14" class="text-warning-text" />
+          <IconChevronDown :size="14" class="text-warning-text" />
         </div>
 
         <div class="p-3 space-y-2">
@@ -42,7 +39,6 @@
 
           <div class="flex gap-2">
             <input
-              ref="tokenInput"
               v-model="tokenValue"
               type="text"
               :placeholder="$t('dev_bar.placeholder')"
@@ -57,7 +53,7 @@
               :disabled="!tokenValue.trim() || loading"
               @click="applyToken"
             >
-              <loader-icon v-if="loading" width="14" height="14" class="animate-spin" />
+              <IconLoader v-if="loading" :size="14" class="animate-spin" />
               <template v-else>
                 {{ $t('dev_bar.apply') }}
               </template>
@@ -73,67 +69,50 @@
   </div>
 </template>
 
-<script>
-import { mapGetters, mapMutations } from 'vuex'
-import { ChevronDownIcon, CodeIcon, LoaderIcon } from 'vue-tabler-icons'
+<script setup lang="ts">
+import { ref, computed } from 'vue'
+import { IconChevronDown, IconCode, IconLoader } from '@tabler/icons-vue'
 
-export default {
-  components: { ChevronDownIcon, CodeIcon, LoaderIcon },
-  data () {
-    return {
-      expanded: false,
-      tokenValue: '',
-      loading: false,
-      error: null
-    }
-  },
-  computed: {
-    ...mapGetters({
-      authToken: 'user/authToken',
-      isTokenExpired: 'user/isTokenExpired'
-    }),
-    isDevMode () {
-      return process.env.NODE_ENV === 'development'
-    },
-    hasToken () {
-      return !!this.authToken
-    },
-    maskedToken () {
-      return this.authToken || ''
-    }
-  },
-  methods: {
-    ...mapMutations({
-      setToken: 'user/setToken',
-      updateInfo: 'user/updateInfo'
-    }),
-    async applyToken () {
-      const token = this.tokenValue.trim()
-      if (!token) { return }
+const { t: $t } = useI18n()
+const config = useRuntimeConfig()
+const userStore = useUserStore()
+const api = useApi()
 
-      this.loading = true
-      this.error = null
+const expanded = ref(false)
+const tokenValue = ref('')
+const loading = ref(false)
+const error = ref<string | null>(null)
 
-      try {
-        const { data } = await this.$axios.$get('me', {
-          headers: { 'x-sf-sess-id': token }
-        })
+const isDevMode = computed(() => import.meta.dev)
+const hasToken = computed(() => !!userStore.authToken)
+const isTokenExpired = computed(() => userStore.isTokenExpired)
+const maskedToken = computed(() => userStore.authToken || '')
 
-        this.setToken(token)
-        this.updateInfo(data)
-        this.tokenValue = ''
-        this.expanded = false
+async function applyToken() {
+  const token = tokenValue.value.trim()
+  if (!token) return
 
-        window.location.reload()
-      } catch (err) {
-        const status = err.response?.status
-        this.error = status === 401
-          ? this.$t('dev_bar.error_invalid')
-          : this.$t('dev_bar.error_generic', { status: status || 'network' })
-      } finally {
-        this.loading = false
-      }
-    }
+  loading.value = true
+  error.value = null
+
+  try {
+    const data = await api.$get('me', {
+      headers: { 'x-sf-sess-id': token }
+    })
+
+    userStore.setToken(token)
+    userStore.updateInfo(data.data ?? data)
+    tokenValue.value = ''
+    expanded.value = false
+
+    window.location.reload()
+  } catch (err: any) {
+    const status = err.response?.status || err.statusCode
+    error.value = status === 401
+      ? $t('dev_bar.error_invalid')
+      : $t('dev_bar.error_generic', { status: status || 'network' })
+  } finally {
+    loading.value = false
   }
 }
 </script>
