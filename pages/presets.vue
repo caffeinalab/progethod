@@ -34,7 +34,7 @@
           v-for="(preset, index) in presetsStore.visiblePresets"
           :key="preset.id"
           draggable="true"
-          class="flex items-center justify-between p-3 rounded-lg border transition-colors cursor-grab active:cursor-grabbing"
+          class="preset-card flex items-center justify-between p-3 rounded-lg border transition-colors cursor-grab active:cursor-grabbing"
           :class="dragOverIndex === index ? 'border-accent bg-accent-soft' : 'border-stroke hover:border-ink-faint'"
           @dragstart="onDragStart(index, $event)"
           @dragover.prevent="onDragOver(index)"

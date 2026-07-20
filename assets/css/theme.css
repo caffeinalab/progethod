@@ -365,7 +365,8 @@
   color: var(--color-danger);
 }
 
-.dark .project-card {
+.dark .project-card,
+.dark .preset-card {
   background: #3e3f44;
 }
 
