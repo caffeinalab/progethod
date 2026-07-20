@@ -89,8 +89,6 @@ export default defineNuxtConfig({
     port: 3000,
   },
 
-  sourcemap: { client: true },
-
   vite: {
     plugins: [tailwindcss()],
     optimizeDeps: {
