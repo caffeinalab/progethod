@@ -140,7 +140,8 @@
 
           <!-- Requests sidebar -->
           <div class="bg-card shadow rounded-lg p-3 flex flex-col min-h-0 flex-1 overflow-hidden">
-            <div class="flex items-center gap-0 mb-2 px-1">
+            <div class="sidebar-tabs-wrapper mb-2 mx-1">
+              <div class="sidebar-tabs-indicator" :class="{ 'translate-x-full': sidebarTab === 'history' }" />
               <button class="sidebar-tab" :class="sidebarTab === 'upcoming' ? 'sidebar-tab-active' : 'sidebar-tab-inactive'" @click="sidebarTab = 'upcoming'">{{ $t('calendar_page.requests_upcoming') }}</button>
               <button class="sidebar-tab" :class="sidebarTab === 'history' ? 'sidebar-tab-active' : 'sidebar-tab-inactive'" @click="sidebarTab = 'history'">{{ $t('calendar_page.history_title') }}</button>
             </div>
@@ -772,8 +773,10 @@ async function executeGCalExport(events) {
 
 <style scoped>
 @reference "~/assets/css/tailwind.css";
-.sidebar-tab { @apply text-xs font-bold uppercase tracking-wide px-2 py-1 rounded transition-colors; }
-.sidebar-tab-active { @apply text-ink bg-card-hover; }
+.sidebar-tabs-wrapper { @apply relative flex rounded-lg bg-card-hover p-0.5; }
+.sidebar-tabs-indicator { @apply absolute top-0.5 left-0.5 h-[calc(100%-4px)] w-[calc(50%-2px)] rounded-md bg-card shadow-sm transition-transform duration-200 ease-out; }
+.sidebar-tab { @apply relative z-10 flex-1 text-xs font-bold uppercase tracking-wide py-1.5 rounded-md transition-colors text-center; }
+.sidebar-tab-active { @apply text-ink; }
 .sidebar-tab-inactive { @apply text-ink-faint hover:text-ink-muted; }
 .sidebar-request-row { @apply flex items-center rounded transition-colors px-2; gap: 0.75rem; min-height: 2.25rem; }
 .sidebar-request-row:hover { @apply bg-card-hover; }

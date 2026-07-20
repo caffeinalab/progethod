@@ -69,7 +69,7 @@
             <span class="stat-label">{{ $t('week_short') }}</span>
             <span class="stat-value">{{ weekTrackedTotal + '/' + weekExpectedHours + 'h' }}</span>
           </div>
-          <div class="stat-card cursor-pointer select-none hover:bg-card-hover hover:border-stroke transition-colors" @click.stop="monthCalendarRef?.toggle()">
+          <div class="stat-card stat-card--interactive transition-colors" @click.stop="monthCalendarRef?.toggle()">
             <MonthCalendar
               ref="monthCalendarRef"
               :reference-date="weekAnchor"
@@ -81,7 +81,7 @@
             />
             <span class="stat-value">{{ monthTrackedDays + '/' + monthWorkingDays }}</span>
           </div>
-          <div class="stat-card cursor-pointer select-none hover:bg-card-hover hover:border-stroke transition-colors" @click="showOfficeDaysModal = true">
+          <div class="stat-card stat-card--interactive transition-colors" @click="showOfficeDaysModal = true">
             <IconBuilding :size="14" class="text-ink" />
             <span class="stat-value">{{ $t('office_days_check_button') }}</span>
           </div>
@@ -394,6 +394,13 @@ onBeforeUnmount(() => {
   @reference "~/assets/css/tailwind.css";
   .stat-card {
     @apply flex items-center gap-2 px-4 py-2 bg-card rounded-lg border border-stroke-muted shadow text-sm;
+  }
+  .stat-card--interactive {
+    @apply cursor-pointer select-none;
+  }
+  .stat-card--interactive:hover {
+    background-color: var(--color-card-hover);
+    border-color: var(--color-stroke);
   }
   .stat-label {
     @apply text-ink-muted font-medium;
