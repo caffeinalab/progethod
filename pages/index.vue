@@ -228,7 +228,7 @@ const showMonthEndReminder = computed(() => {
 watch(weekOffset, (value) => {
   const query = value === 0 ? {} : { week: String(value) }
   if (route.query.week !== (query as any).week) {
-    router.replace({ query })
+    router.replace({ query }).catch(() => {})
   }
   fetchTrackedHours()
   fetchVacationHours()
