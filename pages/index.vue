@@ -39,6 +39,7 @@
         </div>
       </div>
     </div>
+    <alert v-if="holidaysFetchFailed" :message="$t('holidays_error')" level="warning" dismissable @dismiss="holidaysFetchFailed = false" />
     <alert v-if="showMonthEndReminder && !monthEndReminderDismissed" :message="$t('month_end_reminder')" level="warning" dismissable @dismiss="dismissMonthEndReminder" />
     <div class="my-6 lg:my-12 container px-6 mx-auto pb-4 border-b border-stroke">
       <div class="flex items-center gap-3">
@@ -109,7 +110,14 @@
               <building-icon size="14" class="text-accent" />
               {{ $t('office_days_label') }}
             </span>
-            <span class="stat-value">{{ officeDaysInMonth }}</span>
+            <span class="stat-value inline-flex items-center gap-1.5">
+              {{ officeDaysInMonth }}
+              <span
+                class="office-pace-dot"
+                :class="officeDaysOnTrack.onTrack ? 'bg-success' : 'bg-warning'"
+                :data-tooltip="officeDaysOnTrack.tooltip"
+              />
+            </span>
           </div>
         </template>
 
@@ -171,6 +179,7 @@ export default {
       officeDaysFromApi: [],
       weekVacationHours: [],
       holidays: [],
+      holidaysFetchFailed: false,
       focusedDayIndex: null,
       insideDay: false,
       navigating: false,
@@ -217,7 +226,14 @@ export default {
       return this.monthTrackedHours.filter(entry => entry.value >= 8).length
     },
     weekExpectedHours () {
-      return 40
+      const holidaysInWeek = this.holidays.filter((holiday) => {
+        if (holiday.date < this.weekFrom || holiday.date > this.weekTo) {
+          return false
+        }
+        const dow = new Date(holiday.date + 'T00:00:00').getDay()
+        return dow !== 0 && dow !== 6
+      }).length
+      return 40 - (holidaysInWeek * 8)
     },
     monthWorkingDays () {
       let workingDays = 0
@@ -226,7 +242,10 @@ export default {
       while (current <= end) {
         const dayOfWeek = current.getDay()
         if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-          workingDays++
+          const dateKey = this.$dateFns.format(current, 'yyyy-MM-dd')
+          if (!this.holidaysByDate[dateKey]) {
+            workingDays++
+          }
         }
         current = this.$dateFns.addDays(current, 1)
       }
@@ -237,6 +256,50 @@ export default {
     },
     officeDaysInMonth () {
       return this.officeDaysFromApi.length
+    },
+    officeDaysOnTrack () {
+      const target = 8
+      const todayStr = this.$dateFns.format(this.today, 'yyyy-MM-dd')
+
+      if (todayStr < this.monthFrom || todayStr > this.monthTo) {
+        return { onTrack: true, tooltip: this.$t('office_days_tooltip_remaining', { remaining: target - this.officeDaysInMonth }) }
+      }
+
+      let elapsedWorkingDays = 0
+      let current = new Date(this.monthFrom + 'T00:00:00')
+      const todayDate = new Date(todayStr + 'T00:00:00')
+      while (current <= todayDate) {
+        const dow = current.getDay()
+        if (dow !== 0 && dow !== 6) {
+          elapsedWorkingDays++
+        }
+        current = this.$dateFns.addDays(current, 1)
+      }
+
+      const expectedPace = Math.round(target * elapsedWorkingDays / this.monthWorkingDays)
+
+      const friday = this.$dateFns.addDays(this.$dateFns.startOfWeek(this.today, { weekStartsOn: 1 }), 4)
+      let remainingThisWeek = 0
+      let cursor = this.$dateFns.addDays(this.today, 1)
+      while (cursor <= friday) {
+        const dow = cursor.getDay()
+        if (dow !== 0 && dow !== 6) {
+          remainingThisWeek++
+        }
+        cursor = this.$dateFns.addDays(cursor, 1)
+      }
+
+      const onTrack = this.officeDaysInMonth + remainingThisWeek >= expectedPace
+      const remaining = target - this.officeDaysInMonth
+
+      if (this.officeDaysInMonth >= target) {
+        return { onTrack: true, tooltip: this.$t('office_days_tooltip_done') }
+      }
+
+      return {
+        onTrack,
+        tooltip: this.$t('office_days_tooltip_remaining', { remaining })
+      }
     },
     trackedHoursByDay () {
       const map = {}
@@ -285,13 +348,11 @@ export default {
         this.$router.replace({ query })
       }
       this.fetchTrackedHours()
-      this.fetchOfficeDays()
       this.fetchVacationHours()
     }
   },
   mounted () {
     this.fetchTrackedHours()
-    this.fetchOfficeDays()
     this.fetchVacationHours()
     this.fetchHolidays()
     this.scrollToToday()
@@ -330,7 +391,12 @@ export default {
     },
     dayCardClasses (day, index) {
       const classes = []
-      if (this.isToday(day)) {
+      const dateKey = this.$dateFns.format(day, 'yyyy-MM-dd')
+      const isHoliday = !!this.holidaysByDate[dateKey]
+
+      if (isHoliday) {
+        classes.push('border-success bg-success-soft')
+      } else if (this.isToday(day)) {
         classes.push('border-accent bg-accent-soft')
       } else {
         classes.push('border-stroke')
@@ -466,6 +532,7 @@ export default {
       } finally {
         if (this.weekOffset === snapshotOffset) {
           this.trackedHoursLoading = false
+          this.fetchOfficeDays()
         }
       }
     },
@@ -473,10 +540,23 @@ export default {
       if (!this.$store.getters['user/canMakeRequests']) {
         return
       }
+      const fullDays = this.monthTrackedHours
+        .filter(entry => entry.value >= 8)
+        .map(entry => entry.date)
+
+      if (fullDays.length === 0) {
+        this.officeDaysFromApi = []
+        return
+      }
+
+      const snapshotMonth = this.monthFrom
       try {
         const response = await this.$axios.$get('office-days', {
-          params: { from: this.monthFrom, to: this.monthTo }
+          params: { dates: fullDays.join(',') }
         })
+        if (this.monthFrom !== snapshotMonth) {
+          return
+        }
         if (Array.isArray(response?.data)) {
           this.officeDaysFromApi = response.data
         }
@@ -519,14 +599,15 @@ export default {
       try {
         const response = await this.$axios.$get('holidays')
         this.holidays = response?.data || []
+        this.holidaysFetchFailed = false
       } catch {
         this.holidays = []
+        this.holidaysFetchFailed = true
       }
     },
     debouncedRefresh () {
       setTimeout(() => {
         this.fetchTrackedHours()
-        this.fetchOfficeDays()
         this.fetchVacationHours()
       }, 800)
     },
@@ -590,5 +671,45 @@ export default {
 
   .stat-value {
     @apply text-ink font-bold tabular-nums;
+  }
+
+  .office-pace-dot {
+    position: relative;
+    cursor: default;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  .office-pace-dot::before {
+    content: '';
+    position: absolute;
+    inset: -6px;
+  }
+
+  .office-pace-dot::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: 6px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.1s ease;
+    z-index: 50;
+    @apply bg-card-hover text-ink border border-stroke-muted shadow;
+  }
+
+  .office-pace-dot:hover::after {
+    opacity: 1;
+  }
+
+  .office-pace-dot[data-tooltip=""]::after {
+    display: none;
   }
 </style>

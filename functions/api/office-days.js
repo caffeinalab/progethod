@@ -5,18 +5,22 @@ const CONCURRENCY = 5
 
 export async function onRequestGet ({ request, env, data: { authToken } }) {
   const { searchParams } = new URL(request.url)
-  const from = searchParams.get('from')
-  const to = searchParams.get('to')
+  const datesParam = searchParams.get('dates')
 
-  if (!from || !to) {
-    return new JSONResponse({ code: 400, message: 'Missing from/to params' }, { status: 400 })
+  if (!datesParam) {
+    return new JSONResponse({ code: 200, data: [] })
   }
 
-  const workingDays = getWorkingDaysInRange(from, to)
+  const dates = datesParam.split(',').filter(Boolean)
+
+  if (dates.length === 0) {
+    return new JSONResponse({ code: 200, data: [] })
+  }
+
   const officeDays = []
 
-  for (let batch = 0; batch < workingDays.length; batch += CONCURRENCY) {
-    const chunk = workingDays.slice(batch, batch + CONCURRENCY)
+  for (let batch = 0; batch < dates.length; batch += CONCURRENCY) {
+    const chunk = dates.slice(batch, batch + CONCURRENCY)
     const results = await Promise.all(
       chunk.map(async (date) => {
         const params = new URLSearchParams({ date })
@@ -43,20 +47,4 @@ export async function onRequestGet ({ request, env, data: { authToken } }) {
   }
 
   return new JSONResponse({ code: 200, data: officeDays })
-}
-
-function getWorkingDaysInRange (from, to) {
-  const days = []
-  const current = new Date(from + 'T00:00:00')
-  const end = new Date(to + 'T00:00:00')
-
-  while (current <= end) {
-    const dow = current.getDay()
-    if (dow !== 0 && dow !== 6) {
-      days.push(current.toISOString().slice(0, 10))
-    }
-    current.setDate(current.getDate() + 1)
-  }
-
-  return days
 }
