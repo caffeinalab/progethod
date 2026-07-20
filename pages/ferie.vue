@@ -125,7 +125,7 @@
                     <span><span class="inline-block w-1.5 h-1.5 rounded-sm bg-budget-used mr-0.5" />{{ formatDays(section.used) }}</span>
                     <span><span class="inline-block w-1.5 h-1.5 rounded-sm bg-budget-planned mr-0.5" />{{ formatDays(section.planned) }}</span>
                     <span v-if="Number(section.requested) > 0"><span class="inline-block w-1.5 h-1.5 rounded-sm bg-budget-requested mr-0.5" />{{ formatDays(section.requested) }}</span>
-                    <span class="font-semibold" :class="remainingClass(section.remaining)">{{ remainingLabel(section.remaining) }}</span>
+                    <span class="font-semibold" :class="remainingClass(section.remaining)">{{ remainingLabel(section.remaining, section.remainingLabelKey) }}</span>
                   </div>
                 </div>
               </div>
@@ -473,9 +473,9 @@ const budgetSections = computed(() => {
   if (!timeOffData.value) return []
   const data = timeOffData.value
   return [
-    { key: 'vacation', label: $t('calendar_page.vacation_label'), total: data.time_off_targets.vacation, used: data.used.vacation, planned: data.planned.vacation, requested: data.requested.vacation, remaining: data.remaining.vacation },
-    { key: 'leave', label: $t('calendar_page.leaves_label'), total: data.time_off_targets.leave, used: data.used.leave, planned: data.planned.leave, requested: data.requested.leave, remaining: data.remaining.leave },
-    { key: 'target', label: $t('calendar_page.budget_target_label'), total: data.time_off_targets.target, used: data.used.target, planned: data.planned.target, requested: data.requested.target, remaining: data.remaining.target, borderTop: true },
+    { key: 'vacation', label: $t('calendar_page.vacation_label'), total: data.time_off_targets.vacation, used: data.used.vacation, planned: data.planned.vacation, requested: data.requested.vacation, remaining: data.remaining.vacation, remainingLabelKey: 'calendar_page.budget_balance' },
+    { key: 'leave', label: $t('calendar_page.leaves_label'), total: data.time_off_targets.leave, used: data.used.leave, planned: data.planned.leave, requested: data.requested.leave, remaining: data.remaining.leave, remainingLabelKey: 'calendar_page.budget_balance' },
+    { key: 'target', label: $t('calendar_page.budget_target_label'), total: data.time_off_targets.target, used: data.used.target, planned: data.planned.target, requested: data.requested.target, remaining: data.remaining.target, borderTop: true, remainingLabelKey: 'calendar_page.budget_remaining' },
   ]
 })
 
@@ -545,7 +545,7 @@ function budgetBarWidth(segmentHours, totalHours, usedHours, plannedHours, reque
 }
 
 function remainingClass(remainingHours) { const val = Number(remainingHours); if (val < 0) return 'text-danger'; if (val === 0) return 'text-vacation-text'; return 'text-ink' }
-function remainingLabel(remainingHours) { const val = Number(remainingHours); if (val < 0) return $t('calendar_page.budget_over_planned', { days: formatDays(Math.abs(val)) }); if (val === 0) return $t('calendar_page.budget_all_planned'); return $t('calendar_page.budget_remaining') + ': ' + formatDays(remainingHours) }
+function remainingLabel(remainingHours, labelKey = 'calendar_page.budget_remaining') { const val = Number(remainingHours); if (val < 0) return $t('calendar_page.budget_over_planned', { days: formatDays(Math.abs(val)) }); if (val === 0) return $t('calendar_page.budget_all_planned'); return $t(labelKey) + ': ' + formatDays(remainingHours) }
 
 function formatDateChip(dateStr) { return format(new Date(dateStr + 'T00:00:00'), 'EEE d MMM', { locale: it }) }
 
