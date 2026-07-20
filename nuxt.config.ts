@@ -56,6 +56,8 @@ export default defineNuxtConfig({
     workbox: {
       navigateFallback: '/200.html',
       globPatterns: ['**/*.{js,css,html,ico,png,svg,webmanifest}'],
+      skipWaiting: true,
+      clientsClaim: true,
     },
   },
 
@@ -86,6 +88,8 @@ export default defineNuxtConfig({
   devServer: {
     port: 3000,
   },
+
+  sourcemap: { client: true },
 
   vite: {
     plugins: [tailwindcss()],
