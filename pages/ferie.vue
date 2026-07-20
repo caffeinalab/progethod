@@ -127,127 +127,269 @@
           </div>
         </div>
 
-        <!-- Upcoming requests sidebar -->
-        <div class="w-72 shrink-0 sticky top-20 flex flex-col" :style="{ maxHeight: sidebarMaxHeight }">
-          <div class="bg-card shadow rounded-lg p-3 flex flex-col min-h-0 flex-1 overflow-hidden">
-            <h2 class="text-xs font-bold text-ink-muted uppercase tracking-wide mb-2 px-1">
-              {{ $t('calendar_page.requests_upcoming') }}
-            </h2>
+        <!-- Sidebar: budget + upcoming requests -->
+        <div class="w-72 shrink-0 sticky top-20 flex flex-col gap-3" :style="{ maxHeight: sidebarMaxHeight }">
+          <!-- Time off budget -->
+          <div class="bg-card shadow rounded-lg p-3 shrink-0">
+            <div class="flex items-center justify-between mb-2 px-1">
+              <h2 class="text-xs font-bold text-ink-muted uppercase tracking-wide">
+                {{ $t('calendar_page.budget_title', { year: budgetYear }) }}
+              </h2>
+              <button
+                v-if="budgetError"
+                class="text-[10px] text-accent-fg hover:underline"
+                @click="fetchTimeOff"
+              >
+                {{ $t('calendar_page.budget_retry') }}
+              </button>
+            </div>
 
+            <div v-if="budgetLoading" class="flex items-center gap-2 text-[11px] text-ink-muted py-3 px-1">
+              <span class="inline-block w-3 h-3 border-2 border-stroke-muted border-t-accent rounded-full animate-spin" />
+              {{ $t('calendar_page.budget_loading') }}
+            </div>
+
+            <div v-else-if="budgetError" class="text-[11px] text-ink-muted py-3 text-center">
+              {{ $t('calendar_page.budget_error') }}
+            </div>
+
+            <div v-else-if="timeOffData" class="space-y-3 px-1">
+              <!-- Vacation (Ferie) -->
+              <div>
+                <div class="flex items-baseline justify-between mb-1">
+                  <span class="text-xs font-semibold text-ink">{{ $t('calendar_page.vacation_label') }}</span>
+                  <span class="text-[10px] text-ink-muted tabular-nums">{{ formatDays(timeOffData.time_off_targets.vacation) }}</span>
+                </div>
+                <div class="budget-bar-track budget-bar-sm">
+                  <div
+                    class="budget-bar-segment bg-budget-used"
+                    :style="{ width: budgetBarWidth(timeOffData.used.vacation, timeOffData.time_off_targets.vacation, timeOffData.used.vacation, timeOffData.planned.vacation, timeOffData.requested.vacation) }"
+                    :title="$t('calendar_page.budget_used') + ': ' + formatDays(timeOffData.used.vacation)"
+                  />
+                  <div
+                    class="budget-bar-segment bg-budget-planned"
+                    :style="{ width: budgetBarWidth(timeOffData.planned.vacation, timeOffData.time_off_targets.vacation, timeOffData.used.vacation, timeOffData.planned.vacation, timeOffData.requested.vacation) }"
+                    :title="$t('calendar_page.budget_planned') + ': ' + formatDays(timeOffData.planned.vacation)"
+                  />
+                  <div
+                    v-if="Number(timeOffData.requested.vacation) > 0"
+                    class="budget-bar-segment bg-budget-requested"
+                    :style="{ width: budgetBarWidth(timeOffData.requested.vacation, timeOffData.time_off_targets.vacation, timeOffData.used.vacation, timeOffData.planned.vacation, timeOffData.requested.vacation) }"
+                    :title="$t('calendar_page.budget_requested') + ': ' + formatDays(timeOffData.requested.vacation)"
+                  />
+                </div>
+                <div class="budget-details">
+                  <span :title="$t('calendar_page.budget_used')"><span class="inline-block w-1.5 h-1.5 rounded-sm bg-budget-used mr-0.5" />{{ formatDays(timeOffData.used.vacation) }}</span>
+                  <span :title="$t('calendar_page.budget_planned')"><span class="inline-block w-1.5 h-1.5 rounded-sm bg-budget-planned mr-0.5" />{{ formatDays(timeOffData.planned.vacation) }}</span>
+                  <span v-if="Number(timeOffData.requested.vacation) > 0" :title="$t('calendar_page.budget_requested')"><span class="inline-block w-1.5 h-1.5 rounded-sm bg-budget-requested mr-0.5" />{{ formatDays(timeOffData.requested.vacation) }}</span>
+                  <span class="font-semibold" :class="remainingClass(timeOffData.remaining.vacation)" :title="$t('calendar_page.budget_balance')">{{ remainingLabel(timeOffData.remaining.vacation, 'calendar_page.budget_balance') }}</span>
+                </div>
+              </div>
+
+              <!-- Leave (Permessi) -->
+              <div>
+                <div class="flex items-baseline justify-between mb-1">
+                  <span class="text-xs font-semibold text-ink">{{ $t('calendar_page.leaves_label') }}</span>
+                  <span class="text-[10px] text-ink-muted tabular-nums">{{ formatDays(timeOffData.time_off_targets.leave) }}</span>
+                </div>
+                <div class="budget-bar-track budget-bar-sm">
+                  <div
+                    class="budget-bar-segment bg-budget-used"
+                    :style="{ width: budgetBarWidth(timeOffData.used.leave, timeOffData.time_off_targets.leave, timeOffData.used.leave, timeOffData.planned.leave, timeOffData.requested.leave) }"
+                    :title="$t('calendar_page.budget_used') + ': ' + formatDays(timeOffData.used.leave)"
+                  />
+                  <div
+                    class="budget-bar-segment bg-budget-planned"
+                    :style="{ width: budgetBarWidth(timeOffData.planned.leave, timeOffData.time_off_targets.leave, timeOffData.used.leave, timeOffData.planned.leave, timeOffData.requested.leave) }"
+                    :title="$t('calendar_page.budget_planned') + ': ' + formatDays(timeOffData.planned.leave)"
+                  />
+                  <div
+                    v-if="Number(timeOffData.requested.leave) > 0"
+                    class="budget-bar-segment bg-budget-requested"
+                    :style="{ width: budgetBarWidth(timeOffData.requested.leave, timeOffData.time_off_targets.leave, timeOffData.used.leave, timeOffData.planned.leave, timeOffData.requested.leave) }"
+                    :title="$t('calendar_page.budget_requested') + ': ' + formatDays(timeOffData.requested.leave)"
+                  />
+                </div>
+                <div class="budget-details">
+                  <span :title="$t('calendar_page.budget_used')"><span class="inline-block w-1.5 h-1.5 rounded-sm bg-budget-used mr-0.5" />{{ formatDays(timeOffData.used.leave) }}</span>
+                  <span :title="$t('calendar_page.budget_planned')"><span class="inline-block w-1.5 h-1.5 rounded-sm bg-budget-planned mr-0.5" />{{ formatDays(timeOffData.planned.leave) }}</span>
+                  <span v-if="Number(timeOffData.requested.leave) > 0" :title="$t('calendar_page.budget_requested')"><span class="inline-block w-1.5 h-1.5 rounded-sm bg-budget-requested mr-0.5" />{{ formatDays(timeOffData.requested.leave) }}</span>
+                  <span class="font-semibold" :class="remainingClass(timeOffData.remaining.leave)" :title="$t('calendar_page.budget_balance')">{{ remainingLabel(timeOffData.remaining.leave, 'calendar_page.budget_balance') }}</span>
+                </div>
+              </div>
+
+              <!-- Target (combined company goal) -->
+              <div class="pt-2 mt-1 border-t border-stroke-muted">
+                <div class="flex items-baseline justify-between mb-1">
+                  <span class="text-xs font-semibold text-ink">{{ $t('calendar_page.budget_target_label') }}</span>
+                  <span class="text-[10px] text-ink-muted tabular-nums">{{ formatDays(timeOffData.time_off_targets.target) }}</span>
+                </div>
+                <div class="budget-bar-track budget-bar-sm">
+                  <div
+                    class="budget-bar-segment bg-budget-used"
+                    :style="{ width: budgetBarWidth(timeOffData.used.target, timeOffData.time_off_targets.target, timeOffData.used.target, timeOffData.planned.target, timeOffData.requested.target) }"
+                    :title="$t('calendar_page.budget_used') + ': ' + formatDays(timeOffData.used.target)"
+                  />
+                  <div
+                    class="budget-bar-segment bg-budget-planned"
+                    :style="{ width: budgetBarWidth(timeOffData.planned.target, timeOffData.time_off_targets.target, timeOffData.used.target, timeOffData.planned.target, timeOffData.requested.target) }"
+                    :title="$t('calendar_page.budget_planned') + ': ' + formatDays(timeOffData.planned.target)"
+                  />
+                  <div
+                    v-if="Number(timeOffData.requested.target) > 0"
+                    class="budget-bar-segment bg-budget-requested"
+                    :style="{ width: budgetBarWidth(timeOffData.requested.target, timeOffData.time_off_targets.target, timeOffData.used.target, timeOffData.planned.target, timeOffData.requested.target) }"
+                    :title="$t('calendar_page.budget_requested') + ': ' + formatDays(timeOffData.requested.target)"
+                  />
+                </div>
+                <div class="budget-details">
+                  <span :title="$t('calendar_page.budget_used')"><span class="inline-block w-1.5 h-1.5 rounded-sm bg-budget-used mr-0.5" />{{ formatDays(timeOffData.used.target) }}</span>
+                  <span :title="$t('calendar_page.budget_planned')"><span class="inline-block w-1.5 h-1.5 rounded-sm bg-budget-planned mr-0.5" />{{ formatDays(timeOffData.planned.target) }}</span>
+                  <span v-if="Number(timeOffData.requested.target) > 0" :title="$t('calendar_page.budget_requested')"><span class="inline-block w-1.5 h-1.5 rounded-sm bg-budget-requested mr-0.5" />{{ formatDays(timeOffData.requested.target) }}</span>
+                  <span class="font-semibold" :class="remainingClass(timeOffData.remaining.target)" :title="$t('calendar_page.budget_remaining')">{{ remainingLabel(timeOffData.remaining.target) }}</span>
+                </div>
+              </div>
+
+              <!-- Compact legend (2x2 grid) -->
+              <div class="grid grid-cols-2 gap-x-2 gap-y-0.5 pt-2 border-t border-stroke-muted text-[10px] text-ink-faint">
+                <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-budget-used" />{{ $t('calendar_page.budget_used') }}</span>
+                <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-budget-planned" />{{ $t('calendar_page.budget_planned') }}</span>
+                <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-budget-requested" />{{ $t('calendar_page.budget_requested') }}</span>
+                <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-budget-remaining" />{{ $t('calendar_page.budget_remaining') }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Requests (tabbed: upcoming / history) -->
+          <div class="bg-card shadow rounded-lg p-3 flex flex-col min-h-0 flex-1 overflow-hidden">
+            <!-- Tabs -->
+            <div class="flex items-center gap-0 mb-2 px-1">
+              <button
+                class="sidebar-tab"
+                :class="sidebarTab === 'upcoming' ? 'sidebar-tab-active' : 'sidebar-tab-inactive'"
+                @click="sidebarTab = 'upcoming'"
+              >
+                {{ $t('calendar_page.requests_upcoming') }}
+              </button>
+              <button
+                class="sidebar-tab"
+                :class="sidebarTab === 'history' ? 'sidebar-tab-active' : 'sidebar-tab-inactive'"
+                @click="sidebarTab = 'history'"
+              >
+                {{ $t('calendar_page.history_title') }}
+              </button>
+            </div>
+
+            <!-- Search -->
+            <div class="px-1 mb-2">
+              <input
+                v-model="requestsSearch"
+                type="text"
+                class="w-full px-2 py-1 text-xs rounded border border-stroke bg-card-hover text-ink placeholder-ink-faint focus:outline-none focus:ring-1 focus:ring-focus-ring"
+                :placeholder="$t('calendar_page.history_search_placeholder')"
+              >
+            </div>
+
+            <!-- Loading skeleton -->
             <div v-if="requestsLoading" class="space-y-2 px-1">
               <div v-for="skeleton in 4" :key="skeleton" class="animate-pulse">
                 <span class="inline-block w-full h-6 bg-stroke-muted rounded" />
               </div>
             </div>
 
-            <div v-else-if="upcomingRequests.length === 0" class="text-xs text-ink-muted py-4 text-center">
-              {{ $t('calendar_page.requests_empty') }}
-            </div>
+            <!-- Upcoming tab -->
+            <template v-else-if="sidebarTab === 'upcoming'">
+              <div v-if="upcomingRequests.length === 0" class="text-xs text-ink-muted py-4 text-center">
+                {{ $t('calendar_page.requests_empty') }}
+              </div>
 
-            <div v-else class="overflow-y-auto custom-scrollbar min-h-0">
-              <div v-for="group in upcomingByMonth" :key="group.monthKey" class="mb-2 last:mb-0">
-                <div class="text-[10px] font-semibold text-ink-faint uppercase tracking-wide px-1 py-1 capitalize">
-                  {{ group.label }}
-                </div>
-                <div>
-                  <div
-                    v-for="request in group.requests"
-                    :key="request.id"
-                    class="sidebar-request-row group"
-                  >
-                    <button class="sidebar-request-btn" @click="navigateToRequest(request)">
-                      <span class="sidebar-date">{{ request.dateDayOnly }}</span>
-                      <span class="sidebar-hours">{{ request.totalHoursLabel }}</span>
-                      <span
-                        class="sidebar-type"
-                        :class="request.projectId === vacationProjectId ? 'pill-ferie' : 'pill-permesso'"
-                        :title="request.typeLabel"
-                      >{{ request.typeShort }}</span>
-                      <component
-                        :is="statusIcon(request.status)"
-                        :size="15"
-                        :class="statusIconClasses(request.status)"
-                        :title="statusLabel(request.status)"
-                        class="shrink-0"
-                      />
-                    </button>
-                    <div class="sidebar-actions">
-                      <button
-                        class="p-0.5 rounded text-ink-faint hover:text-accent-fg transition-colors"
-                        :title="$t('edit')"
-                        @click="openEditFromRequest(request)"
-                      >
-                        <edit-icon :size="14" />
+              <div v-else class="overflow-y-auto custom-scrollbar min-h-0">
+                <div v-for="group in upcomingByMonth" :key="group.monthKey" class="mb-2 last:mb-0">
+                  <div class="text-[10px] font-semibold text-ink-faint uppercase tracking-wide px-1 py-1 capitalize">
+                    {{ group.label }}
+                  </div>
+                  <div>
+                    <div
+                      v-for="request in group.requests"
+                      :key="request.id"
+                      class="sidebar-request-row group"
+                    >
+                      <button class="sidebar-request-btn" @click="navigateToRequest(request)">
+                        <span class="sidebar-date">{{ request.dateDayOnly }}</span>
+                        <span class="sidebar-hours">{{ request.totalHoursLabel }}</span>
+                        <span
+                          class="sidebar-type"
+                          :class="request.projectId === vacationProjectId ? 'pill-ferie' : 'pill-permesso'"
+                          :title="request.typeLabel"
+                        >{{ request.typeShort }}</span>
+                        <component
+                          :is="statusIcon(request.status)"
+                          :size="15"
+                          :class="statusIconClasses(request.status)"
+                          :title="statusLabel(request.status)"
+                          class="shrink-0"
+                        />
                       </button>
-                      <button
-                        class="p-0.5 rounded text-ink-faint hover:text-danger transition-colors"
-                        :title="$t('delete')"
-                        @click="deleteRequestDirect(request)"
-                      >
-                        <trash-icon :size="14" />
+                      <div class="sidebar-actions">
+                        <button
+                          class="p-0.5 rounded text-ink-faint hover:text-accent-fg transition-colors"
+                          :title="$t('edit')"
+                          @click="openEditFromRequest(request)"
+                        >
+                          <edit-icon :size="14" />
+                        </button>
+                        <button
+                          class="p-0.5 rounded text-ink-faint hover:text-danger transition-colors"
+                          :title="$t('delete')"
+                          @click="deleteRequestDirect(request)"
+                        >
+                          <trash-icon :size="14" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </template>
+
+            <!-- History tab -->
+            <template v-else>
+              <div v-if="pastRequests.length === 0" class="text-xs text-ink-muted py-4 text-center">
+                {{ $t('calendar_page.no_past_requests') }}
+              </div>
+
+              <div v-else ref="historyScroll" class="overflow-y-auto custom-scrollbar min-h-0" @scroll="onHistoryScroll">
+                <div v-for="group in pastByMonth" :key="group.monthKey" class="mb-2 last:mb-0">
+                  <div class="text-[10px] font-semibold text-ink-faint uppercase tracking-wide px-1 py-1 capitalize">
+                    {{ group.label }}
+                  </div>
+                  <div>
+                    <div
+                      v-for="request in group.requests"
+                      :key="request.id"
+                      class="sidebar-request-row group"
+                    >
+                      <button class="sidebar-request-btn" @click="navigateToRequest(request)">
+                        <span class="sidebar-date">{{ request.dateDayOnly }}</span>
+                        <span class="sidebar-hours">{{ request.totalHoursLabel }}</span>
+                        <span
+                          class="sidebar-type"
+                          :class="request.projectId === vacationProjectId ? 'pill-ferie' : 'pill-permesso'"
+                          :title="request.typeLabel"
+                        >{{ request.typeShort }}</span>
+                        <component
+                          :is="statusIcon(request.status)"
+                          :size="15"
+                          :class="statusIconClasses(request.status)"
+                          :title="statusLabel(request.status)"
+                          class="shrink-0"
+                        />
                       </button>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Past requests history -->
-      <div class="mt-6 bg-card shadow rounded-lg p-4">
-        <div class="flex items-center justify-between mb-2 px-1">
-          <h2 class="text-xs font-bold text-ink-muted uppercase tracking-wide">
-            {{ $t('calendar_page.history_title') }}
-          </h2>
-          <input
-            v-model="historySearch"
-            type="text"
-            class="w-40 px-2 py-1 text-xs rounded border border-stroke bg-card-hover text-ink placeholder-ink-faint focus:outline-none focus:ring-1 focus:ring-focus-ring"
-            :placeholder="$t('calendar_page.history_search_placeholder')"
-          >
-        </div>
-
-        <div v-if="requestsLoading" class="space-y-2 px-1">
-          <div v-for="skeleton in 3" :key="skeleton" class="animate-pulse">
-            <span class="inline-block w-full h-6 bg-stroke-muted rounded" />
-          </div>
-        </div>
-
-        <div v-else-if="pastRequests.length === 0" class="text-xs text-ink-muted py-4 text-center">
-          {{ $t('calendar_page.no_past_requests') }}
-        </div>
-
-        <div v-else ref="historyScroll" class="max-h-96 overflow-y-auto custom-scrollbar" @scroll="onHistoryScroll">
-          <div v-for="group in pastByMonth" :key="group.monthKey" class="mb-2 last:mb-0">
-            <div class="text-[10px] font-semibold text-ink-faint uppercase tracking-wide px-1 py-1 capitalize">
-              {{ group.label }}
-            </div>
-            <div>
-              <div
-                v-for="request in group.requests"
-                :key="request.id"
-                class="sidebar-request-row group"
-              >
-                <button class="sidebar-request-btn" @click="navigateToRequest(request)">
-                  <span class="sidebar-date">{{ request.dateDayOnly }}</span>
-                  <span class="sidebar-hours">{{ request.totalHoursLabel }}</span>
-                  <span
-                    class="sidebar-type"
-                    :class="request.projectId === vacationProjectId ? 'pill-ferie' : 'pill-permesso'"
-                    :title="request.typeLabel"
-                  >{{ request.typeShort }}</span>
-                  <component
-                    :is="statusIcon(request.status)"
-                    :size="15"
-                    :class="statusIconClasses(request.status)"
-                    :title="statusLabel(request.status)"
-                    class="shrink-0"
-                  />
-                </button>
-              </div>
-            </div>
+            </template>
           </div>
         </div>
       </div>
@@ -559,7 +701,7 @@ export default {
     requestError: null,
     pastVisibleCount: 10,
     calendarHeight: 0,
-    historySearch: '',
+    requestsSearch: '',
 
     showTimePickModal: false,
     timePickEvents: [],
@@ -568,7 +710,12 @@ export default {
     timePickMode: 'morning',
     timePickCustomStart: '09:00',
     timePickCustomEnd: '13:00',
-    timePickSingleCell: null
+    timePickSingleCell: null,
+
+    timeOffData: null,
+    budgetLoading: false,
+    budgetError: false,
+    sidebarTab: 'upcoming'
   }),
   computed: {
     vacationProjectId () { return VACATION_PROJECT_ID },
@@ -605,9 +752,10 @@ export default {
       return map
     },
     upcomingRequests () {
-      return this.allRequests
+      const base = this.allRequests
         .filter(request => request.lastDate && request.lastDate >= this.todayStr)
         .sort((first, second) => first.firstDate.localeCompare(second.firstDate))
+      return this.filterRequestsBySearch(base)
     },
     upcomingByMonth () {
       const groups = []
@@ -630,20 +778,7 @@ export default {
         .sort((first, second) => (second.firstDate || '').localeCompare(first.firstDate || ''))
     },
     filteredPastRequests () {
-      const query = this.historySearch.trim().toLowerCase()
-      if (!query) { return this.allPastRequests }
-      const queryWords = query.split(/\s+/).filter(Boolean)
-      return this.allPastRequests.filter((request) => {
-        if (!request.firstDate) { return false }
-        const date = new Date(request.firstDate + 'T00:00:00')
-        const fullMonth = this.$dateFns.format(date, 'MMMM yyyy').toLowerCase()
-        const shortMonth = this.$dateFns.format(date, 'MMM yyyy').toLowerCase()
-        const numericMonth = this.$dateFns.format(date, 'MM/yy')
-        const numericMonthFull = this.$dateFns.format(date, 'MM/yyyy')
-        const yearOnly = this.$dateFns.format(date, 'yyyy')
-        const haystack = `${fullMonth} ${shortMonth} ${numericMonth} ${numericMonthFull} ${yearOnly}`
-        return queryWords.every(word => haystack.includes(word))
-      })
+      return this.filterRequestsBySearch(this.allPastRequests)
     },
     pastRequests () {
       return this.filteredPastRequests.slice(0, this.pastVisibleCount)
@@ -798,6 +933,9 @@ export default {
     },
     currentTimePick () {
       return this.timePickEvents[this.timePickIndex] || null
+    },
+    budgetYear () {
+      return new Date().getFullYear()
     }
   },
   watch: {
@@ -806,7 +944,7 @@ export default {
       this.createdDates = new Set()
       this.exportResult = null
     },
-    historySearch () {
+    requestsSearch () {
       this.pastVisibleCount = 10
     },
     showTimePickModal (visible) {
@@ -819,6 +957,7 @@ export default {
     this.fetchPlannings()
     this.fetchRequests()
     this.fetchHolidays()
+    this.fetchTimeOff()
     this.$nextTick(() => this.measureCalendar())
   },
   updated () {
@@ -1164,7 +1303,7 @@ export default {
     },
     async refreshData () {
       this.pastVisibleCount = 10
-      await Promise.all([this.fetchPlannings(), this.fetchRequests()])
+      await Promise.all([this.fetchPlannings(), this.fetchRequests(), this.fetchTimeOff()])
     },
     loadMorePast () {
       this.pastVisibleCount += 10
@@ -1296,6 +1435,78 @@ export default {
       this.executeGCalExport(events)
       this.timePickSingleCell = null
     },
+    filterRequestsBySearch (requests) {
+      const query = this.requestsSearch.trim().toLowerCase()
+      if (!query) { return requests }
+      const queryWords = query.split(/\s+/).filter(Boolean)
+      return requests.filter((request) => {
+        if (!request.firstDate) { return false }
+        const date = new Date(request.firstDate + 'T00:00:00')
+        const fullMonth = this.$dateFns.format(date, 'MMMM yyyy').toLowerCase()
+        const shortMonth = this.$dateFns.format(date, 'MMM yyyy').toLowerCase()
+        const numericMonth = this.$dateFns.format(date, 'MM/yy')
+        const numericMonthFull = this.$dateFns.format(date, 'MM/yyyy')
+        const yearOnly = this.$dateFns.format(date, 'yyyy')
+        const haystack = `${fullMonth} ${shortMonth} ${numericMonth} ${numericMonthFull} ${yearOnly}`
+        return queryWords.every(word => haystack.includes(word))
+      })
+    },
+    async fetchTimeOff () {
+      this.budgetLoading = true
+      this.budgetError = false
+      try {
+        const employeeId = this.$store.getters['user/info']?.employee_id
+        const response = await this.$axios.$get('timeoff', {
+          params: { offset: 0, limit: 100, search: '', year: this.budgetYear }
+        })
+        const employees = response?.data || []
+        this.timeOffData = employees.find(entry => entry.employee?.id === employeeId) || employees[0] || null
+      } catch {
+        this.budgetError = true
+        this.timeOffData = null
+      } finally {
+        this.budgetLoading = false
+      }
+    },
+    formatDays (hours) {
+      const totalHours = Math.abs(Number(hours))
+      const days = Math.floor(totalHours / 8)
+      const leftoverHours = Math.round(totalHours % 8)
+      const sign = Number(hours) < 0 ? '-' : ''
+      const unit = this.$t('calendar_page.budget_days_unit')
+      if (leftoverHours === 0) {
+        return `${sign}${days}${unit}`
+      }
+      if (days === 0) {
+        return `${sign}${leftoverHours}h`
+      }
+      return `${sign}${days}${unit} ${leftoverHours}h`
+    },
+    budgetBarWidth (segmentHours, totalHours, usedHours, plannedHours, requestedHours) {
+      const budget = Number(totalHours)
+      const segment = Number(segmentHours)
+      if (budget <= 0 || segment <= 0) { return '0%' }
+      const consumed = Number(usedHours) + Number(plannedHours) + Number(requestedHours)
+      const denominator = Math.max(budget, consumed)
+      const pct = (segment / denominator) * 100
+      return `${pct}%`
+    },
+    remainingClass (remainingHours) {
+      const val = Number(remainingHours)
+      if (val < 0) { return 'text-danger' }
+      if (val === 0) { return 'text-vacation-text' }
+      return 'text-ink'
+    },
+    remainingLabel (remainingHours, labelKey = 'calendar_page.budget_remaining') {
+      const val = Number(remainingHours)
+      if (val < 0) {
+        return this.$t('calendar_page.budget_over_planned', { days: this.formatDays(Math.abs(val)) })
+      }
+      if (val === 0) {
+        return this.$t('calendar_page.budget_all_planned')
+      }
+      return this.$t(labelKey) + ': ' + this.formatDays(remainingHours)
+    },
     async executeGCalExport (events) {
       this.exporting = true
       this.exportResult = null
@@ -1334,6 +1545,16 @@ export default {
 </script>
 
 <style scoped>
+  .sidebar-tab {
+    @apply text-xs font-bold uppercase tracking-wide px-2 py-1 rounded transition-colors;
+  }
+  .sidebar-tab-active {
+    @apply text-ink bg-card-hover;
+  }
+  .sidebar-tab-inactive {
+    @apply text-ink-faint hover:text-ink-muted;
+  }
+
   .sidebar-request-row {
     @apply flex items-center rounded transition-colors px-2;
     gap: 0.75rem;
@@ -1418,6 +1639,35 @@ export default {
     background: var(--color-card-hover);
   }
 
+  /* Budget progress bars */
+  .budget-bar-track {
+    @apply flex w-full h-3 rounded-full overflow-hidden;
+    background: var(--color-budget-remaining, var(--color-stroke-muted));
+  }
+  .budget-bar-sm {
+    @apply h-2;
+  }
+  .budget-bar-segment {
+    transition: width 0.4s ease;
+    min-width: 0;
+  }
+  .budget-details {
+    @apply flex flex-wrap gap-x-3 gap-y-0.5 mt-1.5 text-ink-muted tabular-nums;
+    font-size: 10px;
+  }
+  .bg-budget-used {
+    background: var(--color-budget-used, #059669);
+  }
+  .bg-budget-planned {
+    background: var(--color-budget-planned, #38bdf8);
+  }
+  .bg-budget-requested {
+    background: var(--color-budget-requested, #fbbf24);
+  }
+  .bg-budget-remaining {
+    background: var(--color-budget-remaining, var(--color-stroke-muted));
+  }
+
   /* Time inputs */
   .time-pick-input {
     @apply flex-1 px-3 py-2 text-sm rounded-lg border border-stroke text-ink;
@@ -1448,6 +1698,15 @@ export default {
   .dark .gcal-btn:hover {
     background: #6ea8ff;
     color: #1a1a2e;
+  }
+  .dark .bg-budget-used {
+    background: #10b981;
+  }
+  .dark .bg-budget-planned {
+    background: #7dd3fc;
+  }
+  .dark .bg-budget-requested {
+    background: #f59e0b;
   }
   .dark .time-pick-active {
     border-color: #6ea8ff;
