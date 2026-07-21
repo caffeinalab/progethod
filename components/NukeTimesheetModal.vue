@@ -10,7 +10,7 @@
       {{ $t('nuke_timesheet_warning') }}
     </p>
     <div v-if="isSubmitting && !isExpired" class="w-full mt-4">
-      <ProgressBar :fill="sentPercentage" />
+      <ProgressBar :fill="progressPercentage" />
     </div>
     <Alert v-if="isExpired" class="w-full mt-4" level="error" :message="$t('session_expired')" />
     <div v-if="!isExpired" class="flex items-center gap-3 mt-6 w-full">
@@ -43,18 +43,14 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
 import { IconAlertTriangle, IconLoader } from '@tabler/icons-vue'
-import pLimit from 'p-limit'
 import { prepareForCleanup } from '~/utils/timesheetMapper'
 
-const { t: $t } = useI18n()
 const api = useApi()
 const userStore = useUserStore()
 const entriesStore = useEntriesStore()
-const eventBus = useEventBus()
 
-const limit = pLimit(5)
+const { isSubmitting, isExpired, progressPercentage, execute } = useTimesheetBatchPost()
 
 const props = defineProps({
   modelValue: { type: Boolean, default: true },
@@ -64,39 +60,18 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
-const isSubmitting = ref(false)
-const sentData = ref(0)
-const dataToSend = ref([])
-
-const isExpired = computed(() => userStore.isTokenExpired)
-
-const sentPercentage = computed(() => {
-  const total = dataToSend.value?.length || 0
-  return Math.floor((sentData.value * 100 / total) || 0)
-})
-
 async function submit() {
   const employeeId = userStore.info?.employee_id
-  isSubmitting.value = true
-  sentData.value = 0
 
   const response = await api.$get('timetrackingboard', { params: { date: props.day } })
   const editableProjects = (response.data || []).filter((entry) => entry.can_edit === true)
-  dataToSend.value = prepareForCleanup(editableProjects, employeeId)
+  const entriesToPost = prepareForCleanup(editableProjects, employeeId)
 
-  await Promise.all(
-    dataToSend.value.map(
-      (entry) => limit(async () => {
-        await api.$post('timetracking', entry)
-        sentData.value++
-      }),
-    ),
-  )
+  const success = await execute(entriesToPost)
 
-  props.dayEntries.forEach(({ id }) => entriesStore.setSyncState({ id, synced: false }))
-
-  emit('update:modelValue', false)
-  isSubmitting.value = false
-  eventBus.emit('tracked-hours:refresh')
+  if (success) {
+    props.dayEntries.forEach(({ id }) => entriesStore.setSyncState({ id, synced: false }))
+    emit('update:modelValue', false)
+  }
 }
 </script>

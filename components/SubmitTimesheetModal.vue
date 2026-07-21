@@ -9,12 +9,12 @@
     </p>
     <div>
       <div class="w-full my-2 h-12 transition-opacity opacity-0" :class="{ 'opacity-100': isSubmitting && !isExpired }">
-        <ProgressBar :fill="sentPercentage" />
+        <ProgressBar :fill="progressPercentage" />
       </div>
     </div>
     <Alert v-if="isExpired" class="w-full" level="error" :message="$t('session_expired')" />
-    <Alert v-if="isError" class="w-full" level="error" :message="errorMessage" />
-    <div v-if="!isExpired && !isError && isConfirmOnSubmitRequired" class="flex items-center justify-center mt-4 sm:mt-6 w-full">
+    <Alert v-if="hasError" class="w-full" level="error" :message="errorMessage" />
+    <div v-if="!isExpired && !hasError && isConfirmOnSubmitRequired" class="flex items-center justify-center mt-4 sm:mt-6 w-full">
       <button
         :disabled="isSubmitting"
         class="px-6 py-2 bg-accent disabled:bg-ink-muted text-ink-inverse disabled:text-ink-faint disabled:cursor-default focus:outline-none hover:bg-accent-hover mx-2 my-2 rounded-lg"
@@ -27,18 +27,14 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick } from 'vue'
+import { watch, nextTick, computed } from 'vue'
 import { IconSend } from '@tabler/icons-vue'
-import pLimit from 'p-limit'
 
 const { t: $t } = useI18n()
-const api = useApi()
-const userStore = useUserStore()
 const entriesStore = useEntriesStore()
 const preferencesStore = usePreferencesStore()
-const eventBus = useEventBus()
 
-const limit = pLimit(5)
+const { isSubmitting, isExpired, progressPercentage, hasError, errorMessage, execute } = useTimesheetBatchPost()
 
 const props = defineProps({
   modelValue: { type: Boolean, default: true },
@@ -47,18 +43,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
-const isSubmitting = ref(false)
-const isError = ref(false)
-const errorMessage = ref('')
-const sentData = ref(0)
-
-const isExpired = computed(() => userStore.isTokenExpired)
 const isConfirmOnSubmitRequired = computed(() => preferencesStore.requireConfirmationOnSubmit)
-
-const sentPercentage = computed(() => {
-  const total = props.timesheetData?.length || 0
-  return Math.floor((sentData.value * 100 / total) || 0)
-})
 
 watch(() => props.modelValue, (newVal, oldVal) => {
   if (newVal !== oldVal && newVal === true && !isExpired.value && !isConfirmOnSubmitRequired.value) {
@@ -67,47 +52,21 @@ watch(() => props.modelValue, (newVal, oldVal) => {
 })
 
 async function submit() {
-  isSubmitting.value = true
-  sentData.value = 0
-  isError.value = false
+  const success = await execute(props.timesheetData || [], {
+    onSuccess(_entry, internalIds) {
+      internalIds.forEach((id) => entriesStore.setSyncState({ id, synced: true }))
+    },
+    formatError({ code, message, debugProjectName }) {
+      return $t('errors.unexpected_status_code', {
+        code: code || '',
+        message: message || '',
+        project: debugProjectName,
+      })
+    },
+  })
 
-  try {
-    await Promise.all(
-      (props.timesheetData || []).map(
-        (entry) => limit(async () => {
-          const { internalIds, debugProjectName, ...requestData } = entry
-          let data = {}
-
-          try {
-            data = await api.$post('timetracking', requestData)
-          } catch (err) {
-            data = {
-              code: err.response?.status || 500,
-              message: err.message,
-            }
-          }
-
-          if (data.code !== 200) {
-            isSubmitting.value = false
-            isError.value = true
-            errorMessage.value = $t('errors.unexpected_status_code', {
-              code: data.code || '',
-              message: data.message || '',
-              project: debugProjectName,
-            })
-            throw new Error(errorMessage.value)
-          }
-
-          sentData.value++
-          internalIds.forEach((id) => entriesStore.setSyncState({ id, synced: true }))
-        }),
-      ),
-    )
-
+  if (success) {
     emit('update:modelValue', false)
-    eventBus.emit('tracked-hours:refresh')
-  } finally {
-    isSubmitting.value = false
   }
 }
 </script>
