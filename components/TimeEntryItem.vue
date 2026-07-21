@@ -26,8 +26,8 @@
         :disabled="disabled"
         @focus="openDropdown"
         @input="openDropdown"
-        @keydown.down.prevent="moveHighlight(1)"
-        @keydown.up.prevent="moveHighlight(-1)"
+        @keydown.down.prevent="handleSearchDown"
+        @keydown.up.prevent="handleSearchUp"
         @keydown.enter.prevent="selectHighlighted"
         @keydown.tab="closeDropdown"
       >
@@ -227,6 +227,8 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { IconAlertTriangle, IconExternalLink, IconCheck, IconPlus, IconChevronDown } from '@tabler/icons-vue'
+import { useProjectSearch } from '~/composables/useProjectSearch'
+import { usePresetPicker } from '~/composables/usePresetPicker'
 
 const { t: $t } = useI18n()
 const router = useRouter()
@@ -249,11 +251,6 @@ const notesInput = ref<HTMLInputElement | null>(null)
 const durationRef = ref<any>(null)
 const quickCreateInput = ref<HTMLInputElement | null>(null)
 const projectColumn = ref<HTMLElement | null>(null)
-const optionRefs: Record<number, HTMLElement | null> = {}
-
-function setOptionRef(index: number, element: any) {
-  optionRefs[index] = element as HTMLElement | null
-}
 
 const duration = ref(0)
 const notes = ref('')
@@ -261,98 +258,59 @@ const location = ref('home')
 const searchQuery = ref('')
 const editing = ref(true)
 const dropdownOpen = ref(false)
-const highlightedIndex = ref(0)
 const selection = ref<any>(null)
 const notesFocused = ref(false)
-const presetsNavigating = ref(false)
-const highlightedPresetIndex = ref(0)
-const quickCreateActive = ref(false)
-const quickCreateLabel = ref('')
 
 const visibleProjects = computed(() => projectsStore.visibleProjects)
 const wethodProjects = computed(() => apiDataStore.projects)
 const visiblePresets = computed(() => presetsStore.visiblePresets)
 
-const showPresets = computed(() =>
-  notesFocused.value && !notes.value && visiblePresets.value.length > 0 && !props.disabled
-)
+const {
+  filteredLocalProjects,
+  filteredWethodEntries,
+  totalSelectableCount,
+  showCreateOption,
+  createOptionIndex,
+  highlightedIndex,
+  moveHighlight,
+  setOptionRef,
+  flatIndexForLocal,
+} = useProjectSearch({
+  query: searchQuery,
+  localProjects: visibleProjects,
+  wethodProjects,
+})
+
+const {
+  showPresets,
+  presetsNavigating,
+  highlightedPresetIndex,
+  quickCreateActive,
+  quickCreateLabel,
+  enterPresetsSelector,
+  handleNotesKeydown,
+  startQuickCreate,
+  confirmQuickCreate,
+  cancelQuickCreate,
+  handleNotesBlur,
+} = usePresetPicker({
+  presets: visiblePresets,
+  notesFocused,
+  notesEmpty: computed(() => !notes.value),
+  disabled: computed(() => !!props.disabled),
+  quickCreateInputRef: quickCreateInput,
+  notesInputRef: notesInput,
+})
 
 const isSelectionLinked = computed(() =>
-  selection.value?.type === 'local' && selection.value.localProject.linkedProjectId
-)
-
-const normalizedQuery = computed(() => searchQuery.value.toLowerCase().trim())
-
-const filteredLocalProjects = computed(() => {
-  if (!normalizedQuery.value) return visibleProjects.value.slice(0, 10)
-  return visibleProjects.value.filter(
-    (project: any) => fuzzyMatch(project.name, normalizedQuery.value)
-  )
-})
-
-const nonAutomaticWethodProjects = computed(() =>
-  wethodProjects.value.filter((project: any) => !project.isAutomatic)
-)
-
-const createOptionIndex = computed(() => filteredLocalProjects.value.length)
-
-const wethodFlatIndexStart = computed(() =>
-  filteredLocalProjects.value.length + (showCreateOption.value ? 1 : 0)
-)
-
-const filteredWethodEntries = computed(() => {
-  const entries: any[] = []
-  let flatIndex = wethodFlatIndexStart.value
-  const query = normalizedQuery.value
-  const projects = query ? nonAutomaticWethodProjects.value : nonAutomaticWethodProjects.value.slice(0, 15)
-
-  for (const project of projects) {
-    const projectNameMatches = fuzzyMatch(project.name, query)
-
-    let areasToShow
-    if (!query || projectNameMatches) {
-      areasToShow = project.areas
-    } else {
-      areasToShow = project.areas.filter((area: any) => {
-        const combinedText = project.name + ' ' + (area.name || '')
-        return fuzzyMatch(combinedText, query)
-      })
-    }
-
-    if (areasToShow.length === 0) continue
-
-    entries.push({ isHeader: true, project })
-    for (const area of areasToShow) {
-      entries.push({ isHeader: false, project, area, flatIndex })
-      flatIndex++
-    }
-  }
-
-  return entries
-})
-
-const totalSelectableCount = computed(() => {
-  const wethodAreaCount = filteredWethodEntries.value.filter((entry: any) => !entry.isHeader).length
-  return filteredLocalProjects.value.length + (showCreateOption.value ? 1 : 0) + wethodAreaCount
-})
-
-const hasExactLocalMatch = computed(() => {
-  if (!normalizedQuery.value) return false
-  const stripped = stripDiacritics(normalizedQuery.value)
-  return visibleProjects.value.some(
-    (project: any) => stripDiacritics(project.name.toLowerCase()) === stripped
-  )
-})
-
-const showCreateOption = computed(() =>
-  normalizedQuery.value.length > 0 && !hasExactLocalMatch.value
+  selection.value?.type === 'local' && selection.value.localProject.linkedProjectId,
 )
 
 const tooltipWethodInfo = computed(() => {
   if (selection.value?.type !== 'local' || !selection.value.localProject.linkedProjectId) return null
   const wethodProject = wethodProjects.value.find((wp: any) => wp.id === selection.value.localProject.linkedProjectId)
   if (!wethodProject) return null
-  const area = wethodProject.areas.find((area: any) => area.id === selection.value.localProject.linkedAreaId)
+  const area = wethodProject.areas.find((wethodArea: any) => wethodArea.id === selection.value.localProject.linkedAreaId)
   return { projectName: wethodProject.name, areaName: area?.name || 'Generico' }
 })
 
@@ -369,7 +327,7 @@ watch(() => props.modelValue, (newData) => {
       wethodProjectId: newData.directWethodProjectId,
       wethodAreaId: newData.directWethodAreaId,
       wethodProjectName: wethodProject?.name || '?',
-      wethodAreaName: wethodArea?.name || 'Generico'
+      wethodAreaName: wethodArea?.name || 'Generico',
     }
     editing.value = false
   } else if (newData.project) {
@@ -384,8 +342,6 @@ watch(() => props.modelValue, (newData) => {
   }
 }, { immediate: true, deep: true })
 
-watch(searchQuery, () => { highlightedIndex.value = 0 })
-
 function handleClickOutside(event: MouseEvent) {
   if (!(event.target as HTMLElement)?.isConnected) return
   if (!projectColumn.value?.contains(event.target as Node)) {
@@ -397,31 +353,13 @@ function handleClickOutside(event: MouseEvent) {
 onMounted(() => { document.addEventListener('click', handleClickOutside) })
 onBeforeUnmount(() => { document.removeEventListener('click', handleClickOutside) })
 
-function stripDiacritics(text: string) {
-  return text.normalize('NFD').replace(/[\u0300-\u036F]/g, '')
-}
-
-function fuzzyMatch(text: string, query: string) {
-  const normalizedText = stripDiacritics(text.toLowerCase())
-  const normalizedQ = stripDiacritics(query.toLowerCase().trim())
-  if (!normalizedQ) return true
-  if (normalizedText.includes(normalizedQ)) return true
-  const tokens = normalizedQ.split(/\s+/)
-  if (tokens.length > 1 && tokens.every(token => normalizedText.includes(token))) return true
-  const initials = normalizedText.split(/[\s\-_.']+/).map(word => word[0]).filter(Boolean).join('')
-  if (initials.includes(normalizedQ)) return true
-  return false
-}
-
 function resolveProjectLabel(project: any) {
   if (!project.linkedProjectId) return null
   const wethodProject = wethodProjects.value.find((wp: any) => wp.id === project.linkedProjectId)
   if (!wethodProject) return null
-  const area = wethodProject.areas.find((area: any) => area.id === project.linkedAreaId)
+  const area = wethodProject.areas.find((wethodArea: any) => wethodArea.id === project.linkedAreaId)
   return `${wethodProject.name}${area ? ' / ' + (area.name || 'Generico') : ''}`
 }
-
-function flatIndexForLocal(localIndex: number) { return localIndex }
 
 function openDropdown() { dropdownOpen.value = true }
 function closeDropdown() { dropdownOpen.value = false }
@@ -437,19 +375,14 @@ function startEditing() {
   })
 }
 
-function moveHighlight(delta: number) {
+function handleSearchDown() {
   if (!dropdownOpen.value) { dropdownOpen.value = true; return }
-  const total = totalSelectableCount.value
-  if (total === 0) return
-  highlightedIndex.value = (highlightedIndex.value + delta + total) % total
-  scrollHighlightedIntoView()
+  moveHighlight(1)
 }
 
-function scrollHighlightedIntoView() {
-  nextTick(() => {
-    const element = optionRefs[highlightedIndex.value]
-    element?.scrollIntoView?.({ block: 'nearest' })
-  })
+function handleSearchUp() {
+  if (!dropdownOpen.value) { dropdownOpen.value = true; return }
+  moveHighlight(-1)
 }
 
 function selectHighlighted() {
@@ -467,7 +400,7 @@ function selectHighlighted() {
     return
   }
   const wethodItem = filteredWethodEntries.value.find(
-    (entry: any) => !entry.isHeader && entry.flatIndex === index
+    (entry: any) => !entry.isHeader && entry.flatIndex === index,
   )
   if (wethodItem) selectWethodArea(wethodItem.project, wethodItem.area)
 }
@@ -488,7 +421,7 @@ function selectWethodArea(project: any, area: any) {
     wethodProjectId: project.id,
     wethodAreaId: area.id,
     wethodProjectName: project.name,
-    wethodAreaName: area.name || 'Generico'
+    wethodAreaName: area.name || 'Generico',
   }
   searchQuery.value = ''
   editing.value = false
@@ -534,7 +467,7 @@ function emitUpdate() {
     ...props.modelValue,
     duration: duration.value,
     notes: notes.value,
-    location: location.value
+    location: location.value,
   }
 
   if (selection.value?.type === 'local') {
@@ -567,8 +500,8 @@ function shouldEmitUpdate() {
   if (hadLocal !== hasLocal || hadWethod !== hasWethod) return true
   if (hasLocal && props.modelValue.project?.id !== selection.value.localProject.id) return true
   if (hasWethod && (
-    props.modelValue.directWethodProjectId !== selection.value.wethodProjectId ||
-    props.modelValue.directWethodAreaId !== selection.value.wethodAreaId
+    props.modelValue.directWethodProjectId !== selection.value.wethodProjectId
+    || props.modelValue.directWethodAreaId !== selection.value.wethodAreaId
   )) return true
 
   return false
@@ -598,59 +531,9 @@ function selectPreset(preset: any) {
   emitUpdate()
 }
 
-function enterPresetsSelector() {
-  if (!showPresets.value) return
-  presetsNavigating.value = true
-  highlightedPresetIndex.value = 0
-}
-
 function onNotesInput() {
   notesFocused.value = true
   emitUpdate()
-}
-
-function handleNotesBlur() {
-  setTimeout(() => {
-    if (quickCreateActive.value) return
-    notesFocused.value = false
-    presetsNavigating.value = false
-  }, 150)
-}
-
-function handleNotesKeydown(event: KeyboardEvent) {
-  if (!presetsNavigating.value) return
-  if (event.key === 'ArrowRight') {
-    event.preventDefault()
-    const totalItems = visiblePresets.value.length + 1
-    highlightedPresetIndex.value = (highlightedPresetIndex.value + 1) % totalItems
-  } else if (event.key === 'ArrowLeft') {
-    event.preventDefault()
-    const totalItems = visiblePresets.value.length + 1
-    highlightedPresetIndex.value = (highlightedPresetIndex.value - 1 + totalItems) % totalItems
-  } else if (event.key === 'ArrowUp') {
-    event.preventDefault()
-    presetsNavigating.value = false
-  }
-}
-
-function startQuickCreate() {
-  quickCreateActive.value = true
-  quickCreateLabel.value = ''
-  nextTick(() => quickCreateInput.value?.focus())
-}
-
-async function confirmQuickCreate() {
-  const label = quickCreateLabel.value.trim()
-  if (!label) { cancelQuickCreate(); return }
-  await presetsStore.add(label)
-  quickCreateActive.value = false
-  quickCreateLabel.value = ''
-  notesInput.value?.focus()
-}
-
-function cancelQuickCreate() {
-  quickCreateActive.value = false
-  quickCreateLabel.value = ''
 }
 
 defineExpose({ focusProject })
