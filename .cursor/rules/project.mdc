@@ -23,8 +23,9 @@ A simplified timesheet interface for Wethod. Data is stored locally (localStorag
 
 ## Pinia Stores
 
-- `stores/projects.ts` — User-created local project shortcuts (aliases to Wethod projects/areas)
-- `stores/presets.ts` — User-created note presets shown when the notes field is empty
+- `stores/softDeletableStore.ts` — Factory composable (`useSoftDeletableCollection<T>`) providing shared CRUD + soft-delete logic (items ref, updatedAt ref, visibleItems computed, add/update/remove/restoreBackup/restoreFromServer). Used by projects and presets stores.
+- `stores/projects.ts` — User-created local project shortcuts (aliases to Wethod projects/areas). Setup store using `useSoftDeletableCollection<Project>`, adds `removeMany` and `markUpToDate`.
+- `stores/presets.ts` — User-created note presets shown when the notes field is empty. Setup store using `useSoftDeletableCollection<Preset>`, adds `reorder`.
 - `stores/entries.ts` — Daily timesheet entries
 - `stores/user.ts` — Auth token, user info, integration tokens (Jira, GitLab, GCal)
 - `stores/apiData.ts` — Cached Wethod project data
