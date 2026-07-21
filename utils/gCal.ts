@@ -106,7 +106,7 @@ export async function getEvents(day: Date) {
   return response.result.items || []
 }
 
-export async function createOutOfOfficeEvent(dateStr: string, nextDateStr: string, options: { startTime?: string; endTime?: string } = {}) {
+export async function createOutOfOfficeEvent(dateStr: string, _nextDateStr: string, options: { startTime?: string; endTime?: string } = {}) {
   await loadGApiClient()
   const userStore = useUserStore()
 
@@ -114,24 +114,41 @@ export async function createOutOfOfficeEvent(dateStr: string, nextDateStr: strin
     await connectCalendar()
   }
 
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+  const startTime = options.startTime || '09:00'
+  const endTime = options.endTime || '18:00'
+
+  const existing = await findExistingOooEvent(dateStr, startTime, endTime, timeZone)
+  if (existing) return existing
+
   const resource: any = {
     summary: 'OOO',
     eventType: 'outOfOffice',
     outOfOfficeProperties: { autoDeclineMode: 'declineAllConflictingInvitations' },
     transparency: 'opaque',
     visibility: 'public',
-  }
-
-  if (options.startTime && options.endTime) {
-    resource.start = { dateTime: `${dateStr}T${options.startTime}:00`, timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }
-    resource.end = { dateTime: `${dateStr}T${options.endTime}:00`, timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }
-  } else {
-    resource.start = { date: dateStr }
-    resource.end = { date: nextDateStr }
+    start: { dateTime: `${dateStr}T${startTime}:00`, timeZone },
+    end: { dateTime: `${dateStr}T${endTime}:00`, timeZone },
   }
 
   const response = await window.gapi.client.calendar.events.insert({ calendarId: 'primary', resource })
   return response.result
+}
+
+async function findExistingOooEvent(dateStr: string, startTime: string, endTime: string, _timeZone: string) {
+  const dayStart = `${dateStr}T00:00:00`
+  const dayEnd = `${dateStr}T23:59:59`
+
+  const response = await window.gapi.client.calendar.events.list({
+    calendarId: 'primary',
+    timeMin: new Date(dayStart).toISOString(),
+    timeMax: new Date(dayEnd).toISOString(),
+    singleEvents: true,
+    eventTypes: 'outOfOffice',
+  })
+
+  const events = response.result.items || []
+  return events.find((event: any) => event.eventType === 'outOfOffice') || null
 }
 
 function matchEventToProject(description: string | null, projects: any[]) {
