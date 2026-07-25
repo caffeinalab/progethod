@@ -7,27 +7,26 @@
             <LogoBrand id="logo" :size="40" aria-label="Home" />
           </div>
 
-          <ul class="pr-12 xl:flex items-center h-full hidden navbar">
-            <NuxtLink to="/" class="h-full flex items-center">
-              <li class="text-ink-secondary hover:text-accent-fg cursor-pointer h-full flex items-center text-sm tracking-normal mx-5 capitalize">
-                {{ $t('timesheet') }}
-              </li>
-            </NuxtLink>
-            <NuxtLink to="/projects" class="h-full flex items-center">
-              <li class="text-ink-secondary hover:text-accent-fg cursor-pointer h-full flex items-center text-sm tracking-normal mx-5 capitalize">
-                {{ $t('projects') }}
-              </li>
-            </NuxtLink>
-            <NuxtLink to="/presets" class="h-full flex items-center">
-              <li class="text-ink-secondary hover:text-accent-fg cursor-pointer h-full flex items-center text-sm tracking-normal mx-5 capitalize">
-                {{ $t('presets.nav') }}
-              </li>
-            </NuxtLink>
-            <NuxtLink to="/ferie" class="h-full flex items-center">
-              <li class="text-ink-secondary hover:text-accent-fg cursor-pointer h-full flex items-center text-sm tracking-normal mx-5 capitalize">
-                {{ $t('calendar_page.nav') }}
-              </li>
-            </NuxtLink>
+          <ul ref="navbarRef" class="pr-12 xl:flex items-center h-full hidden navbar relative">
+            <li
+              v-for="item in navItems"
+              :key="item.to"
+              class="h-full flex items-center"
+            >
+              <NuxtLink
+                :to="item.to"
+                class="nav-link h-full flex items-center text-sm tracking-normal mx-5 capitalize text-ink-secondary hover:text-accent-fg transition-colors duration-200"
+                :class="{ 'nav-link-active text-accent-fg': isNavActive(item) }"
+              >
+                {{ $t(item.labelKey) }}
+              </NuxtLink>
+            </li>
+            <span
+              class="nav-indicator absolute bottom-0 left-0 h-0.5 bg-accent rounded-full pointer-events-none"
+              :class="{ 'nav-indicator--animate': indicatorReady }"
+              :style="indicatorStyle"
+              aria-hidden="true"
+            />
           </ul>
         </div>
 
@@ -166,10 +165,16 @@
       <!-- Mobile menu -->
       <div v-if="showMobileMenu" class="xl:hidden border-t border-stroke-muted bg-card shadow-lg">
         <ul class="p-4 space-y-2">
-          <li><NuxtLink to="/" class="block py-2 text-ink-secondary hover:text-accent-fg capitalize" @click="showMobileMenu = false">{{ $t('timesheet') }}</NuxtLink></li>
-          <li><NuxtLink to="/projects" class="block py-2 text-ink-secondary hover:text-accent-fg capitalize" @click="showMobileMenu = false">{{ $t('projects') }}</NuxtLink></li>
-          <li><NuxtLink to="/presets" class="block py-2 text-ink-secondary hover:text-accent-fg capitalize" @click="showMobileMenu = false">{{ $t('presets.nav') }}</NuxtLink></li>
-          <li><NuxtLink to="/ferie" class="block py-2 text-ink-secondary hover:text-accent-fg capitalize" @click="showMobileMenu = false">{{ $t('calendar_page.nav') }}</NuxtLink></li>
+          <li v-for="item in navItems" :key="`mobile-${item.to}`">
+            <NuxtLink
+              :to="item.to"
+              class="block py-2 capitalize transition-colors duration-200"
+              :class="isNavActive(item) ? 'text-accent-fg font-semibold' : 'text-ink-secondary hover:text-accent-fg'"
+              @click="showMobileMenu = false"
+            >
+              {{ $t(item.labelKey) }}
+            </NuxtLink>
+          </li>
           <li class="border-t border-stroke-muted my-2" />
           <li class="flex items-center gap-3 py-2">
             <img v-if="avatarUrl" class="rounded-full h-10 w-10 object-cover" :src="avatarUrl" alt="User avatar">
@@ -294,6 +299,7 @@ import { copyToClipboard } from '~/utils/clipboard'
 import { updateApiData } from '~/utils/updateApiData'
 
 const { t } = useI18n()
+const route = useRoute()
 const userStore = useUserStore()
 const apiDataStore = useApiDataStore()
 const preferencesStore = usePreferencesStore()
@@ -304,6 +310,69 @@ const showGuide = ref(false)
 const showMobileMenu = ref(false)
 const tokenCopied = ref(false)
 let tokenCopiedTimeout: ReturnType<typeof setTimeout> | null = null
+
+type NavItem = {
+  to: string
+  labelKey: string
+  match: (path: string) => boolean
+}
+
+const navItems: NavItem[] = [
+  { to: '/', labelKey: 'timesheet', match: path => path === '/' },
+  { to: '/projects', labelKey: 'projects', match: path => path.startsWith('/projects') },
+  { to: '/presets', labelKey: 'presets.nav', match: path => path.startsWith('/presets') },
+  { to: '/ferie', labelKey: 'calendar_page.nav', match: path => path.startsWith('/ferie') },
+]
+
+function isNavActive(item: NavItem) {
+  return item.match(route.path)
+}
+
+const navbarRef = ref<HTMLElement | null>(null)
+const indicatorReady = ref(false)
+const indicatorStyle = ref<Record<string, string>>({
+  width: '0px',
+  transform: 'translateX(0)',
+  opacity: '0',
+})
+
+let navbarResizeObserver: ResizeObserver | null = null
+
+function updateNavIndicator() {
+  const navbar = navbarRef.value
+  if (!navbar) return
+
+  const activeLink = navbar.querySelector('.nav-link-active') as HTMLElement | null
+  if (!activeLink) {
+    indicatorStyle.value = {
+      width: '0px',
+      transform: 'translateX(0)',
+      opacity: '0',
+    }
+    return
+  }
+
+  const navbarRect = navbar.getBoundingClientRect()
+  const linkRect = activeLink.getBoundingClientRect()
+  indicatorStyle.value = {
+    width: `${linkRect.width}px`,
+    transform: `translateX(${linkRect.left - navbarRect.left}px)`,
+    opacity: '1',
+  }
+}
+
+function scheduleNavIndicatorUpdate() {
+  nextTick(() => {
+    updateNavIndicator()
+    if (!indicatorReady.value) {
+      requestAnimationFrame(() => {
+        indicatorReady.value = true
+      })
+    }
+  })
+}
+
+watch(() => route.path, scheduleNavIndicatorUpdate)
 
 const avatarUrl = computed(() => userStore.profilePicUrl || userStore.info.pic || null)
 const userInitials = computed(() => {
