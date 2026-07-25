@@ -94,6 +94,9 @@ export const useUserStore = defineStore('user', {
       this.hasAuthorizedGCal = true
       this.googleTokenExpiration = addSeconds(new Date(), expiresIn).toISOString()
     },
+    invalidateGoogleToken() {
+      this.googleTokenExpiration = null
+    },
     setJiraAuth({ accessToken, refreshToken, expiresIn, cloudId }: {
       accessToken: string
       refreshToken?: string | null

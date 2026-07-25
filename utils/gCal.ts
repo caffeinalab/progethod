@@ -47,7 +47,40 @@ function waitForGsi(): Promise<void> {
   })
 }
 
-async function connectCalendar(): Promise<void> {
+function hasGapiAccessToken(): boolean {
+  return !!window.gapi?.client?.getToken()?.access_token
+}
+
+function clearGapiAccessToken() {
+  if (window.gapi?.client?.getToken()) {
+    window.gapi.client.setToken(null)
+  }
+}
+
+function isAuthError(error: any): boolean {
+  const status = error?.status ?? error?.result?.error?.code
+  if (status === 401 || status === 403) return true
+
+  const reason = String(
+    error?.error
+    || error?.result?.error?.status
+    || error?.result?.error?.message
+    || error?.message
+    || '',
+  ).toLowerCase()
+
+  return (
+    reason.includes('login_required')
+    || reason.includes('interaction_required')
+    || reason.includes('consent_required')
+    || reason.includes('invalid_grant')
+    || reason.includes('invalid_token')
+    || reason.includes('unauthenticated')
+    || reason.includes('access_denied')
+  )
+}
+
+async function connectCalendar({ interactive = false }: { interactive?: boolean } = {}): Promise<void> {
   await waitForGsi()
   const config = useRuntimeConfig()
   const userStore = useUserStore()
@@ -60,15 +93,56 @@ async function connectCalendar(): Promise<void> {
 
   const authorizedPromise = new Promise<void>((resolve, reject) => {
     tokenClient.callback = (tokenResponse: any) => {
-      if (tokenResponse.error !== undefined) { return reject(tokenResponse) }
+      if (tokenResponse.error !== undefined) {
+        console.warn('Google Calendar token request failed', tokenResponse)
+        return reject(tokenResponse)
+      }
+      // GIS usually wires this for gapi.client, but set it explicitly so retries are reliable
+      window.gapi.client.setToken(tokenResponse)
       userStore.authorizedGoogleToken(tokenResponse.expires_in)
       fetchGoogleProfilePic(tokenResponse.access_token)
       resolve()
     }
   })
 
-  tokenClient.requestAccessToken({ prompt: '' })
+  // consent when we need a fresh interactive login; empty prompt for silent refresh
+  tokenClient.requestAccessToken({ prompt: interactive ? 'consent' : '' })
   return authorizedPromise
+}
+
+async function ensureCalendarAuth(): Promise<void> {
+  const userStore = useUserStore()
+  const hasLiveToken = hasGapiAccessToken() && !!userStore.isGoogleTokenValid
+
+  if (hasLiveToken) return
+
+  // Prefer silent refresh first (returning users), then fall back to interactive consent
+  try {
+    await connectCalendar({ interactive: false })
+  } catch (silentError) {
+    console.warn('Silent Google Calendar auth failed, prompting user', silentError)
+    userStore.invalidateGoogleToken()
+    clearGapiAccessToken()
+    await connectCalendar({ interactive: true })
+  }
+}
+
+async function withCalendarAuthRetry<T>(operation: () => Promise<T>): Promise<T> {
+  await loadGApiClient()
+  await ensureCalendarAuth()
+
+  try {
+    return await operation()
+  } catch (error) {
+    if (!isAuthError(error)) throw error
+
+    console.warn('Google Calendar request unauthorized, re-prompting login', error)
+    const userStore = useUserStore()
+    userStore.invalidateGoogleToken()
+    clearGapiAccessToken()
+    await connectCalendar({ interactive: true })
+    return await operation()
+  }
 }
 
 async function fetchGoogleProfilePic(accessToken: string) {
@@ -87,52 +161,42 @@ async function fetchGoogleProfilePic(accessToken: string) {
 }
 
 export async function getEvents(day: Date) {
-  await loadGApiClient()
-  const userStore = useUserStore()
-
-  if (!userStore.isGoogleTokenValid) {
-    await connectCalendar()
-  }
-
-  const request = {
-    calendarId: 'primary',
-    timeMin: startOfDay(day).toISOString(),
-    timeMax: endOfDay(day).toISOString(),
-    showDeleted: false,
-    singleEvents: true,
-    orderBy: 'startTime',
-  }
-  const response = await window.gapi.client.calendar.events.list(request)
-  return response.result.items || []
+  return withCalendarAuthRetry(async () => {
+    const request = {
+      calendarId: 'primary',
+      timeMin: startOfDay(day).toISOString(),
+      timeMax: endOfDay(day).toISOString(),
+      showDeleted: false,
+      singleEvents: true,
+      orderBy: 'startTime',
+    }
+    const response = await window.gapi.client.calendar.events.list(request)
+    return response.result.items || []
+  })
 }
 
 export async function createOutOfOfficeEvent(dateStr: string, _nextDateStr: string, options: { startTime?: string; endTime?: string } = {}) {
-  await loadGApiClient()
-  const userStore = useUserStore()
+  return withCalendarAuthRetry(async () => {
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+    const startTime = options.startTime || '09:00'
+    const endTime = options.endTime || '18:00'
 
-  if (!userStore.isGoogleTokenValid) {
-    await connectCalendar()
-  }
+    const existing = await findExistingOooEvent(dateStr, startTime, endTime, timeZone)
+    if (existing) return existing
 
-  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
-  const startTime = options.startTime || '09:00'
-  const endTime = options.endTime || '18:00'
+    const resource: any = {
+      summary: 'OOO',
+      eventType: 'outOfOffice',
+      outOfOfficeProperties: { autoDeclineMode: 'declineAllConflictingInvitations' },
+      transparency: 'opaque',
+      visibility: 'public',
+      start: { dateTime: `${dateStr}T${startTime}:00`, timeZone },
+      end: { dateTime: `${dateStr}T${endTime}:00`, timeZone },
+    }
 
-  const existing = await findExistingOooEvent(dateStr, startTime, endTime, timeZone)
-  if (existing) return existing
-
-  const resource: any = {
-    summary: 'OOO',
-    eventType: 'outOfOffice',
-    outOfOfficeProperties: { autoDeclineMode: 'declineAllConflictingInvitations' },
-    transparency: 'opaque',
-    visibility: 'public',
-    start: { dateTime: `${dateStr}T${startTime}:00`, timeZone },
-    end: { dateTime: `${dateStr}T${endTime}:00`, timeZone },
-  }
-
-  const response = await window.gapi.client.calendar.events.insert({ calendarId: 'primary', resource })
-  return response.result
+    const response = await window.gapi.client.calendar.events.insert({ calendarId: 'primary', resource })
+    return response.result
+  })
 }
 
 async function findExistingOooEvent(dateStr: string, startTime: string, endTime: string, _timeZone: string) {
