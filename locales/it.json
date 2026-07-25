@@ -3,6 +3,8 @@
   "about_to_nuke_timesheet": "Ripristina giornata",
   "actions": "Azioni",
   "backup": "Backup",
+  "copy_auth_token": "Copia token Wethod",
+  "auth_token_copied": "Token copiato!",
   "business_unit": "Business Unit",
   "select_all": "Seleziona tutti",
   "copy": "Copia",

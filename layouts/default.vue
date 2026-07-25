@@ -102,6 +102,15 @@
                     <IconRefresh :size="20" :stroke-width="1.5" />
                     <span class="ml-2">{{ $t('update_projects') }}</span>
                   </li>
+                  <li
+                    class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring rounded"
+                    :class="{ 'text-success hover:text-success': tokenCopied, 'opacity-50 cursor-not-allowed hover:text-ink-secondary': !userStore.authToken && !tokenCopied }"
+                    @click.stop="copyAuthToken()"
+                  >
+                    <IconCheck v-if="tokenCopied" :size="20" :stroke-width="1.5" />
+                    <IconKey v-else :size="20" :stroke-width="1.5" />
+                    <span class="ml-2">{{ tokenCopied ? $t('auth_token_copied') : $t('copy_auth_token') }}</span>
+                  </li>
                   <li class="border-t border-stroke-muted my-2" />
                   <li class="py-2">
                     <span class="text-xs font-semibold text-ink-faint uppercase tracking-wider">{{ $t('theme_label') }}</span>
@@ -203,6 +212,18 @@
               <span>{{ $t('update_projects') }}</span>
             </button>
           </li>
+          <li>
+            <button
+              class="w-full flex items-center gap-2 py-2 text-ink-secondary hover:text-accent-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring rounded"
+              :class="{ 'text-success hover:text-success': tokenCopied, 'opacity-50 cursor-not-allowed hover:text-ink-secondary': !userStore.authToken && !tokenCopied }"
+              :disabled="!userStore.authToken"
+              @click="copyAuthToken()"
+            >
+              <IconCheck v-if="tokenCopied" :size="20" :stroke-width="1.5" />
+              <IconKey v-else :size="20" :stroke-width="1.5" />
+              <span>{{ tokenCopied ? $t('auth_token_copied') : $t('copy_auth_token') }}</span>
+            </button>
+          </li>
           <li class="border-t border-stroke-muted my-2" />
           <li class="py-2">
             <span class="text-xs font-semibold text-ink-faint uppercase tracking-wider">{{ $t('theme_label') }}</span>
@@ -253,12 +274,14 @@
 
 <script setup lang="ts">
 import {
+  IconCheck,
   IconCircleCheck,
   IconCircleX,
   IconDatabaseExport,
   IconDatabaseImport,
   IconDeviceDesktop,
   IconInfoCircle,
+  IconKey,
   IconKeyboard,
   IconLoader,
   IconMenu,
@@ -267,6 +290,7 @@ import {
   IconSun,
 } from '@tabler/icons-vue'
 import { getBackupData, getBackupFile, triggerFileDownload, askForBackupFile, restoreBackup } from '~/utils/backupRestore'
+import { copyToClipboard } from '~/utils/clipboard'
 import { updateApiData } from '~/utils/updateApiData'
 
 const { t } = useI18n()
@@ -278,6 +302,8 @@ const eventBus = useEventBus()
 const showDropdown = ref(false)
 const showGuide = ref(false)
 const showMobileMenu = ref(false)
+const tokenCopied = ref(false)
+let tokenCopiedTimeout: ReturnType<typeof setTimeout> | null = null
 
 const avatarUrl = computed(() => userStore.profilePicUrl || userStore.info.pic || null)
 const userInitials = computed(() => {
@@ -307,6 +333,19 @@ async function updateProjectsFromApi() {
   await updateApiData()
 }
 
+async function copyAuthToken() {
+  const token = userStore.authToken
+  if (!token) return
+
+  await copyToClipboard(token)
+  tokenCopied.value = true
+  if (tokenCopiedTimeout) clearTimeout(tokenCopiedTimeout)
+  tokenCopiedTimeout = setTimeout(() => {
+    tokenCopied.value = false
+    tokenCopiedTimeout = null
+  }, 1500)
+}
+
 function closeDropdown() {
   showDropdown.value = false
 }
@@ -317,6 +356,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   document.removeEventListener('click', closeDropdown)
+  if (tokenCopiedTimeout) clearTimeout(tokenCopiedTimeout)
 })
 </script>
 
