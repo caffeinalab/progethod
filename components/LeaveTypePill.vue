@@ -25,7 +25,7 @@ const resolvedShortLabel = computed(() => {
 @reference "~/assets/css/tailwind.css";
 
 .leave-type-pill {
-  @apply text-[10px] font-bold leading-none px-1.5 py-0.5 rounded flex-shrink-0 text-center bg-accent text-ink-inverse;
-  min-width: 1.25rem;
+  @apply text-xs font-bold leading-none px-2 py-1 rounded flex-shrink-0 text-center bg-accent text-ink-inverse;
+  min-width: 1.5rem;
 }
 </style>

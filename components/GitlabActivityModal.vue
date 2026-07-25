@@ -22,7 +22,7 @@
         <span class="relative flex-shrink-0">
           <button
             type="button"
-            class="opacity-0 group-hover:opacity-100 text-ink-faint hover:text-accent-fg transition-opacity p-0.5"
+            class="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 inline-flex items-center justify-center min-w-6 min-h-6 text-ink-faint hover:text-accent-fg transition-opacity rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
             :title="$t('gitlab.copy_sha')"
             @click.stop="copy(item.sha)"
           >

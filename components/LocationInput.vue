@@ -8,7 +8,7 @@
       <button
         v-for="option in options"
         :key="option.key"
-        class="focus:outline-none flex justify-center items-center disabled:cursor-default transition-colors duration-150 pl-2 pr-3 py-1 text-xs font-semibold gap-1.5 rounded-full"
+        class="focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring flex justify-center items-center disabled:cursor-default transition-colors duration-150 pl-2.5 pr-3 py-1.5 text-xs font-semibold gap-1.5 rounded-full"
         :class="optionClasses(option)"
         :disabled="disabled"
         :title="$t(option.label)"

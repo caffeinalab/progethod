@@ -42,8 +42,8 @@
                       <p class="text-sm text-ink-muted">{{ $t('require_notes_description') }}</p>
                     </div>
                     <div class="cursor-pointer rounded-full bg-card-hover relative shadow-sm">
-                      <input id="toggle" v-model="requiresNotes" type="checkbox" class="focus:outline-none checkbox w-6 h-6 rounded-full bg-accent absolute shadow-sm appearance-none cursor-pointer border border-transparent top-0 bottom-0 m-auto">
-                      <label for="toggle" class="toggle-label block w-12 h-4 overflow-hidden rounded-full bg-stroke cursor-pointer" />
+                      <input id="toggle" v-model="requiresNotes" type="checkbox" class="focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring checkbox w-6 h-6 rounded-full bg-accent absolute shadow-sm appearance-none cursor-pointer border border-transparent top-0 bottom-0 m-auto z-10">
+                      <label for="toggle" class="toggle-label block w-12 h-6 overflow-hidden rounded-full bg-stroke cursor-pointer" />
                     </div>
                   </div>
                   <div class="xl:w-1/4 lg:w-1/2 md:w-1/2 flex flex-col mb-6">

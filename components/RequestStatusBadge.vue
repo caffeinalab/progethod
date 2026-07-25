@@ -1,5 +1,5 @@
 <template>
-  <span class="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded" :class="leaveStatusBadgeClass(status)">
+  <span class="text-xs font-bold uppercase px-2 py-1 rounded" :class="leaveStatusBadgeClass(status)">
     {{ leaveStatusLabel(status, t) }}
   </span>
 </template>

@@ -23,7 +23,11 @@
               <h2 v-if="title" :class="titleClass">{{ title }}</h2>
             </slot>
           </div>
-          <button type="button" class="text-ink-faint hover:text-ink-secondary p-1 shrink-0" @click="close">
+          <button
+            type="button"
+            class="inline-flex items-center justify-center min-w-8 min-h-8 text-ink-faint hover:text-ink-secondary rounded shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+            @click="close"
+          >
             <IconX :size="20" />
           </button>
         </div>

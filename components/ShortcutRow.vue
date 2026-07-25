@@ -7,7 +7,7 @@
         <kbd
           v-for="(key, keyIndex) in group"
           :key="groupIndex + '-' + keyIndex"
-          class="inline-block px-2 py-0.5 text-xs font-mono font-semibold text-ink bg-card-dim border border-stroke rounded shadow-sm"
+          class="inline-block px-2 py-1 text-xs font-mono font-semibold text-ink bg-card-dim border border-stroke rounded shadow-sm"
         >
           {{ key }}
         </kbd>

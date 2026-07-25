@@ -17,19 +17,19 @@
               </button>
               <button
                 v-if="monthOffset !== 0"
-                class="px-3 py-1.5 text-xs font-medium rounded-lg bg-accent-soft text-accent-fg cursor-pointer hover:bg-accent-soft transition-colors border border-accent"
+                class="px-3 py-1.5 text-xs font-medium rounded-lg bg-accent-soft text-accent-fg cursor-pointer hover:bg-accent-soft transition-colors border border-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
                 @click="monthOffset = 0"
               >
                 {{ $t('calendar_page.current_month') }}
               </button>
               <div class="inline-flex items-center bg-card border border-stroke-muted rounded-lg shadow">
-                <button class="p-2 text-ink-muted cursor-pointer hover:bg-card-hover rounded-l-lg transition-colors focus:outline-none" @click="monthOffset--">
+                <button class="inline-flex items-center justify-center min-w-9 min-h-9 p-2 text-ink-muted cursor-pointer hover:bg-card-hover rounded-l-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus-ring" @click="monthOffset--">
                   <IconChevronLeft :size="18" />
                 </button>
                 <span class="px-4 py-1.5 text-sm font-semibold text-ink border-l border-r border-stroke-muted select-none capitalize">
                   {{ displayedMonthLabel }}
                 </span>
-                <button class="p-2 text-ink-muted cursor-pointer hover:bg-card-hover rounded-r-lg transition-colors focus:outline-none" @click="monthOffset++">
+                <button class="inline-flex items-center justify-center min-w-9 min-h-9 p-2 text-ink-muted cursor-pointer hover:bg-card-hover rounded-r-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus-ring" @click="monthOffset++">
                   <IconChevronRight :size="18" />
                 </button>
               </div>
@@ -61,7 +61,8 @@
                   <span class="text-sm font-semibold text-ink" :class="cell.isToday ? 'text-accent-fg' : ''">{{ cell.dayNumber }}</span>
                   <button
                     v-if="(cell.vacation > 0 || cell.leaves > 0) && !cell.isWeekend && !cell.isHoliday"
-                    class="gcal-icon hover:opacity-70 transition-opacity disabled:opacity-30"
+                    type="button"
+                    class="gcal-icon inline-flex items-center justify-center min-w-6 min-h-6 rounded hover:opacity-70 transition-opacity disabled:opacity-30 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
                     :disabled="createdDates.has(cell.dateKey)"
                     :title="createdDates.has(cell.dateKey) ? $t('calendar_page.already_added') : $t('calendar_page.add_to_gcal')"
                     @mousedown.stop
@@ -71,7 +72,7 @@
                     <icons-google-calendar-icon v-else :size="14" />
                   </button>
                 </div>
-                <div v-if="cell.isHoliday" class="text-[10px] font-medium text-ink-faint truncate" :title="cell.holidayName">{{ cell.holidayName }}</div>
+                <div v-if="cell.isHoliday" class="text-xs font-medium text-ink-faint truncate" :title="cell.holidayName">{{ cell.holidayName }}</div>
                 <div v-if="cell.vacation > 0" class="text-xs font-medium" :class="cell.vacationPending ? 'text-pending-text' : 'text-vacation-text'">
                   {{ $t('calendar_page.vacation_label') }} {{ formatDecimalHoursLabel(cell.vacation) }}
                 </div>
@@ -88,7 +89,7 @@
               <span class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded-sm bg-pending-soft border-2 border-pending" />{{ $t('calendar_page.pending') }}</span>
               <span class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded-sm bg-card-dim border border-stroke-muted" />{{ $t('calendar_page.holiday_label') }}</span>
             </div>
-            <span class="text-ink-faint text-[10px]">{{ $t('calendar_page.bulk_hint', { key: isMac ? '⌘' : 'Ctrl' }) }}</span>
+            <span class="text-ink-faint text-xs">{{ $t('calendar_page.bulk_hint', { key: isMac ? '⌘' : 'Ctrl' }) }}</span>
           </div>
 
           <div class="mt-4 pt-4 border-t border-stroke-muted">
@@ -127,7 +128,8 @@
                   {{ bulkDeleting ? $t('calendar_page.bulk_deleting', bulkProgress) : $t('calendar_page.bulk_delete') }}
                 </button>
                 <button
-                  class="p-1.5 rounded text-ink-faint hover:text-ink transition-colors"
+                  type="button"
+                  class="inline-flex items-center justify-center min-w-8 min-h-8 p-1.5 rounded text-ink-faint hover:text-ink transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
                   :title="$t('calendar_page.bulk_cancel')"
                   @click="clearBulkSelection"
                 >
@@ -144,19 +146,19 @@
           <div class="bg-card shadow rounded-lg p-3 shrink-0">
             <div class="flex items-center justify-between mb-2 px-1">
               <h2 class="text-xs font-bold text-ink-muted uppercase tracking-wide">{{ $t('calendar_page.budget_title', { year: budgetYear }) }}</h2>
-              <button v-if="budgetError" class="text-[10px] text-accent-fg hover:underline" @click="fetchTimeOff">{{ $t('calendar_page.budget_retry') }}</button>
+              <button v-if="budgetError" type="button" class="text-xs text-accent-fg hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring rounded" @click="fetchTimeOff">{{ $t('calendar_page.budget_retry') }}</button>
             </div>
-            <div v-if="budgetLoading" class="flex items-center gap-2 text-[11px] text-ink-muted py-3 px-1">
+            <div v-if="budgetLoading" class="flex items-center gap-2 text-xs text-ink-muted py-3 px-1">
               <span class="inline-block w-3 h-3 border-2 border-stroke-muted border-t-accent rounded-full animate-spin" />
               {{ $t('calendar_page.budget_loading') }}
             </div>
-            <div v-else-if="budgetError" class="text-[11px] text-ink-muted py-3 text-center">{{ $t('calendar_page.budget_error') }}</div>
+            <div v-else-if="budgetError" class="text-xs text-ink-muted py-3 text-center">{{ $t('calendar_page.budget_error') }}</div>
             <div v-else-if="timeOffData" class="space-y-3 px-1">
               <div v-for="section in budgetSections" :key="section.key">
                 <div :class="section.borderTop ? 'pt-2 mt-1 border-t border-stroke-muted' : ''">
                   <div class="flex items-baseline justify-between mb-1">
                     <span class="text-xs font-semibold text-ink">{{ section.label }}</span>
-                    <span class="text-[10px] text-ink-muted tabular-nums">{{ formatDays(section.total) }}</span>
+                    <span class="text-xs text-ink-muted tabular-nums">{{ formatDays(section.total) }}</span>
                   </div>
                   <div class="relative">
                     <div class="budget-bar-track budget-bar-sm">
@@ -178,7 +180,7 @@
                   </div>
                 </div>
               </div>
-              <div class="grid grid-cols-2 gap-x-2 gap-y-0.5 pt-2 border-t border-stroke-muted text-[10px] text-ink-faint">
+              <div class="grid grid-cols-2 gap-x-2 gap-y-0.5 pt-2 border-t border-stroke-muted text-xs text-ink-faint">
                 <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-budget-used" />{{ $t('calendar_page.budget_used') }}</span>
                 <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-budget-planned" />{{ $t('calendar_page.budget_planned') }}</span>
                 <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-budget-requested" />{{ $t('calendar_page.budget_requested') }}</span>
@@ -195,7 +197,7 @@
               <button class="sidebar-tab" :class="sidebarTab === 'history' ? 'sidebar-tab-active' : 'sidebar-tab-inactive'" @click="sidebarTab = 'history'">{{ $t('calendar_page.history_title') }}</button>
             </div>
             <div class="px-1 mb-2">
-              <input v-model="requestsSearch" type="text" class="w-full px-2 py-1 text-xs rounded border border-stroke bg-card-hover text-ink placeholder-ink-faint focus:outline-none focus:ring-1 focus:ring-focus-ring" :placeholder="$t('calendar_page.history_search_placeholder')">
+              <input v-model="requestsSearch" type="text" class="w-full px-2.5 py-1.5 text-xs rounded border border-stroke bg-card-hover text-ink placeholder-ink-faint focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring" :placeholder="$t('calendar_page.history_search_placeholder')">
             </div>
             <div v-if="requestsLoading" class="space-y-2 px-1">
               <div v-for="skeleton in 4" :key="skeleton" class="animate-pulse"><span class="inline-block w-full h-6 bg-stroke-muted rounded" /></div>
@@ -204,7 +206,7 @@
               <div v-if="upcomingRequests.length === 0" class="text-xs text-ink-muted py-4 text-center">{{ $t('calendar_page.requests_empty') }}</div>
               <div v-else class="overflow-y-auto custom-scrollbar min-h-0">
                 <div v-for="group in upcomingByMonth" :key="group.monthKey" class="mb-2 last:mb-0">
-                  <div class="text-[10px] font-semibold text-ink-faint uppercase tracking-wide px-1 py-1 capitalize">{{ group.label }}</div>
+                  <div class="text-xs font-semibold text-ink-faint uppercase tracking-wide px-1 py-1 capitalize">{{ group.label }}</div>
                   <div>
                     <SidebarRequestRow
                       v-for="request in group.requests"
@@ -223,7 +225,7 @@
               <div v-if="pastRequests.length === 0" class="text-xs text-ink-muted py-4 text-center">{{ $t('calendar_page.no_past_requests') }}</div>
               <div v-else ref="historyScroll" class="overflow-y-auto custom-scrollbar min-h-0" @scroll="onHistoryScroll">
                 <div v-for="group in pastByMonth" :key="group.monthKey" class="mb-2 last:mb-0">
-                  <div class="text-[10px] font-semibold text-ink-faint uppercase tracking-wide px-1 py-1 capitalize">{{ group.label }}</div>
+                  <div class="text-xs font-semibold text-ink-faint uppercase tracking-wide px-1 py-1 capitalize">{{ group.label }}</div>
                   <div>
                     <SidebarRequestRow
                       v-for="request in group.requests"
@@ -318,7 +320,12 @@
         <div class="flex flex-wrap gap-1.5">
           <span v-for="(dateStr, dateIndex) in modalDates" :key="dateStr" class="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded bg-card-hover text-ink capitalize">
             {{ formatDateChip(dateStr) }}
-            <button v-if="requestModalMode === 'create' && modalDates.length > 1" class="text-ink-faint hover:text-danger transition-colors ml-0.5" @click="removeModalDate(dateIndex)"><IconX :size="12" /></button>
+            <button
+              v-if="requestModalMode === 'create' && modalDates.length > 1"
+              type="button"
+              class="inline-flex items-center justify-center min-w-6 min-h-6 text-ink-faint hover:text-danger transition-colors ml-0.5 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+              @click="removeModalDate(dateIndex)"
+            ><IconX :size="14" /></button>
           </span>
         </div>
       </div>
@@ -1004,7 +1011,7 @@ async function executeGCalExport(events) {
 @reference "~/assets/css/tailwind.css";
 .sidebar-tabs-wrapper { @apply relative flex rounded-lg bg-card-hover p-0.5; }
 .sidebar-tabs-indicator { @apply absolute top-0.5 left-0.5 h-[calc(100%-4px)] w-[calc(50%-2px)] rounded-md bg-card shadow-sm transition-transform duration-200 ease-out; }
-.sidebar-tab { @apply relative z-10 flex-1 text-xs font-bold uppercase tracking-wide py-1.5 rounded-md transition-colors text-center cursor-pointer; }
+.sidebar-tab { @apply relative z-10 flex-1 text-xs font-bold uppercase tracking-wide py-2 rounded-md transition-colors text-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus-ring; }
 .sidebar-tab-active { @apply text-ink; }
 .sidebar-tab-inactive { @apply text-ink-faint hover:text-ink-muted; }
 .gcal-icon { color: #4285F4; }
@@ -1017,7 +1024,7 @@ async function executeGCalExport(events) {
 .budget-bar-sm { @apply h-2; }
 .budget-bar-segment { transition: width 0.4s ease; min-width: 0; }
 .budget-target-marker { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--color-ink); border-radius: 1px; z-index: 1; opacity: 0.7; transition: left 0.4s ease; }
-.budget-details { @apply flex flex-wrap gap-x-3 gap-y-0.5 mt-1.5 text-ink-muted tabular-nums; font-size: 10px; }
+.budget-details { @apply flex flex-wrap gap-x-3 gap-y-0.5 mt-1.5 text-xs text-ink-muted tabular-nums; }
 .bg-budget-used { background: var(--color-budget-used, #059669); }
 .bg-budget-planned { background: var(--color-budget-planned, #38bdf8); }
 .bg-budget-requested { background: var(--color-budget-requested, #fbbf24); }

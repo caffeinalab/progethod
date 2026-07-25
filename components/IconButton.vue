@@ -81,7 +81,7 @@ const rootClass = computed(() => {
 
 .icon-btn--ghost,
 .icon-btn--ghost-danger {
-  @apply p-1.5 rounded transition-colors cursor-pointer;
+  @apply inline-flex items-center justify-center min-w-6 min-h-6 p-1.5 rounded transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-focus-ring;
   color: var(--color-ink-faint);
   border: none;
   background: transparent;

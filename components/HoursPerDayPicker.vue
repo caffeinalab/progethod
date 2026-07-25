@@ -28,11 +28,11 @@
       <div class="inline-flex items-stretch rounded-lg border border-stroke overflow-hidden">
         <button
           type="button"
-          class="px-2.5 flex items-center text-ink-muted hover:bg-card-hover hover:text-ink transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          class="min-w-8 min-h-9 px-2.5 flex items-center justify-center text-ink-muted hover:bg-card-hover hover:text-ink transition-colors disabled:opacity-30 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus-ring"
           :disabled="customHours <= min"
           @click="nudge(-step)"
         >
-          <IconMinus :size="14" />
+          <IconMinus :size="16" />
         </button>
         <input
           :value="customHours"
@@ -40,16 +40,16 @@
           :min="min"
           :max="max"
           :step="step"
-          class="custom-hours-input w-12 text-center text-sm font-medium bg-input text-ink py-2 border-x border-stroke focus:outline-none"
+          class="custom-hours-input w-12 text-center text-sm font-medium bg-input text-ink py-2 border-x border-stroke focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus-ring"
           @input="onCustomInput"
         >
         <button
           type="button"
-          class="px-2.5 flex items-center text-ink-muted hover:bg-card-hover hover:text-ink transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          class="min-w-8 min-h-9 px-2.5 flex items-center justify-center text-ink-muted hover:bg-card-hover hover:text-ink transition-colors disabled:opacity-30 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus-ring"
           :disabled="customHours >= max"
           @click="nudge(step)"
         >
-          <IconPlus :size="14" />
+          <IconPlus :size="16" />
         </button>
       </div>
       <span v-if="customHint" class="text-xs text-ink-muted">{{ customHint }}</span>

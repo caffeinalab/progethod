@@ -26,12 +26,12 @@
       <div class="p-1.5 border-b border-stroke-muted">
         <label class="flex items-center gap-2.5 px-2.5 py-2 rounded-md hover:bg-card-hover cursor-pointer transition-colors">
           <span
-            class="flex items-center justify-center w-4 h-4 rounded border transition-colors flex-shrink-0"
+            class="flex items-center justify-center w-5 h-5 rounded border transition-colors flex-shrink-0"
             :class="allSelected || someSelected ? 'bg-accent border-accent' : 'border-stroke bg-card'"
           >
             <svg
               v-if="allSelected"
-              class="w-3 h-3 text-ink-inverse"
+              class="w-3.5 h-3.5 text-ink-inverse"
               viewBox="0 0 12 12"
               fill="none"
               stroke="currentColor"
@@ -41,7 +41,7 @@
             ><polyline points="2.5 6 5 8.5 9.5 3.5" /></svg>
             <svg
               v-else-if="someSelected"
-              class="w-3 h-3 text-ink-inverse"
+              class="w-3.5 h-3.5 text-ink-inverse"
               viewBox="0 0 12 12"
               fill="none"
               stroke="currentColor"
@@ -61,12 +61,12 @@
           class="flex items-center gap-2.5 px-2.5 py-2 rounded-md hover:bg-card-hover cursor-pointer transition-colors"
         >
           <span
-            class="flex items-center justify-center w-4 h-4 rounded border transition-colors flex-shrink-0"
+            class="flex items-center justify-center w-5 h-5 rounded border transition-colors flex-shrink-0"
             :class="isSelected(businessUnit.id) ? 'bg-accent border-accent' : 'border-stroke bg-card'"
           >
             <svg
               v-if="isSelected(businessUnit.id)"
-              class="w-3 h-3 text-ink-inverse"
+              class="w-3.5 h-3.5 text-ink-inverse"
               viewBox="0 0 12 12"
               fill="none"
               stroke="currentColor"

@@ -13,7 +13,8 @@
     >
       <div class="flex items-center justify-between mb-3">
         <button
-          class="p-1 rounded hover:bg-card-hover transition-colors text-ink-muted"
+          type="button"
+          class="inline-flex items-center justify-center min-w-8 min-h-8 p-1.5 rounded hover:bg-card-hover transition-colors text-ink-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
           @click="monthOffset--"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -24,7 +25,8 @@
           {{ displayedMonthLabel }}
         </div>
         <button
-          class="p-1 rounded hover:bg-card-hover transition-colors text-ink-muted"
+          type="button"
+          class="inline-flex items-center justify-center min-w-8 min-h-8 p-1.5 rounded hover:bg-card-hover transition-colors text-ink-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
           @click="monthOffset++"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

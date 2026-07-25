@@ -23,19 +23,19 @@
     <div v-if="showActions" class="sidebar-actions">
       <button
         type="button"
-        class="p-0.5 rounded text-ink-faint cursor-pointer hover:text-accent-fg transition-colors"
+        class="sidebar-action-btn hover:text-accent-fg"
         :title="t('edit')"
         @click="emit('edit')"
       >
-        <IconEdit :size="14" />
+        <IconEdit :size="16" />
       </button>
       <button
         type="button"
-        class="p-0.5 rounded text-ink-faint cursor-pointer hover:text-danger transition-colors"
+        class="sidebar-action-btn hover:text-danger"
         :title="t('delete')"
         @click="emit('delete')"
       >
-        <IconTrash :size="14" />
+        <IconTrash :size="16" />
       </button>
     </div>
   </div>
@@ -82,5 +82,10 @@ const { t } = useI18n()
 .sidebar-hours { @apply text-xs text-ink-muted whitespace-nowrap tabular-nums; }
 .sidebar-meta { @apply flex items-center shrink-0; gap: 0.375rem; }
 .sidebar-actions { @apply flex items-center shrink-0 opacity-0 transition-opacity; gap: 0.125rem; }
-.sidebar-request-row:hover .sidebar-actions { @apply opacity-100; }
+.sidebar-request-row:hover .sidebar-actions,
+.sidebar-request-row:focus-within .sidebar-actions { @apply opacity-100; }
+.sidebar-action-btn {
+  @apply inline-flex items-center justify-center min-w-6 min-h-6 rounded text-ink-faint cursor-pointer transition-colors;
+  @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring;
+}
 </style>

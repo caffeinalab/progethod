@@ -7,7 +7,7 @@
   >
     <span
       class="toggle-knob inline-block rounded-full bg-card shadow transform transition-transform duration-200"
-      :class="modelValue ? 'translate-x-3' : 'translate-x-0'"
+      :class="modelValue ? 'translate-x-4' : 'translate-x-0'"
     />
   </span>
 </template>
@@ -20,13 +20,13 @@ defineProps<{
 
 <style scoped>
 .toggle-track {
-  width: 1.75rem;
-  height: 1rem;
-  padding: 0.125rem;
+  width: 2.5rem;
+  height: 1.5rem;
+  padding: 0.1875rem;
 }
 
 .toggle-knob {
-  width: 0.75rem;
-  height: 0.75rem;
+  width: 1.125rem;
+  height: 1.125rem;
 }
 </style>

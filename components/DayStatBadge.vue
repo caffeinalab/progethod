@@ -50,7 +50,7 @@ const variantClass = computed(() => {
 @reference "~/assets/css/tailwind.css";
 
 /* Variants tint the border only — background stays card, text stays ink. */
-.day-stat-box { @apply flex items-center gap-1.5 px-3 py-1 bg-card rounded-lg border border-stroke-muted shadow text-sm; }
+.day-stat-box { @apply flex items-center gap-1.5 px-3 py-1.5 bg-card rounded-lg border border-stroke-muted shadow text-sm; }
 .day-stat-box--clickable { @apply cursor-pointer transition-colors; }
 .day-stat-box--clickable:hover { background-color: var(--color-card-hover); border-color: var(--color-stroke); }
 .day-stat-box--clickable:focus { @apply outline-none ring-2 ring-focus-ring; }

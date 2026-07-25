@@ -67,14 +67,14 @@
               <div aria-haspopup="true" class="w-full flex items-center justify-end relative" @click.stop="showDropdown = !showDropdown">
                 <ul v-show="showDropdown" class="p-2 w-60 border border-stroke-muted bg-card absolute rounded-lg z-40 right-0 top-full mt-2 shadow-lg">
                   <li
-                    class="cursor-pointer text-ink-secondary text-sm leading-3 tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none"
+                    class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none"
                     @click="showGuide = true"
                   >
                     <IconInfoCircle :size="20" :stroke-width="1.5" />
                     <span class="ml-2">{{ $t('guide_button') }}</span>
                   </li>
                   <li
-                    class="cursor-pointer text-ink-secondary text-sm leading-3 tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none"
+                    class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none"
                     @click="eventBus.emit('shortcut:show-help')"
                   >
                     <IconKeyboard :size="20" :stroke-width="1.5" />
@@ -82,21 +82,21 @@
                   </li>
                   <li class="border-t border-stroke-muted my-2" />
                   <li
-                    class="cursor-pointer text-ink-secondary text-sm leading-3 tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none"
+                    class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none"
                     @click="backup()"
                   >
                     <IconDatabaseExport :size="20" :stroke-width="1.5" />
                     <span class="ml-2">{{ $t('backup') }}</span>
                   </li>
                   <li
-                    class="cursor-pointer text-ink-secondary text-sm leading-3 tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none"
+                    class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none"
                     @click="restore()"
                   >
                     <IconDatabaseImport :size="20" :stroke-width="1.5" />
                     <span class="ml-2">{{ $t('restore') }}</span>
                   </li>
                   <li
-                    class="cursor-pointer text-ink-secondary text-sm leading-3 tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none"
+                    class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none"
                     @click="updateProjectsFromApi()"
                   >
                     <IconRefresh :size="20" :stroke-width="1.5" />
@@ -109,7 +109,7 @@
                       <button
                         v-for="option in themeOptions"
                         :key="option.value"
-                        class="flex-1 flex items-center justify-center gap-1 py-1 text-xs rounded transition-colors"
+                        class="flex-1 flex items-center justify-center gap-1 py-1.5 text-xs rounded transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
                         :class="preferencesStore.theme === option.value
                           ? 'bg-accent-soft text-accent-fg font-semibold'
                           : 'text-ink-muted hover:text-ink-secondary hover:bg-card-hover'"
@@ -121,7 +121,7 @@
                     </div>
                   </li>
                   <li
-                    class="cursor-pointer text-ink-secondary text-sm leading-3 tracking-normal py-2 hover:text-accent-fg flex items-center justify-between focus:text-accent-fg focus:outline-none"
+                    class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal py-2 hover:text-accent-fg flex items-center justify-between focus:text-accent-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring rounded"
                     @click.stop="preferencesStore.setHighContrast(!preferencesStore.highContrast)"
                   >
                     <span>{{ $t('high_contrast') }}</span>
@@ -129,7 +129,7 @@
                   </li>
                   <li class="border-t border-stroke-muted my-2" />
                   <li
-                    class="cursor-pointer text-ink-secondary text-sm leading-3 tracking-normal py-2 hover:text-accent-fg flex items-center justify-between focus:text-accent-fg focus:outline-none"
+                    class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal py-2 hover:text-accent-fg flex items-center justify-between focus:text-accent-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring rounded"
                     @click.stop="preferencesStore.setRequireSubmitConfirmation(!preferencesStore.isConfirmOnSubmitRequired)"
                   >
                     <span>{{ $t('require_confirm_on_submit_short') }}</span>
@@ -210,7 +210,7 @@
               <button
                 v-for="option in themeOptions"
                 :key="option.value"
-                class="flex-1 flex items-center justify-center gap-1 py-1.5 text-xs rounded transition-colors"
+                class="flex-1 flex items-center justify-center gap-1 py-1.5 text-xs rounded transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
                 :class="preferencesStore.theme === option.value
                   ? 'bg-accent-soft text-accent-fg font-semibold'
                   : 'text-ink-muted hover:text-ink-secondary hover:bg-card-hover'"
