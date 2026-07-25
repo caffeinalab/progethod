@@ -230,7 +230,6 @@
     "budget_all_planned": "Tutto pianificato",
     "budget_over_planned": "Eccesso di {days}",
     "budget_target_label": "Target aziendale",
-    "budget_target_short": "Target:",
     "budget_target_tooltip": "Obiettivo di ore da assegnare a ferie/permessi definito dall'azienda. Può differire dalla somma dei budget individuali.",
     "bulk_selected": "{count} richieste selezionate ({days} giorni)",
     "bulk_edit": "Modifica selezionate",

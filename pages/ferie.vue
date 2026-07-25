@@ -168,14 +168,12 @@
                       v-if="section.targetMarker"
                       class="budget-target-marker"
                       :style="{ left: targetMarkerPosition(section) }"
-                      :title="$t('calendar_page.budget_target_label') + ': ' + formatDays(section.targetMarker)"
                     />
                   </div>
                   <div class="budget-details">
                     <span><span class="inline-block w-1.5 h-1.5 rounded-sm bg-budget-used mr-0.5" />{{ formatDays(section.used) }}</span>
                     <span><span class="inline-block w-1.5 h-1.5 rounded-sm bg-budget-planned mr-0.5" />{{ formatDays(section.planned) }}</span>
                     <span v-if="Number(section.requested) > 0"><span class="inline-block w-1.5 h-1.5 rounded-sm bg-budget-requested mr-0.5" />{{ formatDays(section.requested) }}</span>
-                    <span v-if="section.targetMarker" class="text-ink-faint"><span class="budget-target-legend mr-0.5" />{{ $t('calendar_page.budget_target_short') }} {{ formatDays(section.targetMarker) }}</span>
                     <span class="font-semibold" :class="remainingClass(section.remaining)">{{ remainingLabel(section.remaining, section.remainingLabelKey) }}</span>
                   </div>
                 </div>
@@ -598,14 +596,10 @@ const budgetSections = computed(() => {
   if (!timeOffData.value) return []
   const data = timeOffData.value
   const combinedTotal = Number(data.time_off_targets.vacation) + Number(data.time_off_targets.leave)
-  const combinedUsed = Number(data.used.target)
-  const combinedPlanned = Number(data.planned.target)
-  const combinedRequested = Number(data.requested.target)
-  const combinedRemaining = combinedTotal - combinedUsed - combinedPlanned - combinedRequested
   return [
     { key: 'vacation', label: $t('calendar_page.vacation_label'), total: data.time_off_targets.vacation, used: data.used.vacation, planned: data.planned.vacation, requested: data.requested.vacation, remaining: data.remaining.vacation, remainingLabelKey: 'calendar_page.budget_balance' },
     { key: 'leave', label: $t('calendar_page.leaves_label'), total: data.time_off_targets.leave, used: data.used.leave, planned: data.planned.leave, requested: data.requested.leave, remaining: data.remaining.leave, remainingLabelKey: 'calendar_page.budget_balance' },
-    { key: 'total', label: $t('calendar_page.budget_total'), total: combinedTotal, used: combinedUsed, planned: combinedPlanned, requested: combinedRequested, remaining: combinedRemaining, borderTop: true, remainingLabelKey: 'calendar_page.budget_remaining', targetMarker: Number(data.time_off_targets.target) },
+    { key: 'total', label: $t('calendar_page.budget_total'), total: combinedTotal, used: data.used.target, planned: data.planned.target, requested: data.requested.target, remaining: data.remaining.target, borderTop: true, remainingLabelKey: 'calendar_page.budget_remaining', targetMarker: Number(data.time_off_targets.target) },
   ]
 })
 
@@ -1022,8 +1016,7 @@ async function executeGCalExport(events) {
 .budget-bar-track { @apply flex w-full h-3 rounded-full overflow-hidden; background: var(--color-budget-remaining, var(--color-stroke-muted)); }
 .budget-bar-sm { @apply h-2; }
 .budget-bar-segment { transition: width 0.4s ease; min-width: 0; }
-.budget-target-marker { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--color-ink); border-radius: 1px; z-index: 1; opacity: 0.7; transition: left 0.4s ease; cursor: help; }
-.budget-target-legend { display: inline-block; width: 2px; height: 8px; background: var(--color-ink); border-radius: 1px; opacity: 0.7; vertical-align: middle; }
+.budget-target-marker { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--color-ink); border-radius: 1px; z-index: 1; opacity: 0.7; transition: left 0.4s ease; }
 .budget-details { @apply flex flex-wrap gap-x-3 gap-y-0.5 mt-1.5 text-ink-muted tabular-nums; font-size: 10px; }
 .bg-budget-used { background: var(--color-budget-used, #059669); }
 .bg-budget-planned { background: var(--color-budget-planned, #38bdf8); }

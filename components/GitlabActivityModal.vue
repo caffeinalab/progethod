@@ -83,7 +83,7 @@ const groupedCommits = computed<ActivityGroup<GitlabCommit>[]>(() => {
   const groups: Record<string, { name: string; commits: GitlabCommit[] }> = {}
   for (const commit of commits.value) {
     const projectKey = commit.project || 'altro'
-    if (!groups[projectKey]) groups[projectKey] = { name: commit.projectName || projectKey, commits: [] }
+    if (!groups[projectKey]) groups[projectKey] = { name: commit.project || projectKey, commits: [] }
     groups[projectKey].commits.push(commit)
   }
   return Object.entries(groups)
