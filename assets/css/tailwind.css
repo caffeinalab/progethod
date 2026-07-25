@@ -8,6 +8,26 @@ button:not(:disabled) {
   --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
 }
 
+/* Typography: reduce letter-blending on dark UI (DM Sans is tight at small sizes). */
+@layer base {
+  html {
+    font-optical-sizing: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    letter-spacing: 0.01em;
+  }
+
+  body {
+    /* Prefer the UI optical size from the DM Sans opsz axis. */
+    font-variation-settings: "opsz" 14;
+  }
+
+  .text-xs,
+  .text-sm {
+    letter-spacing: 0.015em;
+  }
+}
+
 @theme inline {
   --color-page: var(--color-page);
   --color-card: var(--color-card);

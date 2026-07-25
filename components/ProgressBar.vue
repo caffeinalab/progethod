@@ -1,10 +1,10 @@
 <template>
   <div>
     <div class="flex justify-between items-center pb-2 flex-col">
-      <p class="text-xs text-accent-fg font-bold">
+      <p class="text-xs text-accent-fg font-semibold tracking-wide">
         {{ fill }}% {{ $t('sent') }}
       </p>
-      <p class="text-xs font-bold text-ink">
+      <p class="text-xs font-semibold text-ink tracking-wide">
         {{ $t('please_wait_sending') }}
       </p>
     </div>

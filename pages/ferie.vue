@@ -145,7 +145,7 @@
           <!-- Budget section (kept compact for brevity — same template as original) -->
           <div class="bg-card shadow rounded-lg p-3 shrink-0">
             <div class="flex items-center justify-between mb-2 px-1">
-              <h2 class="text-xs font-bold text-ink-muted uppercase tracking-wide">{{ $t('calendar_page.budget_title', { year: budgetYear }) }}</h2>
+              <h2 class="text-xs font-semibold text-ink-muted uppercase tracking-wide">{{ $t('calendar_page.budget_title', { year: budgetYear }) }}</h2>
               <button v-if="budgetError" type="button" class="text-xs text-accent-fg hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring rounded" @click="fetchTimeOff">{{ $t('calendar_page.budget_retry') }}</button>
             </div>
             <div v-if="budgetLoading" class="flex items-center gap-2 text-xs text-ink-muted py-3 px-1">
@@ -176,7 +176,7 @@
                     <span><span class="inline-block w-1.5 h-1.5 rounded-sm bg-budget-used mr-0.5" />{{ formatDays(section.used) }}</span>
                     <span><span class="inline-block w-1.5 h-1.5 rounded-sm bg-budget-planned mr-0.5" />{{ formatDays(section.planned) }}</span>
                     <span v-if="Number(section.requested) > 0"><span class="inline-block w-1.5 h-1.5 rounded-sm bg-budget-requested mr-0.5" />{{ formatDays(section.requested) }}</span>
-                    <span class="font-semibold" :class="remainingClass(section.remaining)">{{ remainingLabel(section.remaining, section.remainingLabelKey) }}</span>
+                    <span class="font-medium tracking-wide" :class="remainingClass(section.remaining)">{{ remainingLabel(section.remaining, section.remainingLabelKey) }}</span>
                   </div>
                 </div>
               </div>
@@ -1013,7 +1013,7 @@ async function executeGCalExport(events) {
 @reference "~/assets/css/tailwind.css";
 .sidebar-tabs-wrapper { @apply relative flex rounded-lg bg-card-hover p-0.5; }
 .sidebar-tabs-indicator { @apply absolute top-0.5 left-0.5 h-[calc(100%-4px)] w-[calc(50%-2px)] rounded-md bg-accent shadow-none transition-transform duration-200 ease-out; }
-.sidebar-tab { @apply relative z-10 flex-1 text-xs font-bold uppercase tracking-wide py-2 rounded-md transition-colors text-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus-ring; }
+.sidebar-tab { @apply relative z-10 flex-1 text-xs font-semibold uppercase tracking-wide py-2 rounded-md transition-colors text-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus-ring; }
 .sidebar-tab-active { @apply text-ink-inverse; }
 .sidebar-tab-inactive { @apply text-ink-faint hover:text-ink-muted; }
 .gcal-icon { color: var(--color-gcal); }
@@ -1034,7 +1034,7 @@ async function executeGCalExport(events) {
 .budget-bar-sm { @apply h-2; }
 .budget-bar-segment { transition: width 0.4s ease; min-width: 0; }
 .budget-target-marker { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--color-ink); border-radius: 1px; z-index: 1; opacity: 0.7; transition: left 0.4s ease; }
-.budget-details { @apply flex flex-wrap gap-x-3 gap-y-0.5 mt-1.5 text-xs text-ink-muted tabular-nums; }
+.budget-details { @apply flex flex-wrap gap-x-3 gap-y-0.5 mt-1.5 text-xs text-ink-muted tabular-nums tracking-wide; }
 .bg-budget-used { background: var(--color-budget-used, #059669); }
 .bg-budget-planned { background: var(--color-budget-planned, #38bdf8); }
 .bg-budget-requested { background: var(--color-budget-requested, #fbbf24); }

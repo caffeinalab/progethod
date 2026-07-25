@@ -81,7 +81,7 @@
       >
         <!-- Local projects -->
         <div v-if="filteredLocalProjects.length" class="p-1">
-          <div class="px-3 py-1.5 text-xs font-bold text-ink-faint uppercase tracking-wider">
+          <div class="px-3 py-1.5 text-xs font-semibold text-ink-faint uppercase tracking-wider">
             {{ $t('projects') }}
           </div>
           <button
@@ -117,7 +117,7 @@
 
         <!-- Wethod projects + areas -->
         <div v-if="filteredWethodEntries.length" class="p-1">
-          <div class="px-3 py-1.5 text-xs font-bold text-ink-faint uppercase tracking-wider">
+          <div class="px-3 py-1.5 text-xs font-semibold text-ink-faint uppercase tracking-wider">
             Wethod
           </div>
           <template v-for="item in filteredWethodEntries" :key="item.isHeader ? 'wh-' + item.project.id : 'wha-' + item.project.id + '-' + item.area.id">

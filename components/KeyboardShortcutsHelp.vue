@@ -9,7 +9,7 @@
     @update:model-value="visible = $event"
   >
     <section>
-      <h3 class="text-xs font-bold text-ink-faint uppercase tracking-wider mb-2">
+      <h3 class="text-xs font-semibold text-ink-faint uppercase tracking-wider mb-2">
         {{ $t('keyboard_shortcuts.navigation') }}
       </h3>
       <div class="space-y-1">
@@ -26,7 +26,7 @@
     </section>
 
     <section>
-      <h3 class="text-xs font-bold text-ink-faint uppercase tracking-wider mb-2">
+      <h3 class="text-xs font-semibold text-ink-faint uppercase tracking-wider mb-2">
         {{ $t('keyboard_shortcuts.actions') }}
       </h3>
       <div class="space-y-1">
@@ -39,7 +39,7 @@
     </section>
 
     <section>
-      <h3 class="text-xs font-bold text-ink-faint uppercase tracking-wider mb-2">
+      <h3 class="text-xs font-semibold text-ink-faint uppercase tracking-wider mb-2">
         {{ $t('keyboard_shortcuts.integrations') }}
       </h3>
       <div class="space-y-1">
@@ -50,7 +50,7 @@
     </section>
 
     <section>
-      <h3 class="text-xs font-bold text-ink-faint uppercase tracking-wider mb-2">
+      <h3 class="text-xs font-semibold text-ink-faint uppercase tracking-wider mb-2">
         {{ $t('keyboard_shortcuts.other') }}
       </h3>
       <div class="space-y-1">
