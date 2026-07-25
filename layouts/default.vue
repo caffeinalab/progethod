@@ -111,7 +111,7 @@
                         :key="option.value"
                         class="flex-1 flex items-center justify-center gap-1 py-1.5 text-xs rounded transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
                         :class="preferencesStore.theme === option.value
-                          ? 'bg-accent-soft text-accent-fg font-semibold'
+                          ? 'bg-accent text-ink-inverse font-semibold'
                           : 'text-ink-muted hover:text-ink-secondary hover:bg-card-hover'"
                         @click.stop="preferencesStore.setTheme(option.value)"
                       >
@@ -212,7 +212,7 @@
                 :key="option.value"
                 class="flex-1 flex items-center justify-center gap-1 py-1.5 text-xs rounded transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
                 :class="preferencesStore.theme === option.value
-                  ? 'bg-accent-soft text-accent-fg font-semibold'
+                  ? 'bg-accent text-ink-inverse font-semibold'
                   : 'text-ink-muted hover:text-ink-secondary hover:bg-card-hover'"
                 @click.stop="preferencesStore.setTheme(option.value)"
               >

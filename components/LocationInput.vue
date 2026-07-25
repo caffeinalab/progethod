@@ -112,14 +112,14 @@ onBeforeUnmount(() => { document.removeEventListener('click', onClickOutside) })
 
 <style scoped>
 .location-icon-color {
-  color: var(--color-location);
+  color: var(--color-accent-fg);
 }
 .location-active {
-  color: var(--color-location-text);
-  background-color: var(--color-location-soft);
+  color: var(--color-ink-inverse);
+  background-color: var(--color-accent);
 }
 .location-hover:hover {
-  color: var(--color-location-text);
-  background-color: var(--color-location-soft);
+  color: var(--color-accent-fg);
+  background-color: var(--color-accent-soft);
 }
 </style>

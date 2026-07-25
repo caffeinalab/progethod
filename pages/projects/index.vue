@@ -47,7 +47,7 @@
           v-for="project in projects"
           :key="project.id"
           class="project-card flex items-center justify-between p-3 rounded-lg border transition-colors"
-          :class="project.stale ? 'border-warning opacity-75' : 'border-stroke hover:border-ink-faint'"
+          :class="project.stale ? 'project-card--stale border-warning' : 'border-stroke hover:border-ink-faint'"
         >
           <div class="flex flex-col gap-1 min-w-0">
             <span class="self-start inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-accent text-ink-inverse">

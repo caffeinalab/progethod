@@ -1,7 +1,7 @@
 <template>
   <span
     class="toggle-track relative inline-flex flex-shrink-0 rounded-full transition-colors duration-200"
-    :class="modelValue ? 'bg-accent-hover' : 'bg-ink-disabled'"
+    :class="modelValue ? 'bg-accent' : 'bg-ink-disabled'"
     role="switch"
     :aria-checked="modelValue"
   >

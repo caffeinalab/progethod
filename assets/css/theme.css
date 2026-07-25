@@ -34,8 +34,9 @@
 
   --base-ink: #1f2937;
   --base-ink-secondary: #4b5563;
-  --base-ink-muted: #6b7280;
-  --base-ink-faint: #9ca3af;
+  /* Muted/faint tuned for ≥4.5:1 on card, page, and day-card (WCAG AA). */
+  --base-ink-muted: #5b5f66;
+  --base-ink-faint: #5f6670;
   --base-ink-disabled: #d1d5db;
   --base-ink-inverse: #ffffff;
 
@@ -119,8 +120,9 @@
 
   --base-ink: #dbdee1;
   --base-ink-secondary: #b5bac1;
-  --base-ink-muted: #949ba4;
-  --base-ink-faint: #6d7178;
+  /* Muted/faint tuned for ≥4.5:1 on card, page, and day-card (WCAG AA). */
+  --base-ink-muted: #b0b5bd;
+  --base-ink-faint: #a8adb5;
   --base-ink-disabled: #4e5058;
   --base-ink-inverse: #323339;
 
@@ -288,39 +290,6 @@
   --color-pending-text: oklch(0.8784 0.1165 66.29);
 }
 
-/* ─── Location accent ─── */
-:root {
-  --base-location: #7c3aed;
-  --base-location-text: #6d28d9;
-  --base-location-soft: #ddd6fe;
-
-  --color-location: var(--base-location);
-  --color-location-text: var(--base-location-text);
-  --color-location-soft: var(--base-location-soft);
-}
-
-.dark {
-  --base-location: #b4b9f8;
-  --base-location-text: #323339;
-  --base-location-soft: #b4b9f8;
-
-  --color-location: var(--base-location);
-  --color-location-text: var(--base-location-text);
-  --color-location-soft: var(--base-location-soft);
-}
-
-.high-contrast {
-  --color-location: oklch(0.4006 0.2959 293.01);
-  --color-location-text: oklch(0.3680 0.2654 292.58);
-  --color-location-soft: oklch(0.8496 0.0713 293.28);
-}
-
-.dark.high-contrast {
-  --color-location: oklch(0.8847 0.1158 280.66);
-  --color-location-text: oklch(0.1773 0.0107 278.25);
-  --color-location-soft: oklch(0.8445 0.1158 280.66);
-}
-
 /* ─── Dark mode: nav separation ─── */
 .dark nav {
   border-bottom: 1px solid var(--color-stroke-muted);
@@ -339,11 +308,6 @@
   background-color: var(--color-ink-faint);
 }
 
-.dark nav .bg-accent-soft.text-accent-fg {
-  background-color: var(--color-accent);
-  color: var(--color-ink-inverse);
-}
-
 .dark .day-card .location-icon-color {
   color: var(--color-ink-secondary);
 }
@@ -353,9 +317,13 @@
   color: var(--color-danger);
 }
 
-.dark .project-card,
+.dark .project-card:not(.project-card--stale),
 .dark .preset-card {
   background: #3e3f44;
+}
+
+.project-card--stale {
+  background-color: var(--color-warning-soft);
 }
 
 /* ─── Calendar cells ─── */

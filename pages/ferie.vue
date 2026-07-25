@@ -1010,9 +1010,9 @@ async function executeGCalExport(events) {
 <style scoped>
 @reference "~/assets/css/tailwind.css";
 .sidebar-tabs-wrapper { @apply relative flex rounded-lg bg-card-hover p-0.5; }
-.sidebar-tabs-indicator { @apply absolute top-0.5 left-0.5 h-[calc(100%-4px)] w-[calc(50%-2px)] rounded-md bg-card shadow-sm transition-transform duration-200 ease-out; }
+.sidebar-tabs-indicator { @apply absolute top-0.5 left-0.5 h-[calc(100%-4px)] w-[calc(50%-2px)] rounded-md bg-accent shadow-none transition-transform duration-200 ease-out; }
 .sidebar-tab { @apply relative z-10 flex-1 text-xs font-bold uppercase tracking-wide py-2 rounded-md transition-colors text-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus-ring; }
-.sidebar-tab-active { @apply text-ink; }
+.sidebar-tab-active { @apply text-ink-inverse; }
 .sidebar-tab-inactive { @apply text-ink-faint hover:text-ink-muted; }
 .gcal-icon { color: #4285F4; }
 .gcal-btn { background: rgba(66, 133, 244, 0.12); color: #4285F4; border: 1px solid rgba(66, 133, 244, 0.3); }
@@ -1046,6 +1046,4 @@ async function executeGCalExport(events) {
 .dark .bg-budget-requested { background: #f59e0b; }
 .dark .time-pick-active { border-color: #6ea8ff; background: rgba(110, 168, 255, 0.15); color: #6ea8ff; }
 .dark .time-pick-input { color-scheme: dark; }
-.dark .sidebar-tabs-indicator { background-color: #b4b9f8; box-shadow: none; }
-.dark .sidebar-tab-active { color: #323339; }
 </style>
