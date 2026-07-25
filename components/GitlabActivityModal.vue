@@ -18,7 +18,7 @@
   >
     <template #item="{ item, copiedId, copy }">
       <div class="flex items-center gap-2">
-        <code class="text-xs font-semibold text-warning-text flex-shrink-0">{{ item.shortSha || shortSha(item.sha) }}</code>
+        <code class="text-xs font-semibold text-accent-fg flex-shrink-0">{{ item.shortSha || shortSha(item.sha) }}</code>
         <span class="relative flex-shrink-0">
           <button
             type="button"
