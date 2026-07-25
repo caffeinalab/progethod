@@ -165,18 +165,20 @@ onBeforeUnmount(() => {
 }
 
 .logo-mark.is-mark .logo-block {
-  width: 72%;
-  height: 72%;
+  width: 86%;
+  height: 86%;
 }
 
 .logo-layer {
   position: absolute;
   inset: 0;
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
   font-weight: 700;
   font-size: 0.46em;
+  line-height: 1;
   letter-spacing: -0.035em;
   border-radius: 0.2em;
   background: color-mix(in oklab, var(--color-accent) 78%, black);
@@ -188,10 +190,13 @@ onBeforeUnmount(() => {
 }
 
 .logo-mark.is-mark .logo-layer {
-  font-size: 1.12em;
+  /* Keep the glyph inside the tile at small sizes (guide modal ~28px). */
+  font-size: 0.72em;
   letter-spacing: -0.04em;
   border-radius: 22%;
   padding: 0;
+  /* Optical center for capital P */
+  padding-bottom: 0.04em;
 }
 
 .logo-layer.is-face {

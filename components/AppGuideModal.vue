@@ -8,9 +8,8 @@
   >
     <template #title>
       <div class="flex items-center gap-2">
-        <LogoBrand :size="28" aria-label="Progethod" :wordless="true" :responsive="false" />
+        <LogoBrand :size="32" aria-label="Progethod" :wordless="true" :responsive="false" />
         <h2 class="text-lg font-bold text-ink">Progethod</h2>
-        <span class="text-xs text-ink-faint font-mono">v2.0</span>
       </div>
     </template>
 
