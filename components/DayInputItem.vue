@@ -37,13 +37,13 @@
     <div class="entries-table mb-4 mt-4">
       <div />
       <div :class="entries.length ? 'entries-th' : 'entries-th-muted'">{{ $t('project') }}</div>
-      <div :class="entries.length ? 'entries-th' : 'entries-th-muted'">{{ $t('duration') }}</div>
+      <div class="text-center" :class="entries.length ? 'entries-th' : 'entries-th-muted'">{{ $t('duration') }}</div>
       <div :class="entries.length ? 'entries-th' : 'entries-th-muted'">{{ $t('notes') }}</div>
       <div />
       <div />
       <template v-for="(entry, entryIndex) in entries" :key="`row_${entry.id}`">
         <div
-          class="entry-row col-span-full grid grid-cols-subgrid items-center rounded transition-shadow duration-100"
+          class="entry-row col-span-full grid grid-cols-subgrid items-start rounded transition-shadow duration-100"
           :class="focused && focusedEntryIndex === entryIndex ? 'ring-2 ring-focus-ring ring-offset-1 ring-offset-card' : ''"
         >
           <TimeEntryItem
@@ -53,9 +53,11 @@
             @update:model-value="handleUpdateEvent(entry.id, $event)"
             @user-submit="handleSubmit()"
           />
-          <IconButton variant="danger" :disabled="entry.synced" @click="removeEntry(entry.id)">
-            <IconTrash :size="16" :stroke-width="1.5" />
-          </IconButton>
+          <div class="flex justify-center items-center h-10">
+            <IconButton variant="danger" :disabled="entry.synced" @click="removeEntry(entry.id)">
+              <IconTrash :size="16" :stroke-width="1.5" />
+            </IconButton>
+          </div>
         </div>
       </template>
     </div>
@@ -303,12 +305,20 @@ defineExpose({ addEntry, focusFirstEntry, focusPrevEntry, focusNextEntry, editCu
   @reference "~/assets/css/tailwind.css";
   .entries-table {
     display: grid;
-    grid-template-columns: [status] 1.25rem [project] 14rem [duration] 4rem [notes] 1fr [location] 2.5rem [delete] 2.5rem;
+    grid-template-columns: [status] 1.25rem [project] 14rem [duration] 4rem [notes] minmax(0, 1fr) [location] 2.5rem [delete] 2.5rem;
     grid-template-rows: auto;
-    place-items: center;
+    justify-items: stretch;
+    align-items: center;
     grid-gap: 0.5rem 0.5rem;
   }
-  .entry-row { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; place-items: center; padding: 0.25rem 0; }
+  .entry-row {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: subgrid;
+    justify-items: stretch;
+    align-items: start;
+    padding: 0.25rem 0;
+  }
   .entries-th { @apply w-full text-ink text-sm font-bold leading-tight tracking-normal }
   .entries-th-muted { @apply w-full text-ink-faint text-xs font-medium leading-tight tracking-normal }
 </style>

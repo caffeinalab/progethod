@@ -1,7 +1,7 @@
 <template>
   <div class="contents">
     <!-- Status icon column -->
-    <div class="flex items-center justify-center w-full h-full">
+    <div class="flex items-center justify-center w-full h-10">
       <template v-if="selection">
         <NuxtLink
           v-if="selection.type === 'local'"
@@ -15,7 +15,7 @@
     </div>
 
     <!-- Unified project search -->
-    <div ref="projectColumn" class="w-full h-full relative" @keydown.escape="escapeField">
+    <div ref="projectColumn" class="w-full min-w-0 relative" @keydown.escape="escapeField">
       <!-- Search input (visible when editing or nothing selected) -->
       <input
         v-if="editing"
@@ -149,7 +149,7 @@
     </div>
 
     <!-- Duration -->
-    <div>
+    <div class="flex justify-center">
       <DurationInput
         ref="durationRef"
         :model-value="duration"
@@ -160,11 +160,12 @@
     </div>
 
     <!-- Notes -->
-    <div class="w-full relative">
-      <input
+    <div class="w-full min-w-0 relative">
+      <textarea
         ref="notesInput"
         v-model="notes"
-        class="text-ink focus:outline-none focus:border focus:border-accent bg-card font-normal w-full h-10 flex items-center pl-3 text-sm border-stroke rounded-lg border shadow"
+        rows="1"
+        class="notes-input text-ink focus:outline-none focus:border focus:border-accent bg-card font-normal box-border w-full max-w-full min-w-0 min-h-10 pl-3 pr-3 py-2 text-sm leading-snug border-stroke rounded-lg border shadow resize-none overflow-hidden"
         :class="{ 'text-ink-disabled': disabled, 'text-ink-secondary': !disabled }"
         placeholder="Notes"
         :disabled="disabled"
@@ -173,9 +174,9 @@
         @keydown.escape="escapeField"
         @focus="notesFocused = true"
         @blur="handleNotesBlur"
-        @keydown.down.prevent="enterPresetsSelector"
+        @keydown.down="handleNotesArrowDown"
         @keydown="handleNotesKeydown"
-      >
+      />
       <!-- Preset suggestions -->
       <div
         v-if="showPresets || quickCreateActive"
@@ -218,7 +219,7 @@
     </div>
 
     <!-- Location -->
-    <div class="flex justify-center items-center" :title="$t('work_location')">
+    <div class="flex justify-center items-center h-10" :title="$t('work_location')">
       <LocationInput :model-value="location" :disabled="disabled" @update:model-value="onLocationChange" />
     </div>
   </div>
@@ -247,7 +248,7 @@ const emit = defineEmits<{
 }>()
 
 const searchInput = ref<HTMLInputElement | null>(null)
-const notesInput = ref<HTMLInputElement | null>(null)
+const notesInput = ref<HTMLTextAreaElement | null>(null)
 const durationRef = ref<any>(null)
 const quickCreateInput = ref<HTMLInputElement | null>(null)
 const projectColumn = ref<HTMLElement | null>(null)
@@ -340,6 +341,8 @@ watch(() => props.modelValue, (newData) => {
     selection.value = null
     editing.value = true
   }
+
+  nextTick(resizeNotesField)
 }, { immediate: true, deep: true })
 
 function handleClickOutside(event: MouseEvent) {
@@ -350,8 +353,30 @@ function handleClickOutside(event: MouseEvent) {
   }
 }
 
-onMounted(() => { document.addEventListener('click', handleClickOutside) })
-onBeforeUnmount(() => { document.removeEventListener('click', handleClickOutside) })
+let notesResizeObserver: ResizeObserver | null = null
+let lastNotesContainerWidth = 0
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+  nextTick(() => {
+    resizeNotesField()
+    const notesContainer = notesInput.value?.parentElement
+    if (notesContainer && typeof ResizeObserver !== 'undefined') {
+      notesResizeObserver = new ResizeObserver((entries) => {
+        const containerWidth = entries[0]?.contentRect.width ?? 0
+        if (containerWidth === lastNotesContainerWidth) return
+        lastNotesContainerWidth = containerWidth
+        resizeNotesField()
+      })
+      notesResizeObserver.observe(notesContainer)
+    }
+  })
+})
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside)
+  notesResizeObserver?.disconnect()
+  notesResizeObserver = null
+})
 
 function resolveProjectLabel(project: any) {
   if (!project.linkedProjectId) return null
@@ -410,7 +435,10 @@ function selectLocalProject(localProject: any) {
   searchQuery.value = ''
   editing.value = false
   dropdownOpen.value = false
-  if (localProject.defaultNotes && !notes.value) notes.value = localProject.defaultNotes
+  if (localProject.defaultNotes && !notes.value) {
+    notes.value = localProject.defaultNotes
+    nextTick(resizeNotesField)
+  }
   emitUpdate()
   nextTick(() => durationRef.value?.focusInput?.())
 }
@@ -516,8 +544,9 @@ function handleSubmit() {
 }
 
 function handleNotesEnter(event: KeyboardEvent) {
+  // Soft-wrap only: Enter still submits / picks a preset (no hard newlines).
+  event.preventDefault()
   if (presetsNavigating.value) {
-    event.preventDefault()
     if (highlightedPresetIndex.value >= visiblePresets.value.length) startQuickCreate()
     else selectPreset(visiblePresets.value[highlightedPresetIndex.value])
     return
@@ -525,14 +554,29 @@ function handleNotesEnter(event: KeyboardEvent) {
   handleSubmit()
 }
 
+function handleNotesArrowDown(event: KeyboardEvent) {
+  if (!showPresets.value) return
+  event.preventDefault()
+  enterPresetsSelector()
+}
+
 function selectPreset(preset: any) {
   notes.value = preset.label
   presetsNavigating.value = false
   emitUpdate()
+  nextTick(resizeNotesField)
+}
+
+function resizeNotesField() {
+  const notesField = notesInput.value
+  if (!notesField) return
+  notesField.style.height = 'auto'
+  notesField.style.height = `${notesField.scrollHeight}px`
 }
 
 function onNotesInput() {
   notesFocused.value = true
+  resizeNotesField()
   emitUpdate()
 }
 
@@ -540,6 +584,8 @@ defineExpose({ focusProject })
 </script>
 
 <style scoped>
+@reference "~/assets/css/tailwind.css";
+
 .selection-tooltip {
   transition: opacity 0.15s ease;
   opacity: 0;
@@ -547,5 +593,11 @@ defineExpose({ focusProject })
 .group:hover .selection-tooltip {
   opacity: 1;
   transition-delay: 0.4s;
+}
+
+.notes-input {
+  /* Keep width inside the grid cell; grow height only via JS resize. */
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 </style>

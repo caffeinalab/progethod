@@ -6,7 +6,7 @@ interface PresetPickerOptions {
   notesEmpty: ComputedRef<boolean>
   disabled: ComputedRef<boolean>
   quickCreateInputRef?: Ref<HTMLInputElement | null>
-  notesInputRef?: Ref<HTMLInputElement | null>
+  notesInputRef?: Ref<HTMLInputElement | HTMLTextAreaElement | null>
 }
 
 export function usePresetPicker(options: PresetPickerOptions) {
