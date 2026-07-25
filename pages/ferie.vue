@@ -44,7 +44,7 @@
             {{ exportResult.message }}
           </div>
 
-          <div class="grid grid-cols-7 gap-1 select-none">
+          <div class="grid grid-cols-7 gap-1.5 select-none">
             <div v-for="dayName in weekdayHeaders" :key="dayName" class="text-center text-xs font-semibold text-ink-faint py-2">
               {{ dayName }}
             </div>
@@ -68,15 +68,15 @@
                     @mousedown.stop
                     @click.stop="addDayToCalendar(cell)"
                   >
-                    <IconCheck v-if="createdDates.has(cell.dateKey)" :size="14" class="text-vacation" />
+                    <IconCheck v-if="createdDates.has(cell.dateKey)" :size="14" class="text-success" />
                     <icons-google-calendar-icon v-else :size="14" />
                   </button>
                 </div>
                 <div v-if="cell.isHoliday" class="text-xs font-medium text-ink-faint truncate" :title="cell.holidayName">{{ cell.holidayName }}</div>
-                <div v-if="cell.vacation > 0" class="text-xs font-medium" :class="cell.vacationPending ? 'text-pending-text' : 'text-vacation-text'">
+                <div v-if="cell.vacation > 0" class="text-xs font-medium" :class="cell.vacationPending ? 'text-pending-text' : 'text-accent-fg'">
                   {{ $t('calendar_page.vacation_label') }} {{ formatDecimalHoursLabel(cell.vacation) }}
                 </div>
-                <div v-if="cell.leaves > 0" class="text-xs font-medium mt-0.5" :class="cell.leavesPending ? 'text-pending-text' : 'text-vacation-text'">
+                <div v-if="cell.leaves > 0" class="text-xs font-medium mt-0.5" :class="cell.leavesPending ? 'text-pending-text' : 'text-accent-fg'">
                   {{ $t('calendar_page.leaves_label') }} {{ formatDecimalHoursLabel(cell.leaves) }}
                 </div>
               </template>
@@ -85,7 +85,7 @@
 
           <div class="flex items-center justify-between mt-4 pt-4 border-t border-stroke-muted text-xs text-ink-muted">
             <div class="flex items-center gap-4">
-              <span class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded-sm bg-vacation-soft border border-vacation" />{{ $t('calendar_page.approved') }}</span>
+              <span class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded-sm bg-accent-soft border border-accent" />{{ $t('calendar_page.approved') }}</span>
               <span class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded-sm bg-pending-soft border-2 border-pending" />{{ $t('calendar_page.pending') }}</span>
               <span class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded-sm bg-card-dim border border-stroke-muted" />{{ $t('calendar_page.holiday_label') }}</span>
             </div>
@@ -97,12 +97,12 @@
               <DayStatBadge
                 :label="$t('calendar_page.vacation_label')"
                 :value="monthVacationTotal"
-                variant="vacation"
+                variant="accent"
               />
               <DayStatBadge
                 :label="$t('calendar_page.leaves_label')"
                 :value="monthLeavesTotal"
-                variant="vacation"
+                variant="accent"
               />
             </div>
           </div>
@@ -664,12 +664,14 @@ function formatDateChip(dateStr) { return format(new Date(dateStr + 'T00:00:00')
 function cellClasses(cell) {
   if (!cell.dayNumber) return 'border-transparent'
   if (cell.isWeekend || cell.isHoliday) return 'border-transparent bg-card-dim text-ink-disabled'
-  if (bulkSelectedDates.value.has(cell.dateKey)) return 'ring-2 ring-ink border-ink bg-card cursor-pointer bulk-selected-cell'
-  if (selectedDates.value.has(cell.dateKey)) return 'ring-2 ring-accent bg-accent-soft border-accent cursor-pointer'
+  // ring-inset keeps multi-day selection outlines inside the cell (no gap overlap)
+  if (bulkSelectedDates.value.has(cell.dateKey)) return 'ring-2 ring-inset ring-ink border-ink bg-card cursor-pointer bulk-selected-cell'
+  if (selectedDates.value.has(cell.dateKey)) return 'ring-2 ring-inset ring-accent border-accent bg-accent-soft cursor-pointer'
   const hasAny = cell.vacation > 0 || cell.leaves > 0
   if (!hasAny) return cell.isToday ? 'border-accent bg-card cursor-pointer' : 'border-stroke-muted bg-card cursor-pointer hover:bg-card-hover'
   const anyPending = (cell.vacation > 0 && cell.vacationPending) || (cell.leaves > 0 && cell.leavesPending)
-  return anyPending ? 'border-2 border-pending bg-pending-soft cursor-pointer' : 'border-vacation bg-vacation-soft cursor-pointer'
+  // Approved leave uses accent (not teal/vacation) so it doesn't read as "success"
+  return anyPending ? 'border-2 border-pending bg-pending-soft cursor-pointer' : 'border-accent bg-accent-soft cursor-pointer'
 }
 
 function onCellMouseDown(cell, event) {

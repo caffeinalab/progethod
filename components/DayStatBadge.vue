@@ -16,7 +16,7 @@
 </template>
 
 <script setup lang="ts">
-export type DayStatVariant = 'default' | 'success' | 'warning' | 'vacation' | 'holiday'
+export type DayStatVariant = 'default' | 'success' | 'warning' | 'vacation' | 'holiday' | 'accent'
 
 const props = withDefaults(defineProps<{
   label: string
@@ -41,6 +41,7 @@ const variantClass = computed(() => {
     case 'warning': return 'day-stat-box--warning'
     case 'vacation': return 'day-stat-box--vacation'
     case 'holiday': return 'day-stat-box--holiday'
+    case 'accent': return 'day-stat-box--accent'
     default: return ''
   }
 })
@@ -58,6 +59,7 @@ const variantClass = computed(() => {
 .day-stat-box--warning { border-color: var(--color-warning); }
 .day-stat-box--vacation { border-color: var(--color-vacation); }
 .day-stat-box--holiday { border-color: var(--color-success); }
+.day-stat-box--accent { border-color: var(--color-accent); }
 .day-stat-label { @apply text-ink-secondary text-xs font-medium; }
 .day-stat-value { @apply text-ink font-bold tabular-nums; }
 .day-stat-value--compact { @apply text-xs font-medium; }

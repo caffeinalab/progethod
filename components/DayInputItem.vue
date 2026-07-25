@@ -18,7 +18,7 @@
           v-if="(leaveHours || 0) > 0"
           :label="$t('calendar_page.leave_label')"
           :value="formattedLeaveHours"
-          variant="vacation"
+          variant="accent"
         />
         <DayStatBadge
           :label="$t('wethod_tracked_short')"
