@@ -17,6 +17,7 @@ type Events = {
   'shortcut:show-help': void
   'shortcut:integration-hint': boolean
   'tracked-hours:refresh': void
+  'nav-menu:open': 'status' | 'bu' | 'profile'
 }
 
 const emitter = mitt<Events>()

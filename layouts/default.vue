@@ -30,122 +30,144 @@
           </ul>
         </div>
 
-        <div class="h-full xl:flex items-center justify-end hidden">
-          <div class="w-full h-full flex items-center">
-            <div class="h-full flex items-center border-r border-stroke-muted px-4" />
-            <div class="w-full h-full flex">
-              <div class="w-32 h-full flex items-center justify-center border-r border-stroke-muted cursor-pointer text-ink-secondary">
+        <div class="h-full xl:flex items-stretch justify-end hidden">
+          <div class="h-full flex items-stretch border-l border-stroke-muted">
+            <BusinessUnitFilter variant="nav" />
+            <div class="relative h-full shrink-0 border-r border-stroke-muted">
+              <button
+                type="button"
+                class="w-16 h-full flex items-center justify-center text-ink-secondary cursor-pointer hover:bg-card-hover transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus-ring"
+                :aria-expanded="showStatusDropdown"
+                aria-haspopup="true"
+                :title="sessionStatusTitle"
+                :aria-label="sessionStatusTitle"
+                @click.stop="toggleStatusDropdown"
+              >
                 <IconLoader
                   v-if="apiDataStore.isUpdating"
-                  :size="28"
+                  :size="20"
                   class="animate-spin"
                 />
-                <IconCircleCheck
-                  v-if="!apiDataStore.isUpdating && !userStore.isTokenExpired"
-                  :size="28"
-                  class="text-success"
-                  :stroke-width="1.5"
-                />
-                <IconCircleX
-                  v-if="!apiDataStore.isUpdating && userStore.isTokenExpired"
-                  :size="28"
-                  class="text-danger"
-                  :stroke-width="1.5"
-                />
-              </div>
-              <BusinessUnitFilter variant="nav" />
-              <div aria-haspopup="true" class="w-full flex items-center justify-end relative" @click.stop="showDropdown = !showDropdown">
-                <Transition name="profile-menu">
-                  <ul
-                    v-if="showDropdown"
-                    class="profile-menu p-2 w-60 border border-stroke-muted bg-card absolute rounded-lg z-40 right-0 top-full mt-2 shadow-lg"
+                <span
+                  v-else
+                  class="relative inline-flex items-center justify-center"
+                >
+                  <IconKey
+                    :size="20"
+                    :stroke-width="1.5"
+                    :class="userStore.isTokenExpired ? 'text-danger' : 'text-ink-secondary'"
+                  />
+                  <span
+                    class="absolute -right-0.5 -bottom-0.5 w-2 h-2 rounded-full border-2 border-card"
+                    :class="userStore.isTokenExpired ? 'bg-danger' : 'bg-success'"
+                    aria-hidden="true"
+                  />
+                </span>
+              </button>
+              <Transition name="profile-menu">
+                <ul
+                  v-if="showStatusDropdown"
+                  class="profile-menu p-2 w-60 border border-stroke-muted bg-card absolute rounded-lg z-40 right-0 top-full mt-2 shadow-lg"
+                  @click.stop
+                >
+                  <li
+                    class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring rounded"
+                    :class="{ 'text-success hover:text-success': tokenCopied, 'opacity-50 cursor-not-allowed hover:text-ink-secondary': !userStore.authToken && !tokenCopied }"
+                    @click="copyAuthToken()"
                   >
-                    <li
-                      class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none"
-                      @click="showGuide = true"
-                    >
-                      <IconInfoCircle :size="20" :stroke-width="1.5" />
-                      <span class="ml-2">{{ $t('guide_button') }}</span>
-                    </li>
-                    <li
-                      class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none"
-                      @click="eventBus.emit('shortcut:show-help')"
-                    >
-                      <IconKeyboard :size="20" :stroke-width="1.5" />
-                      <span class="ml-2">{{ $t('keyboard_shortcuts_button') }}</span>
-                    </li>
-                    <li class="border-t border-stroke-muted my-2" />
-                    <li
-                      class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none"
-                      @click="backup()"
-                    >
-                      <IconDatabaseExport :size="20" :stroke-width="1.5" />
-                      <span class="ml-2">{{ $t('backup') }}</span>
-                    </li>
-                    <li
-                      class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none"
-                      @click="restore()"
-                    >
-                      <IconDatabaseImport :size="20" :stroke-width="1.5" />
-                      <span class="ml-2">{{ $t('restore') }}</span>
-                    </li>
-                    <li
-                      class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none"
-                      @click="updateProjectsFromApi()"
-                    >
-                      <IconRefresh :size="20" :stroke-width="1.5" />
-                      <span class="ml-2">{{ $t('update_projects') }}</span>
-                    </li>
-                    <li
-                      class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring rounded"
-                      :class="{ 'text-success hover:text-success': tokenCopied, 'opacity-50 cursor-not-allowed hover:text-ink-secondary': !userStore.authToken && !tokenCopied }"
-                      @click.stop="copyAuthToken()"
-                    >
-                      <IconCheck v-if="tokenCopied" :size="20" :stroke-width="1.5" />
-                      <IconKey v-else :size="20" :stroke-width="1.5" />
-                      <span class="ml-2">{{ tokenCopied ? $t('auth_token_copied') : $t('copy_auth_token') }}</span>
-                    </li>
-                    <li class="border-t border-stroke-muted my-2" />
-                    <li class="py-2">
-                      <span class="text-xs font-semibold text-ink-faint uppercase tracking-wider">{{ $t('theme_label') }}</span>
-                      <div class="flex items-center gap-1 mt-1.5">
-                        <button
-                          v-for="option in themeOptions"
-                          :key="option.value"
-                          class="flex-1 flex items-center justify-center gap-1 py-1.5 text-xs rounded transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
-                          :class="preferencesStore.theme === option.value
-                            ? 'bg-accent text-ink-inverse font-semibold'
-                            : 'text-ink-muted hover:text-ink-secondary hover:bg-card-hover'"
-                          @click.stop="preferencesStore.setTheme(option.value)"
-                        >
-                          <component :is="option.icon" :size="14" />
-                          {{ option.label }}
-                        </button>
-                      </div>
-                    </li>
-                    <li
-                      class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal py-2 hover:text-accent-fg flex items-center justify-between focus:text-accent-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring rounded"
-                      @click.stop="preferencesStore.setHighContrast(!preferencesStore.highContrast)"
-                    >
-                      <span>{{ $t('high_contrast') }}</span>
-                      <ToggleSwitch :model-value="preferencesStore.highContrast" />
-                    </li>
-                    <li class="border-t border-stroke-muted my-2" />
-                    <li
-                      class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal py-2 hover:text-accent-fg flex items-center justify-between focus:text-accent-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring rounded"
-                      @click.stop="preferencesStore.setRequireSubmitConfirmation(!preferencesStore.isConfirmOnSubmitRequired)"
-                    >
-                      <span>{{ $t('require_confirm_on_submit_short') }}</span>
-                      <ToggleSwitch :model-value="preferencesStore.isConfirmOnSubmitRequired" />
-                    </li>
-                  </ul>
-                </Transition>
-                <img v-if="avatarUrl" class="rounded-full h-10 w-10 object-cover cursor-pointer" :src="avatarUrl" alt="User avatar">
-                <span v-else class="inline-flex items-center justify-center h-10 w-10 rounded-full bg-accent text-ink-inverse text-sm font-bold cursor-pointer select-none">{{ userInitials }}</span>
-                <p class="text-ink text-sm ml-2 cursor-pointer">
-                  {{ `${userStore.info.name} ${userStore.info.surname}` }}
-                </p>
-              </div>
+                    <IconCheck v-if="tokenCopied" :size="20" :stroke-width="1.5" />
+                    <IconKey v-else :size="20" :stroke-width="1.5" />
+                    <span class="ml-2">{{ tokenCopied ? $t('auth_token_copied') : $t('copy_auth_token') }}</span>
+                  </li>
+                </ul>
+              </Transition>
+            </div>
+            <div
+              aria-haspopup="true"
+              class="relative h-full shrink-0 flex items-center gap-2 px-4 cursor-pointer hover:bg-card-hover transition-colors"
+              @click.stop="toggleProfileDropdown"
+            >
+              <Transition name="profile-menu">
+                <ul
+                  v-if="showDropdown"
+                  class="profile-menu p-2 w-60 border border-stroke-muted bg-card absolute rounded-lg z-40 right-0 top-full mt-2 shadow-lg"
+                >
+                  <li
+                    class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none"
+                    @click="showGuide = true"
+                  >
+                    <IconInfoCircle :size="20" :stroke-width="1.5" />
+                    <span class="ml-2">{{ $t('guide_button') }}</span>
+                  </li>
+                  <li
+                    class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none"
+                    @click="eventBus.emit('shortcut:show-help')"
+                  >
+                    <IconKeyboard :size="20" :stroke-width="1.5" />
+                    <span class="ml-2">{{ $t('keyboard_shortcuts_button') }}</span>
+                  </li>
+                  <li class="border-t border-stroke-muted my-2" />
+                  <li
+                    class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none"
+                    @click="backup()"
+                  >
+                    <IconDatabaseExport :size="20" :stroke-width="1.5" />
+                    <span class="ml-2">{{ $t('backup') }}</span>
+                  </li>
+                  <li
+                    class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none"
+                    @click="restore()"
+                  >
+                    <IconDatabaseImport :size="20" :stroke-width="1.5" />
+                    <span class="ml-2">{{ $t('restore') }}</span>
+                  </li>
+                  <li
+                    class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none"
+                    @click="updateProjectsFromApi()"
+                  >
+                    <IconRefresh :size="20" :stroke-width="1.5" />
+                    <span class="ml-2">{{ $t('update_projects') }}</span>
+                  </li>
+                  <li class="border-t border-stroke-muted my-2" />
+                  <li class="py-2">
+                    <span class="text-xs font-semibold text-ink-faint uppercase tracking-wider">{{ $t('theme_label') }}</span>
+                    <div class="flex items-center gap-1 mt-1.5">
+                      <button
+                        v-for="option in themeOptions"
+                        :key="option.value"
+                        class="flex-1 flex items-center justify-center gap-1 py-1.5 text-xs rounded transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+                        :class="preferencesStore.theme === option.value
+                          ? 'bg-accent text-ink-inverse font-semibold'
+                          : 'text-ink-muted hover:text-ink-secondary hover:bg-card-hover'"
+                        @click.stop="preferencesStore.setTheme(option.value)"
+                      >
+                        <component :is="option.icon" :size="14" />
+                        {{ option.label }}
+                      </button>
+                    </div>
+                  </li>
+                  <li
+                    class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal py-2 hover:text-accent-fg flex items-center justify-between focus:text-accent-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring rounded"
+                    @click.stop="preferencesStore.setHighContrast(!preferencesStore.highContrast)"
+                  >
+                    <span>{{ $t('high_contrast') }}</span>
+                    <ToggleSwitch :model-value="preferencesStore.highContrast" />
+                  </li>
+                  <li class="border-t border-stroke-muted my-2" />
+                  <li
+                    class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal py-2 hover:text-accent-fg flex items-center justify-between focus:text-accent-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring rounded"
+                    @click.stop="preferencesStore.setRequireSubmitConfirmation(!preferencesStore.isConfirmOnSubmitRequired)"
+                  >
+                    <span>{{ $t('require_confirm_on_submit_short') }}</span>
+                    <ToggleSwitch :model-value="preferencesStore.isConfirmOnSubmitRequired" />
+                  </li>
+                </ul>
+              </Transition>
+              <img v-if="avatarUrl" class="rounded-full h-10 w-10 object-cover" :src="avatarUrl" alt="User avatar">
+              <span v-else class="inline-flex items-center justify-center h-10 w-10 rounded-full bg-accent text-ink-inverse text-sm font-bold select-none">{{ userInitials }}</span>
+              <p class="text-ink text-sm whitespace-nowrap">
+                {{ `${userStore.info.name} ${userStore.info.surname}` }}
+              </p>
             </div>
           </div>
         </div>
@@ -280,8 +302,6 @@
 <script setup lang="ts">
 import {
   IconCheck,
-  IconCircleCheck,
-  IconCircleX,
   IconDatabaseExport,
   IconDatabaseImport,
   IconDeviceDesktop,
@@ -306,6 +326,7 @@ const preferencesStore = usePreferencesStore()
 const eventBus = useEventBus()
 
 const showDropdown = ref(false)
+const showStatusDropdown = ref(false)
 const showGuide = ref(false)
 const showMobileMenu = ref(false)
 const tokenCopied = ref(false)
@@ -381,6 +402,12 @@ const userInitials = computed(() => {
   return (first + last).toUpperCase() || '?'
 })
 
+const sessionStatusTitle = computed(() => {
+  if (apiDataStore.isUpdating) return t('session_updating')
+  if (userStore.isTokenExpired) return t('session_expired')
+  return t('session_active')
+})
+
 const themeOptions = computed(() => [
   { value: 'auto' as const, label: 'Auto', icon: IconDeviceDesktop },
   { value: 'light' as const, label: t('theme_light'), icon: IconSun },
@@ -415,12 +442,33 @@ async function copyAuthToken() {
   }, 1500)
 }
 
-function closeDropdown() {
+function toggleStatusDropdown() {
+  const willOpen = !showStatusDropdown.value
+  showStatusDropdown.value = willOpen
   showDropdown.value = false
+  if (willOpen) eventBus.emit('nav-menu:open', 'status')
+}
+
+function toggleProfileDropdown() {
+  const willOpen = !showDropdown.value
+  showDropdown.value = willOpen
+  showStatusDropdown.value = false
+  if (willOpen) eventBus.emit('nav-menu:open', 'profile')
+}
+
+function closeDropdowns() {
+  showDropdown.value = false
+  showStatusDropdown.value = false
+}
+
+function onNavMenuOpen(source: 'status' | 'bu' | 'profile') {
+  if (source !== 'status') showStatusDropdown.value = false
+  if (source !== 'profile') showDropdown.value = false
 }
 
 onMounted(() => {
-  document.addEventListener('click', closeDropdown)
+  document.addEventListener('click', closeDropdowns)
+  eventBus.on('nav-menu:open', onNavMenuOpen)
   scheduleNavIndicatorUpdate()
   window.addEventListener('resize', updateNavIndicator)
 
@@ -431,7 +479,8 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-  document.removeEventListener('click', closeDropdown)
+  document.removeEventListener('click', closeDropdowns)
+  eventBus.off('nav-menu:open', onNavMenuOpen)
   window.removeEventListener('resize', updateNavIndicator)
   navbarResizeObserver?.disconnect()
   navbarResizeObserver = null

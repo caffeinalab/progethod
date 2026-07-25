@@ -86,7 +86,6 @@
             <span class="stat-value">{{ $t('office_days_check_button') }}</span>
           </div>
         </template>
-        <BusinessUnitFilter v-if="userStore.businessUnitsEnabled" class="ml-auto shrink-0" />
       </div>
     </div>
 
