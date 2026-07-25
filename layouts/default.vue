@@ -421,18 +421,42 @@ function closeDropdown() {
 
 onMounted(() => {
   document.addEventListener('click', closeDropdown)
+  scheduleNavIndicatorUpdate()
+  window.addEventListener('resize', updateNavIndicator)
+
+  if (navbarRef.value && typeof ResizeObserver !== 'undefined') {
+    navbarResizeObserver = new ResizeObserver(() => updateNavIndicator())
+    navbarResizeObserver.observe(navbarRef.value)
+  }
 })
 
 onBeforeUnmount(() => {
   document.removeEventListener('click', closeDropdown)
+  window.removeEventListener('resize', updateNavIndicator)
+  navbarResizeObserver?.disconnect()
+  navbarResizeObserver = null
   if (tokenCopiedTimeout) clearTimeout(tokenCopiedTimeout)
 })
 </script>
 
 <style>
   @reference "~/assets/css/tailwind.css";
-  .navbar > .router-link-exact-active {
-    @apply border-b-2 border-accent text-accent-fg;
+
+  .nav-indicator {
+    will-change: transform, width;
+  }
+
+  .nav-indicator--animate {
+    transition:
+      transform 0.28s cubic-bezier(0.32, 0.72, 0, 1),
+      width 0.28s cubic-bezier(0.32, 0.72, 0, 1),
+      opacity 0.2s ease;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nav-indicator--animate {
+      transition: none;
+    }
   }
 
   .profile-menu {
