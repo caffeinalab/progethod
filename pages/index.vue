@@ -41,7 +41,7 @@
             <IconChevronLeft :size="18" />
           </button>
           <span
-            class="px-4 py-2 text-sm font-semibold text-ink border-l border-r border-stroke-muted select-none cursor-pointer hover:bg-card-hover transition-colors"
+            class="inline-flex items-center min-h-10 px-4 text-sm font-semibold text-ink border-l border-r border-stroke-muted select-none cursor-pointer hover:bg-card-hover transition-colors"
             @click.stop="monthCalendarRef?.toggle()"
           >
             {{ weekLabel }}
