@@ -1,14 +1,19 @@
 <template>
-  <Modal :model-value="modelValue" @update:model-value="emit('update:modelValue', $event)">
+  <Modal :model-value="modelValue" confirmable @update:model-value="emit('update:modelValue', $event)" @confirm="onConfirm">
     <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-danger-soft border border-danger/20">
       <IconAlertTriangle :size="24" class="text-danger" />
     </div>
     <p class="text-lg font-semibold mt-4 text-ink text-center">
       {{ $t('about_to_nuke_timesheet') }}
     </p>
-    <p class="text-sm leading-relaxed mt-1.5 text-center text-ink-muted max-w-xs">
-      {{ $t('nuke_timesheet_warning') }}
-    </p>
+    <div class="mt-1.5 max-w-xs space-y-2 text-center">
+      <p class="text-sm leading-relaxed text-ink-muted">
+        {{ $t('nuke_timesheet_warning') }}
+      </p>
+      <p class="text-sm leading-relaxed text-ink-muted">
+        {{ $t('nuke_timesheet_hint') }}
+      </p>
+    </div>
     <div v-if="isSubmitting && !isExpired" class="w-full mt-4">
       <ProgressBar :fill="progressPercentage" />
     </div>
@@ -59,6 +64,11 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue'])
+
+function onConfirm() {
+  if (isSubmitting.value || isExpired.value) { return }
+  submit()
+}
 
 async function submit() {
   const employeeId = userStore.info?.employee_id

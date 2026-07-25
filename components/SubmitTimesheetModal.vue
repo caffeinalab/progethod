@@ -1,23 +1,28 @@
 <template>
-  <Modal :model-value="modelValue" @update:model-value="emit('update:modelValue', $event)">
-    <img src="https://i.ibb.co/QDMrqK5/Saly-10.png">
-    <p class="text-base sm:text-lg md:text-2xl font-bold md:leading-6 mt-6 text-ink text-center">
+  <Modal :model-value="modelValue" confirmable @update:model-value="emit('update:modelValue', $event)" @confirm="onConfirm">
+    <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-accent-soft border border-accent/20">
+      <IconSend :size="24" class="text-accent-fg" />
+    </div>
+    <p class="text-lg font-semibold mt-4 text-ink text-center">
       {{ $t('about_to_submit_timesheet') }}
     </p>
-    <p class="text-xs sm:text-sm leading-5 mt-2 sm:mt-4 text-center text-ink-secondary">
-      {{ $t('submit_timesheet_warning') }}
-    </p>
-    <div>
-      <div class="w-full my-2 h-12 transition-opacity opacity-0" :class="{ 'opacity-100': isSubmitting && !isExpired }">
-        <ProgressBar :fill="progressPercentage" />
-      </div>
+    <div class="mt-1.5 max-w-xs space-y-2 text-center">
+      <p class="text-sm leading-relaxed text-ink-muted">
+        {{ $t('submit_timesheet_warning') }}
+      </p>
+      <p class="text-sm leading-relaxed text-ink-muted">
+        {{ $t('submit_timesheet_hint') }}
+      </p>
     </div>
-    <Alert v-if="isExpired" class="w-full" level="error" :message="$t('session_expired')" />
-    <Alert v-if="hasError" class="w-full" level="error" :message="errorMessage" />
-    <div v-if="!isExpired && !hasError && isConfirmOnSubmitRequired" class="flex items-center justify-center mt-4 sm:mt-6 w-full">
+    <div v-if="isSubmitting && !isExpired" class="w-full mt-4">
+      <ProgressBar :fill="progressPercentage" />
+    </div>
+    <Alert v-if="isExpired" class="w-full mt-4" level="error" :message="$t('session_expired')" />
+    <Alert v-if="hasError" class="w-full mt-4" level="error" :message="errorMessage" />
+    <div v-if="!isExpired && !hasError && isConfirmOnSubmitRequired" class="flex items-center justify-center mt-6 w-full">
       <button
         :disabled="isSubmitting"
-        class="px-6 py-2 bg-accent disabled:bg-ink-muted text-ink-inverse disabled:text-ink-faint disabled:cursor-default focus:outline-none hover:bg-accent-hover mx-2 my-2 rounded-lg"
+        class="px-6 py-2.5 bg-accent disabled:bg-ink-muted text-ink-inverse disabled:text-ink-faint disabled:cursor-default focus:outline-none hover:bg-accent-hover rounded-lg"
         @click="submit()"
       >
         <IconSend :size="20" />
@@ -50,6 +55,12 @@ watch(() => props.modelValue, (newVal, oldVal) => {
     nextTick(() => submit())
   }
 })
+
+function onConfirm() {
+  if (isSubmitting.value || isExpired.value || hasError.value) { return }
+  if (!isConfirmOnSubmitRequired.value) { return }
+  submit()
+}
 
 async function submit() {
   const success = await execute(props.timesheetData || [], {
