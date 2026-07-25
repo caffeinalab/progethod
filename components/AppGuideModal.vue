@@ -1,10 +1,7 @@
 <template>
   <PanelModal
     :model-value="modelValue"
-    max-width-class="max-w-lg"
-    max-height-class="max-h-[85vh]"
-    header-class="p-6 pb-0"
-    body-class="p-6 space-y-6"
+    body-class="px-6 pb-6 space-y-6"
     overlay-scroll
     show-scroll-hint
     @update:model-value="emit('update:modelValue', $event)"

@@ -8,11 +8,10 @@
         {{ monthLabel }}
       </p>
 
-      <LoadingState v-if="loading" variant="modal" :message="$t('office_days_modal_loading')" />
+      <LoadingState v-if="loading" :message="$t('office_days_modal_loading')" />
 
       <ErrorState
         v-else-if="error"
-        variant="modal"
         :message="$t('office_days_modal_error')"
         :retry-label="$t('office_days_modal_retry')"
         @retry="fetchData"

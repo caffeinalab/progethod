@@ -8,11 +8,10 @@
         {{ dayLabel }}
       </p>
 
-      <LoadingState v-if="loading" variant="modal" :message="$t('wethod_hours_modal.loading')" />
+      <LoadingState v-if="loading" :message="$t('wethod_hours_modal.loading')" />
 
       <ErrorState
         v-else-if="error"
-        variant="modal"
         :message="$t('wethod_hours_modal.error')"
         :retry-label="$t('wethod_hours_modal.retry')"
         @retry="fetchData"

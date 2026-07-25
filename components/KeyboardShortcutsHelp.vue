@@ -3,10 +3,7 @@
     :model-value="visible"
     :title="$t('keyboard_shortcuts.title')"
     max-width-class="max-w-md"
-    max-height-class="max-h-[85vh]"
-    header-class="px-6 pt-6 pb-4"
-    title-class="text-lg font-bold text-ink"
-    body-class="scroll-area space-y-4 px-6 pb-6"
+    body-class="space-y-4 px-6 pb-6"
     overlay-scroll
     show-scroll-hint
     @update:model-value="visible = $event"

@@ -2,12 +2,8 @@
   <PanelModal
     :model-value="modelValue"
     :title="title"
-    max-width-class="max-w-lg"
-    max-height-class="max-h-[80vh]"
-    header-class="px-5 pt-5 pb-3"
-    title-class="text-base font-bold text-ink"
-    toolbar-class="px-5 pb-3"
-    body-class="px-5 pb-5"
+    toolbar-class="px-6 pb-3"
+    body-class="px-6 pb-6"
     lock-body-scroll
     @update:model-value="emit('update:modelValue', $event)"
   >
@@ -21,17 +17,16 @@
       >
     </template>
 
-    <LoadingState v-if="loading" variant="panel" :message="loadingText" />
+    <LoadingState v-if="loading" :message="loadingText" />
 
     <ErrorState
       v-else-if="error"
-      variant="panel"
       :message="error"
       :retry-label="retryLabel"
       @retry="emit('retry')"
     />
 
-    <div v-else-if="isEmpty" class="py-10 text-center text-sm text-ink-faint">
+    <div v-else-if="isEmpty" class="py-8 text-center text-sm text-ink-faint">
       {{ emptyText }}
     </div>
 
@@ -56,7 +51,7 @@
         </ul>
       </div>
 
-      <p v-if="filteredGroups.length === 0" class="py-6 text-center text-sm text-ink-faint">
+      <p v-if="filteredGroups.length === 0" class="py-8 text-center text-sm text-ink-faint">
         {{ noResultsText }}
       </p>
     </template>
