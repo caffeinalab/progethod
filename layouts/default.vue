@@ -54,87 +54,93 @@
                   :stroke-width="1.5"
                 />
               </div>
+              <BusinessUnitFilter variant="nav" />
               <div aria-haspopup="true" class="w-full flex items-center justify-end relative" @click.stop="showDropdown = !showDropdown">
-                <ul v-show="showDropdown" class="p-2 w-60 border border-stroke-muted bg-card absolute rounded-lg z-40 right-0 top-full mt-2 shadow-lg">
-                  <li
-                    class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none"
-                    @click="showGuide = true"
+                <Transition name="profile-menu">
+                  <ul
+                    v-if="showDropdown"
+                    class="profile-menu p-2 w-60 border border-stroke-muted bg-card absolute rounded-lg z-40 right-0 top-full mt-2 shadow-lg"
                   >
-                    <IconInfoCircle :size="20" :stroke-width="1.5" />
-                    <span class="ml-2">{{ $t('guide_button') }}</span>
-                  </li>
-                  <li
-                    class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none"
-                    @click="eventBus.emit('shortcut:show-help')"
-                  >
-                    <IconKeyboard :size="20" :stroke-width="1.5" />
-                    <span class="ml-2">{{ $t('keyboard_shortcuts_button') }}</span>
-                  </li>
-                  <li class="border-t border-stroke-muted my-2" />
-                  <li
-                    class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none"
-                    @click="backup()"
-                  >
-                    <IconDatabaseExport :size="20" :stroke-width="1.5" />
-                    <span class="ml-2">{{ $t('backup') }}</span>
-                  </li>
-                  <li
-                    class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none"
-                    @click="restore()"
-                  >
-                    <IconDatabaseImport :size="20" :stroke-width="1.5" />
-                    <span class="ml-2">{{ $t('restore') }}</span>
-                  </li>
-                  <li
-                    class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none"
-                    @click="updateProjectsFromApi()"
-                  >
-                    <IconRefresh :size="20" :stroke-width="1.5" />
-                    <span class="ml-2">{{ $t('update_projects') }}</span>
-                  </li>
-                  <li
-                    class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring rounded"
-                    :class="{ 'text-success hover:text-success': tokenCopied, 'opacity-50 cursor-not-allowed hover:text-ink-secondary': !userStore.authToken && !tokenCopied }"
-                    @click.stop="copyAuthToken()"
-                  >
-                    <IconCheck v-if="tokenCopied" :size="20" :stroke-width="1.5" />
-                    <IconKey v-else :size="20" :stroke-width="1.5" />
-                    <span class="ml-2">{{ tokenCopied ? $t('auth_token_copied') : $t('copy_auth_token') }}</span>
-                  </li>
-                  <li class="border-t border-stroke-muted my-2" />
-                  <li class="py-2">
-                    <span class="text-xs font-semibold text-ink-faint uppercase tracking-wider">{{ $t('theme_label') }}</span>
-                    <div class="flex items-center gap-1 mt-1.5">
-                      <button
-                        v-for="option in themeOptions"
-                        :key="option.value"
-                        class="flex-1 flex items-center justify-center gap-1 py-1.5 text-xs rounded transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
-                        :class="preferencesStore.theme === option.value
-                          ? 'bg-accent text-ink-inverse font-semibold'
-                          : 'text-ink-muted hover:text-ink-secondary hover:bg-card-hover'"
-                        @click.stop="preferencesStore.setTheme(option.value)"
-                      >
-                        <component :is="option.icon" :size="14" />
-                        {{ option.label }}
-                      </button>
-                    </div>
-                  </li>
-                  <li
-                    class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal py-2 hover:text-accent-fg flex items-center justify-between focus:text-accent-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring rounded"
-                    @click.stop="preferencesStore.setHighContrast(!preferencesStore.highContrast)"
-                  >
-                    <span>{{ $t('high_contrast') }}</span>
-                    <ToggleSwitch :model-value="preferencesStore.highContrast" />
-                  </li>
-                  <li class="border-t border-stroke-muted my-2" />
-                  <li
-                    class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal py-2 hover:text-accent-fg flex items-center justify-between focus:text-accent-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring rounded"
-                    @click.stop="preferencesStore.setRequireSubmitConfirmation(!preferencesStore.isConfirmOnSubmitRequired)"
-                  >
-                    <span>{{ $t('require_confirm_on_submit_short') }}</span>
-                    <ToggleSwitch :model-value="preferencesStore.isConfirmOnSubmitRequired" />
-                  </li>
-                </ul>
+                    <li
+                      class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none"
+                      @click="showGuide = true"
+                    >
+                      <IconInfoCircle :size="20" :stroke-width="1.5" />
+                      <span class="ml-2">{{ $t('guide_button') }}</span>
+                    </li>
+                    <li
+                      class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none"
+                      @click="eventBus.emit('shortcut:show-help')"
+                    >
+                      <IconKeyboard :size="20" :stroke-width="1.5" />
+                      <span class="ml-2">{{ $t('keyboard_shortcuts_button') }}</span>
+                    </li>
+                    <li class="border-t border-stroke-muted my-2" />
+                    <li
+                      class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none"
+                      @click="backup()"
+                    >
+                      <IconDatabaseExport :size="20" :stroke-width="1.5" />
+                      <span class="ml-2">{{ $t('backup') }}</span>
+                    </li>
+                    <li
+                      class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none"
+                      @click="restore()"
+                    >
+                      <IconDatabaseImport :size="20" :stroke-width="1.5" />
+                      <span class="ml-2">{{ $t('restore') }}</span>
+                    </li>
+                    <li
+                      class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none"
+                      @click="updateProjectsFromApi()"
+                    >
+                      <IconRefresh :size="20" :stroke-width="1.5" />
+                      <span class="ml-2">{{ $t('update_projects') }}</span>
+                    </li>
+                    <li
+                      class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring rounded"
+                      :class="{ 'text-success hover:text-success': tokenCopied, 'opacity-50 cursor-not-allowed hover:text-ink-secondary': !userStore.authToken && !tokenCopied }"
+                      @click.stop="copyAuthToken()"
+                    >
+                      <IconCheck v-if="tokenCopied" :size="20" :stroke-width="1.5" />
+                      <IconKey v-else :size="20" :stroke-width="1.5" />
+                      <span class="ml-2">{{ tokenCopied ? $t('auth_token_copied') : $t('copy_auth_token') }}</span>
+                    </li>
+                    <li class="border-t border-stroke-muted my-2" />
+                    <li class="py-2">
+                      <span class="text-xs font-semibold text-ink-faint uppercase tracking-wider">{{ $t('theme_label') }}</span>
+                      <div class="flex items-center gap-1 mt-1.5">
+                        <button
+                          v-for="option in themeOptions"
+                          :key="option.value"
+                          class="flex-1 flex items-center justify-center gap-1 py-1.5 text-xs rounded transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+                          :class="preferencesStore.theme === option.value
+                            ? 'bg-accent text-ink-inverse font-semibold'
+                            : 'text-ink-muted hover:text-ink-secondary hover:bg-card-hover'"
+                          @click.stop="preferencesStore.setTheme(option.value)"
+                        >
+                          <component :is="option.icon" :size="14" />
+                          {{ option.label }}
+                        </button>
+                      </div>
+                    </li>
+                    <li
+                      class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal py-2 hover:text-accent-fg flex items-center justify-between focus:text-accent-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring rounded"
+                      @click.stop="preferencesStore.setHighContrast(!preferencesStore.highContrast)"
+                    >
+                      <span>{{ $t('high_contrast') }}</span>
+                      <ToggleSwitch :model-value="preferencesStore.highContrast" />
+                    </li>
+                    <li class="border-t border-stroke-muted my-2" />
+                    <li
+                      class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal py-2 hover:text-accent-fg flex items-center justify-between focus:text-accent-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring rounded"
+                      @click.stop="preferencesStore.setRequireSubmitConfirmation(!preferencesStore.isConfirmOnSubmitRequired)"
+                    >
+                      <span>{{ $t('require_confirm_on_submit_short') }}</span>
+                      <ToggleSwitch :model-value="preferencesStore.isConfirmOnSubmitRequired" />
+                    </li>
+                  </ul>
+                </Transition>
                 <img v-if="avatarUrl" class="rounded-full h-10 w-10 object-cover cursor-pointer" :src="avatarUrl" alt="User avatar">
                 <span v-else class="inline-flex items-center justify-center h-10 w-10 rounded-full bg-accent text-ink-inverse text-sm font-bold cursor-pointer select-none">{{ userInitials }}</span>
                 <p class="text-ink text-sm ml-2 cursor-pointer">
@@ -169,6 +175,10 @@
             <img v-if="avatarUrl" class="rounded-full h-10 w-10 object-cover" :src="avatarUrl" alt="User avatar">
             <span v-else class="inline-flex items-center justify-center h-10 w-10 rounded-full bg-accent text-ink-inverse text-sm font-bold select-none">{{ userInitials }}</span>
             <span class="text-ink text-sm">{{ `${userStore.info.name} ${userStore.info.surname}` }}</span>
+          </li>
+          <li v-if="userStore.businessUnitsEnabled" class="border-t border-stroke-muted my-2" />
+          <li v-if="userStore.businessUnitsEnabled">
+            <BusinessUnitFilter variant="menu" />
           </li>
           <li class="border-t border-stroke-muted my-2" />
           <li>
@@ -356,4 +366,28 @@ onBeforeUnmount(() => {
     @apply border-b-2 border-accent text-accent-fg;
   }
 
+  .profile-menu {
+    transform-origin: top right;
+  }
+
+  .profile-menu-enter-active {
+    transition: opacity 0.15s ease, transform 0.15s ease;
+  }
+
+  .profile-menu-leave-active {
+    transition: opacity 0.1s ease, transform 0.1s ease;
+  }
+
+  .profile-menu-enter-from,
+  .profile-menu-leave-to {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.96);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .profile-menu-enter-active,
+    .profile-menu-leave-active {
+      transition: none;
+    }
+  }
 </style>
