@@ -872,13 +872,23 @@ function mapRequest(raw) {
   let dateRange = '', dateRangeShort = '', dateDayOnly = ''
   if (firstDate) {
     const startDate = new Date(firstDate + 'T00:00:00')
-    if (firstDate === lastDate) { dateRange = format(startDate, 'd MMM yyyy', { locale: it }); dateRangeShort = format(startDate, 'dd/MM/yy'); dateDayOnly = String(startDate.getDate()) }
+    if (firstDate === lastDate) {
+      dateRange = format(startDate, 'd MMM yyyy', { locale: it })
+      dateRangeShort = format(startDate, 'dd/MM/yy')
+      dateDayOnly = format(startDate, 'EEE d', { locale: it })
+    }
     else {
       const endDate = new Date(lastDate + 'T00:00:00')
       dateRange = `${format(startDate, 'd MMM', { locale: it })} – ${format(endDate, 'd MMM yyyy', { locale: it })}`
       const sameMonth = firstDate.substring(0, 7) === lastDate.substring(0, 7)
-      if (sameMonth) { dateRangeShort = `${startDate.getDate()}–${endDate.getDate()}/${format(endDate, 'MM/yy')}`; dateDayOnly = `${startDate.getDate()}–${endDate.getDate()}` }
-      else { dateRangeShort = `${startDate.getDate()}/${format(startDate, 'MM', { locale: it })}–${endDate.getDate()}/${format(endDate, 'MM/yy')}`; dateDayOnly = `${startDate.getDate()}/${format(startDate, 'MM')}–${endDate.getDate()}/${format(endDate, 'MM')}` }
+      if (sameMonth) {
+        dateRangeShort = `${startDate.getDate()}–${endDate.getDate()}/${format(endDate, 'MM/yy')}`
+        dateDayOnly = `${format(startDate, 'EEE d', { locale: it })}–${format(endDate, 'EEE d', { locale: it })}`
+      }
+      else {
+        dateRangeShort = `${startDate.getDate()}/${format(startDate, 'MM', { locale: it })}–${endDate.getDate()}/${format(endDate, 'MM/yy')}`
+        dateDayOnly = `${format(startDate, 'EEE d/MM', { locale: it })}–${format(endDate, 'EEE d/MM', { locale: it })}`
+      }
     }
   }
   const totalHours = days.reduce((sum, d) => sum + (d.hours || 0), 0)

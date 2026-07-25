@@ -1,5 +1,5 @@
 <template>
-  <span class="leave-type-pill" :class="isVacation ? 'pill-ferie' : 'pill-permesso'" :title="title">
+  <span class="leave-type-pill" :title="title">
     {{ resolvedShortLabel }}
   </span>
 </template>
@@ -25,13 +25,7 @@ const resolvedShortLabel = computed(() => {
 @reference "~/assets/css/tailwind.css";
 
 .leave-type-pill {
-  @apply text-[10px] font-bold leading-none px-1.5 py-0.5 rounded flex-shrink-0 text-center;
+  @apply text-[10px] font-bold leading-none px-1.5 py-0.5 rounded flex-shrink-0 text-center bg-accent text-ink-inverse;
   min-width: 1.25rem;
 }
-
-.pill-ferie { background: rgba(245, 158, 11, 0.15); color: #d97706; }
-.pill-permesso { background: var(--color-accent); color: #fff; }
-
-:global(.dark) .pill-ferie { background: rgba(251, 191, 36, 0.18); color: #fbbf24; }
-:global(.dark) .pill-permesso { color: #1e1b4b; }
 </style>

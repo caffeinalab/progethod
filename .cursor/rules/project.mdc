@@ -55,7 +55,7 @@ A simplified timesheet interface for Wethod. Data is stored locally (localStorag
   - `PanelModal` — shared panel shell (guide, shortcuts, Jira/GitLab pickers). Default chrome: `max-w-lg`, `max-h-[85vh]`, `px-6 pt-6 pb-4` header, `text-lg` title. Only override when needed (e.g. shortcuts `max-w-md`).
   - `ActivityPickerModal` — search + grouped selectable list; thin `JiraActivityModal` / `GitlabActivityModal` wrappers own fetch + item slots
   - `IconButton`, `ToggleSwitch`; `LoadingState` / `ErrorState` use one accent-spinner style everywhere
-  - Leave UI: `LeaveTypePill`, `LeaveTypeToggle`, `HoursPerDayPicker`, `SidebarRequestRow`, `RequestStatusBadge` + `utils/leaveStatus.ts`. Type pills use semantic tokens (`vacation` for Ferie, `leaves` for Permesso) — never hardcoded accent/orange. Sidebar request rows cluster date+hours on the left (weekday + day, e.g. `ven 10`) and type+status on the right.
+  - Leave UI: `LeaveTypePill`, `LeaveTypeToggle`, `HoursPerDayPicker`, `SidebarRequestRow`, `RequestStatusBadge` + `utils/leaveStatus.ts`. Type pills (F/P) share one accent style (solid `bg-accent` / `text-ink-inverse`) — no color distinction between Ferie and Permesso. Sidebar request rows cluster date+hours on the left (weekday + day, e.g. `ven 10`) and type+status on the right.
   - `utils/calendarGrid.ts` — Monday-first month grid + Italian weekday headers
   - `utils/clipboard.ts` — shared copy helper
   - Duration strings: `formatDurationLabel` / `formatDecimalHoursLabel` in `utils/duration.ts`
