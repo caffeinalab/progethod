@@ -73,10 +73,10 @@
                 </div>
                 <div v-if="cell.isHoliday" class="text-[10px] font-medium text-ink-faint truncate" :title="cell.holidayName">{{ cell.holidayName }}</div>
                 <div v-if="cell.vacation > 0" class="text-xs font-medium" :class="cell.vacationPending ? 'text-pending-text' : 'text-vacation-text'">
-                  {{ $t('calendar_page.vacation_label') }} {{ formatHours(cell.vacation) }}
+                  {{ $t('calendar_page.vacation_label') }} {{ formatDecimalHoursLabel(cell.vacation) }}
                 </div>
                 <div v-if="cell.leaves > 0" class="text-xs font-medium mt-0.5" :class="cell.leavesPending ? 'text-pending-text' : 'text-vacation-text'">
-                  {{ $t('calendar_page.leaves_label') }} {{ formatHours(cell.leaves) }}
+                  {{ $t('calendar_page.leaves_label') }} {{ formatDecimalHoursLabel(cell.leaves) }}
                 </div>
               </template>
             </div>
@@ -89,11 +89,50 @@
           </div>
 
           <div class="mt-4 pt-4 border-t border-stroke-muted">
-            <div class="flex items-center gap-6 text-sm text-ink-secondary">
-              <div><span class="font-semibold text-ink">{{ monthVacationTotal }}</span> {{ $t('calendar_page.vacation_label').toLowerCase() }}</div>
-              <div><span class="font-semibold text-ink">{{ monthLeavesTotal }}</span> {{ $t('calendar_page.leaves_label').toLowerCase() }}</div>
+            <div class="flex items-center gap-2">
+              <DayStatBadge
+                :label="$t('calendar_page.vacation_label')"
+                :value="monthVacationTotal"
+                variant="vacation"
+              />
+              <DayStatBadge
+                :label="$t('calendar_page.leaves_label')"
+                :value="monthLeavesTotal"
+                variant="vacation"
+              />
             </div>
           </div>
+
+          <Transition name="bulk-toolbar">
+            <div v-if="hasBulkSelection" class="mt-4 pt-4 border-t border-stroke-muted">
+              <div class="flex items-center gap-3 bg-card-hover rounded-lg px-4 py-3">
+                <span class="text-sm font-semibold text-ink flex-1">
+                  {{ $t('calendar_page.bulk_selected', { count: bulkSelectedRequestIds.size, days: bulkSelectedDaysCount }) }}
+                </span>
+                <button
+                  class="px-3 py-1.5 text-xs font-medium rounded-lg bg-accent text-ink-inverse hover:bg-accent-hover transition-colors disabled:opacity-50"
+                  :disabled="bulkSaving || bulkDeleting"
+                  @click="openBulkEditModal"
+                >
+                  {{ $t('calendar_page.bulk_edit') }}
+                </button>
+                <button
+                  class="px-3 py-1.5 text-xs font-medium rounded-lg border-2 border-danger text-danger hover:bg-danger hover:text-ink-inverse transition-colors disabled:opacity-50"
+                  :disabled="bulkSaving || bulkDeleting"
+                  @click="bulkDelete"
+                >
+                  {{ bulkDeleting ? $t('calendar_page.bulk_deleting', bulkProgress) : $t('calendar_page.bulk_delete') }}
+                </button>
+                <button
+                  class="p-1.5 rounded text-ink-faint hover:text-ink transition-colors"
+                  :title="$t('calendar_page.bulk_cancel')"
+                  @click="clearBulkSelection"
+                >
+                  <IconX :size="16" />
+                </button>
+              </div>
+            </div>
+          </Transition>
         </div>
 
         <!-- Sidebar -->
@@ -116,15 +155,24 @@
                     <span class="text-xs font-semibold text-ink">{{ section.label }}</span>
                     <span class="text-[10px] text-ink-muted tabular-nums">{{ formatDays(section.total) }}</span>
                   </div>
-                  <div class="budget-bar-track budget-bar-sm">
-                    <div class="budget-bar-segment bg-budget-used" :style="{ width: budgetBarWidth(section.used, section.total, section.used, section.planned, section.requested) }" />
-                    <div class="budget-bar-segment bg-budget-planned" :style="{ width: budgetBarWidth(section.planned, section.total, section.used, section.planned, section.requested) }" />
-                    <div v-if="Number(section.requested) > 0" class="budget-bar-segment bg-budget-requested" :style="{ width: budgetBarWidth(section.requested, section.total, section.used, section.planned, section.requested) }" />
+                  <div class="relative">
+                    <div class="budget-bar-track budget-bar-sm">
+                      <div class="budget-bar-segment bg-budget-used" :style="{ width: budgetBarWidth(section.used, section.total, section.used, section.planned, section.requested) }" />
+                      <div class="budget-bar-segment bg-budget-planned" :style="{ width: budgetBarWidth(section.planned, section.total, section.used, section.planned, section.requested) }" />
+                      <div v-if="Number(section.requested) > 0" class="budget-bar-segment bg-budget-requested" :style="{ width: budgetBarWidth(section.requested, section.total, section.used, section.planned, section.requested) }" />
+                    </div>
+                    <div
+                      v-if="section.targetMarker"
+                      class="budget-target-marker"
+                      :style="{ left: targetMarkerPosition(section) }"
+                      :title="$t('calendar_page.budget_target_label') + ': ' + formatDays(section.targetMarker)"
+                    />
                   </div>
                   <div class="budget-details">
                     <span><span class="inline-block w-1.5 h-1.5 rounded-sm bg-budget-used mr-0.5" />{{ formatDays(section.used) }}</span>
                     <span><span class="inline-block w-1.5 h-1.5 rounded-sm bg-budget-planned mr-0.5" />{{ formatDays(section.planned) }}</span>
                     <span v-if="Number(section.requested) > 0"><span class="inline-block w-1.5 h-1.5 rounded-sm bg-budget-requested mr-0.5" />{{ formatDays(section.requested) }}</span>
+                    <span v-if="section.targetMarker" class="text-ink-faint"><span class="budget-target-legend mr-0.5" />{{ $t('calendar_page.budget_target_short') }} {{ formatDays(section.targetMarker) }}</span>
                     <span class="font-semibold" :class="remainingClass(section.remaining)">{{ remainingLabel(section.remaining, section.remainingLabelKey) }}</span>
                   </div>
                 </div>
@@ -197,7 +245,7 @@
     </div>
 
     <!-- Modals (export, time-pick, request create/edit) -->
-    <Modal v-model="showExportModal">
+    <Modal v-model="showExportModal" confirmable @confirm="onExportConfirm">
       <h3 class="text-lg font-bold text-ink mb-2">{{ $t('calendar_page.export_confirm_title') }}</h3>
       <p class="text-sm text-ink-muted mb-4 text-center">{{ $t('calendar_page.export_confirm_description') }}</p>
       <ul class="w-full space-y-1 mb-6 max-h-60 overflow-y-auto custom-scrollbar">
@@ -214,7 +262,7 @@
       </div>
     </Modal>
 
-    <Modal v-model="showTimePickModal">
+    <Modal v-model="showTimePickModal" confirmable @confirm="onTimePickConfirm">
       <h3 class="text-lg font-bold text-ink mb-1">{{ $t('calendar_page.time_pick_title') }}</h3>
       <p class="text-sm text-ink-muted mb-4 text-center">{{ $t('calendar_page.time_pick_description') }}</p>
       <template v-if="currentTimePick">
@@ -253,7 +301,7 @@
       </template>
     </Modal>
 
-    <Modal v-model="showRequestModal">
+    <Modal v-model="showRequestModal" confirmable @confirm="onRequestConfirm">
       <h3 class="text-lg font-bold text-ink mb-1">{{ requestModalMode === 'create' ? $t('calendar_page.create_request_title') : $t('calendar_page.edit_request_title') }}</h3>
       <p v-if="requestModalMode === 'edit' && editingRequest" class="text-xs text-ink-muted mb-4">
         <span class="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded" :class="statusBadgeClasses(editingRequest.status)">{{ statusLabel(editingRequest.status) }}</span>
@@ -306,6 +354,54 @@
         </button>
       </div>
     </Modal>
+
+    <Modal v-model="showBulkEditModal" confirmable @confirm="onBulkEditConfirm">
+      <h3 class="text-lg font-bold text-ink mb-1">{{ $t('calendar_page.bulk_edit_title') }}</h3>
+      <p class="text-sm text-ink-muted mb-4 text-center">{{ $t('calendar_page.bulk_edit_description') }}</p>
+      <div v-if="bulkError" class="w-full mb-4 p-3 rounded-lg border border-danger bg-danger-soft text-danger-text text-xs font-medium">{{ bulkError }}</div>
+      <div class="w-full mb-4">
+        <label class="text-xs font-semibold text-ink-muted block mb-1.5">{{ $t('calendar_page.request_type') }}</label>
+        <div class="flex gap-2">
+          <button class="flex-1 px-3 py-2 text-sm font-medium rounded-lg border-2 transition-colors" :class="bulkEditProjectId === VACATION_PROJECT_ID ? 'border-vacation bg-vacation-soft text-vacation-text' : 'border-stroke-muted text-ink-muted hover:bg-card-hover'" @click="bulkEditProjectId = VACATION_PROJECT_ID">{{ $t('calendar_page.vacation_label') }}</button>
+          <button class="flex-1 px-3 py-2 text-sm font-medium rounded-lg border-2 transition-colors" :class="bulkEditProjectId === LEAVES_PROJECT_ID ? 'border-vacation bg-vacation-soft text-vacation-text' : 'border-stroke-muted text-ink-muted hover:bg-card-hover'" @click="bulkEditProjectId = LEAVES_PROJECT_ID">{{ $t('calendar_page.leaves_label') }}</button>
+        </div>
+      </div>
+      <div class="w-full mb-4">
+        <label class="text-xs font-semibold text-ink-muted block mb-1.5">{{ $t('calendar_page.hours_per_day') }}</label>
+        <div class="flex gap-2">
+          <button v-for="option in [4, 8]" :key="option" class="px-4 py-2 text-sm font-medium rounded-lg border-2 transition-colors" :class="bulkEditHoursPerDay === option && bulkEditCustomHours === null ? 'border-accent bg-accent-soft text-accent-fg' : 'border-stroke-muted text-ink-muted hover:bg-card-hover'" @click="bulkEditHoursPerDay = option; bulkEditCustomHours = null">{{ option }}h</button>
+          <button class="px-4 py-2 text-sm font-medium rounded-lg border-2 transition-colors" :class="bulkEditCustomHours !== null ? 'border-accent bg-accent-soft text-accent-fg' : 'border-stroke-muted text-ink-muted hover:bg-card-hover'" @click="bulkEditCustomHours = bulkEditCustomHours ?? 1; bulkEditHoursPerDay = bulkEditCustomHours">{{ $t('calendar_page.hours_custom') }}</button>
+        </div>
+        <div v-if="bulkEditCustomHours !== null" class="mt-2 flex items-center gap-2">
+          <div class="inline-flex items-stretch rounded-lg border border-stroke overflow-hidden">
+            <button class="px-2.5 flex items-center text-ink-muted hover:bg-card-hover hover:text-ink transition-colors disabled:opacity-30 disabled:cursor-not-allowed" :disabled="bulkEditCustomHours <= 0.5" @click="bulkEditCustomHours = Math.max(0.5, bulkEditCustomHours - 0.5); bulkEditHoursPerDay = bulkEditCustomHours"><IconMinus :size="14" /></button>
+            <input v-model.number="bulkEditCustomHours" type="number" min="0.5" max="8" step="0.5" class="custom-hours-input w-12 text-center text-sm font-medium bg-input text-ink py-2 border-x border-stroke focus:outline-none" @input="bulkEditHoursPerDay = bulkEditCustomHours">
+            <button class="px-2.5 flex items-center text-ink-muted hover:bg-card-hover hover:text-ink transition-colors disabled:opacity-30 disabled:cursor-not-allowed" :disabled="bulkEditCustomHours >= 8" @click="bulkEditCustomHours = Math.min(8, bulkEditCustomHours + 0.5); bulkEditHoursPerDay = bulkEditCustomHours"><IconPlus :size="14" /></button>
+          </div>
+          <span class="text-xs text-ink-muted">{{ $t('calendar_page.hours_custom_hint') }}</span>
+        </div>
+      </div>
+      <div class="w-full mb-4">
+        <label class="text-xs font-semibold text-ink-muted block mb-1.5">{{ $t('notes') }}</label>
+        <input v-model="bulkEditNotes" type="text" class="w-full px-3 py-2 text-sm rounded-lg border border-stroke bg-input text-ink placeholder-ink-faint focus:outline-none focus:ring-2 focus:ring-focus-ring" :placeholder="$t('calendar_page.notes_placeholder')">
+      </div>
+      <div class="w-full mb-6">
+        <label class="text-xs font-semibold text-ink-muted block mb-1.5">{{ $t('calendar_page.selected_days') }}</label>
+        <div class="max-h-32 overflow-y-auto custom-scrollbar space-y-1">
+          <div v-for="request in bulkSelectedRequests" :key="request.id" class="flex items-center justify-between text-xs px-3 py-1.5 rounded bg-card-hover">
+            <span class="font-medium text-ink">{{ request.dateRange }}</span>
+            <span class="text-ink-muted">{{ request.typeLabel }} {{ request.totalHoursLabel }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="flex w-full gap-3">
+        <div class="flex-1" />
+        <button class="px-4 py-2 text-sm rounded-lg border border-stroke text-ink-secondary hover:bg-card-hover transition-colors" @click="showBulkEditModal = false">{{ $t('calendar_page.cancel') }}</button>
+        <button class="px-4 py-2 text-sm font-medium rounded-lg bg-accent text-ink-inverse hover:bg-accent-hover transition-colors disabled:opacity-50" :disabled="bulkSaving" @click="submitBulkEdit">
+          {{ bulkSaving ? $t('calendar_page.bulk_edit_saving', bulkProgress) : $t('calendar_page.save_changes') }}
+        </button>
+      </div>
+    </Modal>
   </div>
 </template>
 
@@ -315,6 +411,7 @@ import { startOfMonth, endOfMonth, getDay, addMonths, addDays, format, differenc
 import { it } from 'date-fns/locale'
 import { IconChevronLeft, IconChevronRight, IconCheck, IconX, IconEdit, IconTrash, IconClock, IconCircleCheck, IconCircleX, IconMinus, IconPlus } from '@tabler/icons-vue'
 import { createOutOfOfficeEvent } from '~/utils/gCal'
+import { formatDecimalHoursLabel } from '~/utils/duration'
 
 definePageMeta({ middleware: 'auth' })
 
@@ -368,6 +465,16 @@ const timeOffData = ref(null)
 const budgetLoading = ref(false)
 const budgetError = ref(false)
 const sidebarTab = ref('upcoming')
+const bulkSelectedRequestIds = ref(new Set())
+const showBulkEditModal = ref(false)
+const bulkEditProjectId = ref(null)
+const bulkEditHoursPerDay = ref(null)
+const bulkEditCustomHours = ref(null)
+const bulkEditNotes = ref(null)
+const bulkSaving = ref(false)
+const bulkDeleting = ref(false)
+const bulkProgress = ref({ current: 0, total: 0 })
+const bulkError = ref(null)
 
 const weekdayHeaders = ['Lu', 'Ma', 'Me', 'Gi', 'Ve', 'Sa', 'Do']
 
@@ -447,14 +554,14 @@ const exportableEvents = computed(() => {
   const events = []
   for (const cell of calendarCells.value) {
     if (!cell.dayNumber || cell.isWeekend || cell.isHoliday) continue
-    if (cell.vacation > 0) events.push({ date: cell.dateKey, dateLabel: format(new Date(cell.dateKey + 'T00:00:00'), 'EEEE d MMMM', { locale: it }), type: 'vacation', typeLabel: $t('calendar_page.vacation_label'), hours: cell.vacation, hoursLabel: formatHours(cell.vacation), pending: cell.vacationPending })
-    if (cell.leaves > 0) events.push({ date: cell.dateKey, dateLabel: format(new Date(cell.dateKey + 'T00:00:00'), 'EEEE d MMMM', { locale: it }), type: 'leaves', typeLabel: $t('calendar_page.leaves_label'), hours: cell.leaves, hoursLabel: formatHours(cell.leaves), pending: cell.leavesPending })
+    if (cell.vacation > 0) events.push({ date: cell.dateKey, dateLabel: format(new Date(cell.dateKey + 'T00:00:00'), 'EEEE d MMMM', { locale: it }), type: 'vacation', typeLabel: $t('calendar_page.vacation_label'), hours: cell.vacation, hoursLabel: formatDecimalHoursLabel(cell.vacation), pending: cell.vacationPending })
+    if (cell.leaves > 0) events.push({ date: cell.dateKey, dateLabel: format(new Date(cell.dateKey + 'T00:00:00'), 'EEEE d MMMM', { locale: it }), type: 'leaves', typeLabel: $t('calendar_page.leaves_label'), hours: cell.leaves, hoursLabel: formatDecimalHoursLabel(cell.leaves), pending: cell.leavesPending })
   }
   return events
 })
 
-const monthVacationTotal = computed(() => { let total = 0; for (const day of Object.values(planningsByDate.value)) total += day.vacation; return formatHours(total) })
-const monthLeavesTotal = computed(() => { let total = 0; for (const day of Object.values(planningsByDate.value)) total += day.leaves; return formatHours(total) })
+const monthVacationTotal = computed(() => { let total = 0; for (const day of Object.values(planningsByDate.value)) total += day.vacation; return formatDecimalHoursLabel(total) })
+const monthLeavesTotal = computed(() => { let total = 0; for (const day of Object.values(planningsByDate.value)) total += day.leaves; return formatDecimalHoursLabel(total) })
 const currentTimePick = computed(() => timePickEvents.value[timePickIndex.value] || null)
 
 const upcomingRequests = computed(() => {
@@ -469,23 +576,55 @@ const pastRequests = computed(() => filteredPastRequests.value.slice(0, pastVisi
 const hasMorePast = computed(() => pastVisibleCount.value < filteredPastRequests.value.length)
 const pastByMonth = computed(() => groupByMonth(pastRequests.value))
 
+const hasBulkSelection = computed(() => bulkSelectedRequestIds.value.size > 0)
+const bulkSelectedRequests = computed(() => allRequests.value.filter((request) => bulkSelectedRequestIds.value.has(request.id)))
+const bulkSelectedDates = computed(() => {
+  const dates = new Set()
+  for (const request of bulkSelectedRequests.value) {
+    for (const day of request.days) {
+      const dateKey = day.date || day.day
+      if (dateKey) dates.add(dateKey)
+    }
+  }
+  return dates
+})
+const bulkSelectedDaysCount = computed(() => {
+  let count = 0
+  for (const request of bulkSelectedRequests.value) count += request.days.length
+  return count
+})
+
 const budgetSections = computed(() => {
   if (!timeOffData.value) return []
   const data = timeOffData.value
+  const combinedTotal = Number(data.time_off_targets.vacation) + Number(data.time_off_targets.leave)
+  const combinedUsed = Number(data.used.target)
+  const combinedPlanned = Number(data.planned.target)
+  const combinedRequested = Number(data.requested.target)
+  const combinedRemaining = combinedTotal - combinedUsed - combinedPlanned - combinedRequested
   return [
     { key: 'vacation', label: $t('calendar_page.vacation_label'), total: data.time_off_targets.vacation, used: data.used.vacation, planned: data.planned.vacation, requested: data.requested.vacation, remaining: data.remaining.vacation, remainingLabelKey: 'calendar_page.budget_balance' },
     { key: 'leave', label: $t('calendar_page.leaves_label'), total: data.time_off_targets.leave, used: data.used.leave, planned: data.planned.leave, requested: data.requested.leave, remaining: data.remaining.leave, remainingLabelKey: 'calendar_page.budget_balance' },
-    { key: 'target', label: $t('calendar_page.budget_target_label'), total: data.time_off_targets.target, used: data.used.target, planned: data.planned.target, requested: data.requested.target, remaining: data.remaining.target, borderTop: true, remainingLabelKey: 'calendar_page.budget_remaining' },
+    { key: 'total', label: $t('calendar_page.budget_total'), total: combinedTotal, used: combinedUsed, planned: combinedPlanned, requested: combinedRequested, remaining: combinedRemaining, borderTop: true, remainingLabelKey: 'calendar_page.budget_remaining', targetMarker: Number(data.time_off_targets.target) },
   ]
 })
 
-watch(monthOffset, () => { fetchPlannings(); createdDates.value = new Set(); exportResult.value = null })
+watch(monthOffset, () => { fetchPlannings(); createdDates.value = new Set(); exportResult.value = null; bulkSelectedRequestIds.value = new Set() })
 watch(requestsSearch, () => { pastVisibleCount.value = 10 })
 watch(showTimePickModal, (visible) => { if (!visible) timePickSingleCell.value = null })
 
-onMounted(() => { fetchPlannings(); fetchRequests(); fetchHolidays(); fetchTimeOff(); nextTick(() => measureCalendar()) })
+const hasOpenModal = useHasOpenModal()
+
+function onBulkEscKey(event) {
+  if (event.key === 'Escape' && hasBulkSelection.value && !hasOpenModal.value) {
+    event.preventDefault()
+    clearBulkSelection()
+  }
+}
+
+onMounted(() => { fetchPlannings(); fetchRequests(); fetchHolidays(); fetchTimeOff(); nextTick(() => measureCalendar()); document.addEventListener('keydown', onBulkEscKey) })
 onUpdated(() => measureCalendar())
-onBeforeUnmount(() => document.removeEventListener('mouseup', onDocumentMouseUp))
+onBeforeUnmount(() => { document.removeEventListener('mouseup', onDocumentMouseUp); document.removeEventListener('keydown', onBulkEscKey) })
 
 function measureCalendar() { if (calendarPanel.value) calendarHeight.value = calendarPanel.value.offsetHeight }
 
@@ -516,15 +655,6 @@ function statusBadgeClasses(status) {
   return 'bg-card-hover text-ink-muted'
 }
 
-function formatHours(value) {
-  if (!value) return '0h'
-  let hours = Math.floor(value)
-  let minutes = Math.round((value - hours) * 60)
-  if (minutes >= 60) { hours += 1; minutes = 0 }
-  if (minutes === 0) return `${hours}h`
-  return `${hours}h ${minutes}m`
-}
-
 function formatDays(hours) {
   const totalHours = Math.abs(Number(hours))
   const days = Math.floor(totalHours / 8)
@@ -544,6 +674,14 @@ function budgetBarWidth(segmentHours, totalHours, usedHours, plannedHours, reque
   return `${(segment / Math.max(budget, consumed)) * 100}%`
 }
 
+function targetMarkerPosition(section) {
+  const budget = Number(section.total)
+  const marker = Number(section.targetMarker)
+  if (budget <= 0 || marker <= 0) return '0%'
+  const consumed = Number(section.used) + Number(section.planned) + Number(section.requested)
+  return `${(marker / Math.max(budget, consumed)) * 100}%`
+}
+
 function remainingClass(remainingHours) { const val = Number(remainingHours); if (val < 0) return 'text-danger'; if (val === 0) return 'text-vacation-text'; return 'text-ink' }
 function remainingLabel(remainingHours, labelKey = 'calendar_page.budget_remaining') { const val = Number(remainingHours); if (val < 0) return $t('calendar_page.budget_over_planned', { days: formatDays(Math.abs(val)) }); if (val === 0) return $t('calendar_page.budget_all_planned'); return $t(labelKey) + ': ' + formatDays(remainingHours) }
 
@@ -552,6 +690,7 @@ function formatDateChip(dateStr) { return format(new Date(dateStr + 'T00:00:00')
 function cellClasses(cell) {
   if (!cell.dayNumber) return 'border-transparent'
   if (cell.isWeekend || cell.isHoliday) return 'border-transparent bg-card-dim text-ink-disabled'
+  if (bulkSelectedDates.value.has(cell.dateKey)) return 'ring-2 ring-ink border-ink bg-card cursor-pointer bulk-selected-cell'
   if (selectedDates.value.has(cell.dateKey)) return 'ring-2 ring-accent bg-accent-soft border-accent cursor-pointer'
   const hasAny = cell.vacation > 0 || cell.leaves > 0
   if (!hasAny) return cell.isToday ? 'border-accent bg-card cursor-pointer' : 'border-stroke-muted bg-card cursor-pointer hover:bg-card-hover'
@@ -561,6 +700,18 @@ function cellClasses(cell) {
 
 function onCellMouseDown(cell, event) {
   if (!cell.dayNumber || cell.isWeekend || cell.isHoliday) return
+  const dayData = planningsByDate.value[cell.dateKey]
+  const hasAllocation = dayData && (dayData.vacation > 0 || dayData.leaves > 0)
+  if ((event.ctrlKey || event.metaKey) && hasAllocation && dayData.requestIds?.length) {
+    event.preventDefault()
+    const next = new Set(bulkSelectedRequestIds.value)
+    for (const requestId of dayData.requestIds) {
+      if (next.has(requestId)) next.delete(requestId)
+      else next.add(requestId)
+    }
+    bulkSelectedRequestIds.value = next
+    return
+  }
   event.preventDefault()
   isDragging.value = true
   dragStartDate.value = cell.dateKey
@@ -618,6 +769,81 @@ async function deleteRequest() {
 async function deleteRequestDirect(request) {
   if (!window.confirm($t('calendar_page.delete_confirm_message'))) return
   try { await api.$delete(`allocation-request/${request.id}`); await refreshData() } catch { /* silent */ }
+}
+
+function clearBulkSelection() { bulkSelectedRequestIds.value = new Set() }
+
+function openBulkEditModal() {
+  const requests = bulkSelectedRequests.value
+  const allSameProject = requests.every((request) => request.projectId === requests[0].projectId)
+  bulkEditProjectId.value = allSameProject ? requests[0].projectId : null
+  const allHours = requests.map((request) => request.days[0]?.hours || 8)
+  const allSameHours = allHours.every((hours) => hours === allHours[0])
+  if (allSameHours) {
+    bulkEditHoursPerDay.value = allHours[0]
+    bulkEditCustomHours.value = (allHours[0] === 4 || allHours[0] === 8) ? null : allHours[0]
+  } else {
+    bulkEditHoursPerDay.value = null
+    bulkEditCustomHours.value = null
+  }
+  const allSameNotes = requests.every((request) => request.notes === requests[0].notes)
+  bulkEditNotes.value = allSameNotes ? requests[0].notes : ''
+  bulkError.value = null
+  showBulkEditModal.value = true
+}
+
+function onBulkEditConfirm() {
+  if (bulkSaving.value) return
+  submitBulkEdit()
+}
+
+async function submitBulkEdit() {
+  const requests = bulkSelectedRequests.value
+  if (requests.length === 0) return
+  bulkSaving.value = true
+  bulkError.value = null
+  bulkProgress.value = { current: 0, total: requests.length }
+  try {
+    for (const request of requests) {
+      bulkProgress.value = { current: bulkProgress.value.current + 1, total: requests.length }
+      const payload = {}
+      if (bulkEditProjectId.value !== null) payload.project = bulkEditProjectId.value
+      if (bulkEditNotes.value !== null) payload.notes = bulkEditNotes.value
+      if (bulkEditHoursPerDay.value !== null) {
+        payload.days = request.days.map((day) => ({ date: day.date || day.day, hours: bulkEditHoursPerDay.value }))
+      }
+      if (Object.keys(payload).length > 0) {
+        await api.$patch(`allocation-request/${request.id}`, payload)
+      }
+    }
+    showBulkEditModal.value = false
+    clearBulkSelection()
+    await refreshData()
+  } catch (error) {
+    bulkError.value = error.response?.data?.message || $t('calendar_page.request_error')
+  } finally {
+    bulkSaving.value = false
+  }
+}
+
+async function bulkDelete() {
+  const requests = bulkSelectedRequests.value
+  if (requests.length === 0) return
+  if (!window.confirm($t('calendar_page.bulk_delete_confirm', { count: requests.length }))) return
+  bulkDeleting.value = true
+  bulkProgress.value = { current: 0, total: requests.length }
+  try {
+    for (const request of requests) {
+      bulkProgress.value = { current: bulkProgress.value.current + 1, total: requests.length }
+      await api.$delete(`allocation-request/${request.id}`)
+    }
+    clearBulkSelection()
+    await refreshData()
+  } catch { /* silent — partial deletes still refresh */ }
+  finally {
+    bulkDeleting.value = false
+    await refreshData()
+  }
 }
 
 async function refreshData() { pastVisibleCount.value = 10; await Promise.all([fetchPlannings(), fetchRequests(), fetchTimeOff()]) }
@@ -684,7 +910,7 @@ function mapRequest(raw) {
   }
   const totalHours = days.reduce((sum, d) => sum + (d.hours || 0), 0)
   const rawNotes = raw.notes || ''; const userNotes = SYSTEM_NOTE_PATTERN.test(rawNotes) ? '' : rawNotes
-  return { id: raw.id, projectId: raw.project?.id, typeLabel, typeShort: isVacation ? 'F' : 'P', status: raw.status, dateRange, dateRangeShort, dateDayOnly, totalHoursLabel: formatHours(totalHours || raw.hours || 0), firstDate, lastDate, notes: userNotes, days }
+  return { id: raw.id, projectId: raw.project?.id, typeLabel, typeShort: isVacation ? 'F' : 'P', status: raw.status, dateRange, dateRangeShort, dateDayOnly, totalHoursLabel: formatDecimalHoursLabel(totalHours || raw.hours || 0), firstDate, lastDate, notes: userNotes, days }
 }
 
 function groupByMonth(requests) {
@@ -713,7 +939,7 @@ function filterRequestsBySearch(requests) {
 function addDayToCalendar(cell) {
   if (createdDates.value.has(cell.dateKey)) return
   const totalHours = (cell.vacation || 0) + (cell.leaves || 0)
-  const event = { date: cell.dateKey, dateLabel: format(new Date(cell.dateKey + 'T00:00:00'), 'EEEE d MMMM', { locale: it }), hours: totalHours, hoursLabel: formatHours(totalHours) }
+  const event = { date: cell.dateKey, dateLabel: format(new Date(cell.dateKey + 'T00:00:00'), 'EEEE d MMMM', { locale: it }), hours: totalHours, hoursLabel: formatDecimalHoursLabel(totalHours) }
   timePickSingleCell.value = cell
   if (totalHours >= 8) { executeGCalExport([event]); timePickSingleCell.value = null }
   else { timePickChoices.value = {}; openTimePicker([event]) }
@@ -721,9 +947,25 @@ function addDayToCalendar(cell) {
 
 function confirmExport() { const events = exportableEvents.value.filter((e) => !createdDates.value.has(e.date)); showExportModal.value = false; startGCalFlow(events) }
 
+function onExportConfirm() {
+  if (exporting.value) { return }
+  confirmExport()
+}
+
+function onTimePickConfirm() {
+  if (exporting.value || !currentTimePick.value) { return }
+  confirmTimePick()
+}
+
+function onRequestConfirm() {
+  if (requestSaving.value || requestDeleting.value) { return }
+  if (requestModalMode.value === 'create' && modalDates.value.length === 0) { return }
+  submitRequest()
+}
+
 function aggregateByDate(events) {
   const byDate = {}
-  for (const event of events) { if (!byDate[event.date]) byDate[event.date] = { ...event, hours: 0 }; byDate[event.date].hours += event.hours; byDate[event.date].hoursLabel = formatHours(byDate[event.date].hours) }
+  for (const event of events) { if (!byDate[event.date]) byDate[event.date] = { ...event, hours: 0 }; byDate[event.date].hours += event.hours; byDate[event.date].hoursLabel = formatDecimalHoursLabel(byDate[event.date].hours) }
   return Object.values(byDate)
 }
 
@@ -807,6 +1049,8 @@ async function executeGCalExport(events) {
 .budget-bar-track { @apply flex w-full h-3 rounded-full overflow-hidden; background: var(--color-budget-remaining, var(--color-stroke-muted)); }
 .budget-bar-sm { @apply h-2; }
 .budget-bar-segment { transition: width 0.4s ease; min-width: 0; }
+.budget-target-marker { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--color-ink); border-radius: 1px; z-index: 1; opacity: 0.7; transition: left 0.4s ease; cursor: help; }
+.budget-target-legend { display: inline-block; width: 2px; height: 8px; background: var(--color-ink); border-radius: 1px; opacity: 0.7; vertical-align: middle; }
 .budget-details { @apply flex flex-wrap gap-x-3 gap-y-0.5 mt-1.5 text-ink-muted tabular-nums; font-size: 10px; }
 .bg-budget-used { background: var(--color-budget-used, #059669); }
 .bg-budget-planned { background: var(--color-budget-planned, #38bdf8); }
@@ -817,6 +1061,10 @@ async function executeGCalExport(events) {
 .custom-hours-input::-webkit-inner-spin-button,
 .custom-hours-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 .custom-hours-input { -moz-appearance: textfield; appearance: textfield; }
+.bulk-selected-cell { animation: bulk-pulse 1.5s ease-in-out infinite; }
+@keyframes bulk-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.75; } }
+.bulk-toolbar-enter-active, .bulk-toolbar-leave-active { transition: all 0.2s ease; }
+.bulk-toolbar-enter-from, .bulk-toolbar-leave-to { opacity: 0; transform: translateY(8px); }
 </style>
 
 <style>
