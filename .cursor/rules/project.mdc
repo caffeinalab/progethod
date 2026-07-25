@@ -55,6 +55,7 @@ A simplified timesheet interface for Wethod. Data is stored locally (localStorag
 - **Typography (DM Sans)**: Global `letter-spacing: 0.01em`, `font-optical-sizing: auto`, `opsz` 14, and antialiased rendering to reduce letter blending on dark UI. Prefer `font-semibold` over `font-bold` at `text-xs`; small text gets `0.015em` tracking.
 - **Holidays**: Fetched from `/api/holidays` (Factorial iCal proxy). Holidays are excluded from calendar interactions the same way weekends are (non-clickable, non-selectable in drag). Displayed in MonthCalendar widget with disabled styling. On main weekly timesheet, holidays render as a badge on the day stat bar. Data is `[{ date, name }]`.
 - **Reusable UI components**: Prefer shared presentational components with props/slots over copy-pasted markup.
+  - `LogoBrand` — CSS 3D matte extruded accent wordmark (layered spans + anime.js idle tumble). Defaults to “Progethod” at `lg+` and compact “P” below; force with `wordless` / `responsive`. Fitted so the tilt stays inside the 64px nav; `prefers-reduced-motion` skips motion.
   - `DayStatBadge` — day/month status chips (border tint only)
   - `PanelModal` — shared panel shell (guide, shortcuts, Jira/GitLab pickers). Default chrome: `max-w-lg`, `max-h-[85vh]`, `px-6 pt-6 pb-4` header, `text-lg` title. Only override when needed (e.g. shortcuts `max-w-md`).
   - `ActivityPickerModal` — search + grouped selectable list; thin `JiraActivityModal` / `GitlabActivityModal` wrappers own fetch + item slots

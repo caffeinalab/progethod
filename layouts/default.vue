@@ -3,18 +3,8 @@
     <nav class="w-full mx-auto bg-card shadow fixed top-0 z-10">
       <div class="container px-6 justify-between h-16 flex items-center lg:items-stretch mx-auto">
         <div class="h-full flex items-center">
-          <div class="mr-10 flex items-center">
-            <img
-              id="logo"
-              class="logo-img"
-              aria-label="Home"
-              height="44"
-              width="43"
-              src="/progethod.svg"
-            >
-            <h3 class="text-base text-ink font-bold tracking-normal leading-tight ml-3 hidden lg:block">
-              Progethod
-            </h3>
+          <div class="mr-8 flex items-center">
+            <LogoBrand id="logo" :size="40" aria-label="Home" />
           </div>
 
           <ul class="pr-12 xl:flex items-center h-full hidden navbar">
@@ -366,7 +356,4 @@ onBeforeUnmount(() => {
     @apply border-b-2 border-accent text-accent-fg;
   }
 
-  .dark .logo-img {
-    filter: brightness(2.5);
-  }
 </style>

@@ -8,7 +8,7 @@
   >
     <template #title>
       <div class="flex items-center gap-2">
-        <img class="logo-img" src="/progethod.svg" width="28" height="28" alt="Progethod">
+        <LogoBrand :size="28" aria-label="Progethod" :wordless="true" :responsive="false" />
         <h2 class="text-lg font-bold text-ink">Progethod</h2>
         <span class="text-xs text-ink-faint font-mono">v2.0</span>
       </div>
