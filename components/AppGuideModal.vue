@@ -1,6 +1,6 @@
 <template>
   <Transition name="fade">
-    <div v-if="modelValue" class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto" @click.self="close">
+    <div v-if="modelValue" data-modal-overlay class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto" @click.self="close">
       <div class="fixed inset-0 bg-black/40" @click="close" />
       <div class="relative bg-card rounded-xl shadow-2xl max-w-lg w-full max-h-[85vh] min-h-0 flex flex-col my-auto">
         <div class="flex items-center justify-between p-6 pb-0">
@@ -156,6 +156,11 @@ const scrollArea = ref(null)
 function close() {
   emit('update:modelValue', false)
 }
+
+useModalKeyboard({
+  isOpen: () => props.modelValue,
+  onDismiss: close,
+})
 
 function onScroll() {
   checkScroll()

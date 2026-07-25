@@ -1,6 +1,6 @@
 <template>
   <Transition name="fade">
-    <div v-if="visible" class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto" @click.self="close">
+    <div v-if="visible" data-modal-overlay class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto" @click.self="close">
       <div class="fixed inset-0 bg-black/40" @click="close" />
       <div class="relative bg-card rounded-xl shadow-2xl max-w-md w-full max-h-[85vh] min-h-0 flex flex-col my-auto">
         <div class="flex items-center justify-between px-6 pt-6 pb-4">
@@ -93,6 +93,11 @@ function toggle() {
 function close() {
   visible.value = false
 }
+
+useModalKeyboard({
+  isOpen: visible,
+  onDismiss: close,
+})
 
 function onScroll() {
   checkScroll()

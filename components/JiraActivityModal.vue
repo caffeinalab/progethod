@@ -1,6 +1,6 @@
 <template>
   <Transition name="fade">
-    <div v-if="modelValue" class="fixed inset-0 z-50 flex items-center justify-center p-4" @click.self="close">
+    <div v-if="modelValue" data-modal-overlay class="fixed inset-0 z-50 flex items-center justify-center p-4" @click.self="close">
       <div class="fixed inset-0 bg-black/40" @click="close" />
       <div class="relative bg-card rounded-xl shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col">
         <div class="flex items-center justify-between px-5 pt-5 pb-3">
@@ -160,6 +160,11 @@ onBeforeUnmount(() => {
 function close() {
   emit('update:modelValue', false)
 }
+
+useModalKeyboard({
+  isOpen: () => props.modelValue,
+  onDismiss: close,
+})
 
 async function fetchActivity() {
   loading.value = true

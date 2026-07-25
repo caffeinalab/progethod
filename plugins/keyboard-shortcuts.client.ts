@@ -1,6 +1,7 @@
 export default defineNuxtPlugin(() => {
   const eventBus = useEventBus()
   const router = useRouter()
+  const hasOpenModal = useHasOpenModal()
 
   const IGNORED_TAGS = new Set(['INPUT', 'TEXTAREA', 'SELECT'])
   const INTEGRATION_KEYS: Record<string, keyof typeof eventBus.emit extends (type: infer T, ...args: any[]) => any ? T : never> = {
@@ -30,6 +31,12 @@ export default defineNuxtPlugin(() => {
   }
 
   function onKeydown(event: KeyboardEvent) {
+    // Modals own Escape/Enter and should not race with page shortcuts.
+    if (hasOpenModal.value) {
+      if (leaderActive) { dismissLeader() }
+      return
+    }
+
     const typing = isTyping(event)
 
     if (event.ctrlKey && event.key === 'Enter') {
