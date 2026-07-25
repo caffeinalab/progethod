@@ -59,7 +59,10 @@ export const useUserStore = defineStore('user', {
       state.googleTokenExpiration && isAfter(parseISO(state.googleTokenExpiration), new Date()),
     isGCalSetup: (state) => state.hasAuthorizedGCal,
     businessUnits: (state) => state.info.business_units || [],
-    businessUnitsEnabled: (state) => state.info.business_units_enabled === true,
+    businessUnitsEnabled: (state) => {
+      if (state.info.business_units_enabled) { return true }
+      return (state.info.business_units?.length ?? 0) > 0
+    },
     isJiraConfigured: (state) => !!(state.jira.accessToken || state.jira.refreshToken),
     isJiraTokenValid: (state) =>
       state.jira.accessToken &&

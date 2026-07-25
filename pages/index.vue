@@ -59,7 +59,7 @@
         </button>
       </div>
 
-      <div class="flex items-stretch gap-3 mt-4">
+      <div class="flex flex-wrap items-center gap-3 mt-4">
         <template v-if="trackedHoursLoading">
           <div class="stat-card animate-pulse"><span class="inline-block w-20 h-4 bg-stroke-muted rounded" /></div>
           <div class="stat-card animate-pulse"><span class="inline-block w-20 h-4 bg-stroke-muted rounded" /></div>
@@ -86,7 +86,7 @@
             <span class="stat-value">{{ $t('office_days_check_button') }}</span>
           </div>
         </template>
-        <BusinessUnitFilter v-if="userStore.businessUnitsEnabled" class="ml-auto" />
+        <BusinessUnitFilter v-if="userStore.businessUnitsEnabled" class="ml-auto shrink-0" />
       </div>
     </div>
 
