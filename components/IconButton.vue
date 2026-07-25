@@ -72,12 +72,9 @@ const rootClass = computed(() => {
   border-color: var(--color-accent-hover);
 }
 
-.icon-btn--gcal { color: #4285F4; }
-.icon-btn--jira { color: #0052CC; }
-.icon-btn--gitlab { color: #FC6D26; }
-:global(.dark) .icon-btn--gcal { color: #6ea8ff; }
-:global(.dark) .icon-btn--jira { color: #5b9bff; }
-:global(.dark) .icon-btn--gitlab { color: #ff8f56; }
+.icon-btn--gcal { color: var(--color-gcal); }
+.icon-btn--jira { color: var(--color-jira); }
+.icon-btn--gitlab { color: var(--color-gitlab); }
 
 .icon-btn--ghost,
 .icon-btn--ghost-danger {

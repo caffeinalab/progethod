@@ -290,6 +290,42 @@
   --color-pending-text: oklch(0.8784 0.1165 66.29);
 }
 
+/* ─── Brand integration colors (GCal / Jira / GitLab) ───
+ * Light values darkened vs official brand hex so icon/button text
+ * meets WCAG AA on card. Dark values keep the existing brighter tints.
+ */
+:root {
+  --base-gcal: #1967d2;
+  --base-jira: #0052cc;
+  --base-gitlab: #f06420;
+
+  --color-gcal: var(--base-gcal);
+  --color-jira: var(--base-jira);
+  --color-gitlab: var(--base-gitlab);
+}
+
+.dark {
+  --base-gcal: #6ea8ff;
+  --base-jira: #5b9bff;
+  --base-gitlab: #ff8f56;
+
+  --color-gcal: var(--base-gcal);
+  --color-jira: var(--base-jira);
+  --color-gitlab: var(--base-gitlab);
+}
+
+.high-contrast {
+  --color-gcal: #174ea6;
+  --color-jira: #003d99;
+  --color-gitlab: #c2410c;
+}
+
+.dark.high-contrast {
+  --color-gcal: #93c5fd;
+  --color-jira: #93c5fd;
+  --color-gitlab: #fdba74;
+}
+
 /* ─── Dark mode: nav separation ─── */
 .dark nav {
   border-bottom: 1px solid var(--color-stroke-muted);

@@ -1014,10 +1014,18 @@ async function executeGCalExport(events) {
 .sidebar-tab { @apply relative z-10 flex-1 text-xs font-bold uppercase tracking-wide py-2 rounded-md transition-colors text-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus-ring; }
 .sidebar-tab-active { @apply text-ink-inverse; }
 .sidebar-tab-inactive { @apply text-ink-faint hover:text-ink-muted; }
-.gcal-icon { color: #4285F4; }
-.gcal-btn { background: rgba(66, 133, 244, 0.12); color: #4285F4; border: 1px solid rgba(66, 133, 244, 0.3); }
-.gcal-btn:hover { background: #4285F4; color: #fff; }
-.time-pick-active { border-color: #4285F4; background: rgba(66, 133, 244, 0.12); color: #4285F4; }
+.gcal-icon { color: var(--color-gcal); }
+.gcal-btn {
+  background: color-mix(in srgb, var(--color-gcal) 12%, transparent);
+  color: var(--color-gcal);
+  border: 1px solid color-mix(in srgb, var(--color-gcal) 35%, transparent);
+}
+.gcal-btn:hover { background: var(--color-gcal); color: var(--color-ink-inverse); }
+.time-pick-active {
+  border-color: var(--color-gcal);
+  background: color-mix(in srgb, var(--color-gcal) 12%, transparent);
+  color: var(--color-gcal);
+}
 .time-pick-inactive { border-color: var(--color-stroke); color: var(--color-ink-muted); background: transparent; }
 .time-pick-inactive:hover { background: var(--color-card-hover); }
 .budget-bar-track { @apply flex w-full h-3 rounded-full overflow-hidden; background: var(--color-budget-remaining, var(--color-stroke-muted)); }
@@ -1038,12 +1046,8 @@ async function executeGCalExport(events) {
 </style>
 
 <style>
-.dark .gcal-icon { color: #6ea8ff; }
-.dark .gcal-btn { background: rgba(110, 168, 255, 0.15); color: #6ea8ff; border-color: rgba(110, 168, 255, 0.35); }
-.dark .gcal-btn:hover { background: #6ea8ff; color: #1a1a2e; }
 .dark .bg-budget-used { background: #10b981; }
 .dark .bg-budget-planned { background: #7dd3fc; }
 .dark .bg-budget-requested { background: #f59e0b; }
-.dark .time-pick-active { border-color: #6ea8ff; background: rgba(110, 168, 255, 0.15); color: #6ea8ff; }
 .dark .time-pick-input { color-scheme: dark; }
 </style>
