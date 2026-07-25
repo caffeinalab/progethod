@@ -60,12 +60,12 @@
               <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-accent text-ink-inverse">{{ preset.label }}</span>
             </div>
             <div class="flex items-center gap-1">
-              <button class="p-1.5 text-ink-faint hover:text-accent-fg rounded transition-colors cursor-pointer" :title="$t('edit')" @click="startEdit(preset)">
+              <IconButton variant="ghost" :title="$t('edit')" @click="startEdit(preset)">
                 <IconEdit :size="16" />
-              </button>
-              <button class="p-1.5 text-ink-faint hover:text-danger rounded transition-colors cursor-pointer" :title="$t('delete')" @click="presetsStore.remove(preset.id)">
+              </IconButton>
+              <IconButton variant="ghost-danger" :title="$t('delete')" @click="presetsStore.remove(preset.id)">
                 <IconTrash :size="16" />
-              </button>
+              </IconButton>
             </div>
           </template>
         </div>

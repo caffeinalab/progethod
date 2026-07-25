@@ -82,10 +82,13 @@
             </div>
           </div>
 
-          <div class="flex items-center gap-4 mt-4 pt-4 border-t border-stroke-muted text-xs text-ink-muted">
-            <span class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded-sm bg-vacation-soft border border-vacation" />{{ $t('calendar_page.approved') }}</span>
-            <span class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded-sm bg-pending-soft border-2 border-pending" />{{ $t('calendar_page.pending') }}</span>
-            <span class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded-sm bg-card-dim border border-stroke-muted" />{{ $t('calendar_page.holiday_label') }}</span>
+          <div class="flex items-center justify-between mt-4 pt-4 border-t border-stroke-muted text-xs text-ink-muted">
+            <div class="flex items-center gap-4">
+              <span class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded-sm bg-vacation-soft border border-vacation" />{{ $t('calendar_page.approved') }}</span>
+              <span class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded-sm bg-pending-soft border-2 border-pending" />{{ $t('calendar_page.pending') }}</span>
+              <span class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded-sm bg-card-dim border border-stroke-muted" />{{ $t('calendar_page.holiday_label') }}</span>
+            </div>
+            <span class="text-ink-faint text-[10px]">{{ $t('calendar_page.bulk_hint', { key: isMac ? '⌘' : 'Ctrl' }) }}</span>
           </div>
 
           <div class="mt-4 pt-4 border-t border-stroke-muted">
@@ -205,18 +208,15 @@
                 <div v-for="group in upcomingByMonth" :key="group.monthKey" class="mb-2 last:mb-0">
                   <div class="text-[10px] font-semibold text-ink-faint uppercase tracking-wide px-1 py-1 capitalize">{{ group.label }}</div>
                   <div>
-                    <div v-for="request in group.requests" :key="request.id" class="sidebar-request-row group">
-                      <button class="sidebar-request-btn" @click="navigateToRequest(request)">
-                        <span class="sidebar-date">{{ request.dateDayOnly }}</span>
-                        <span class="sidebar-hours">{{ request.totalHoursLabel }}</span>
-                        <span class="sidebar-type" :class="request.projectId === VACATION_PROJECT_ID ? 'pill-ferie' : 'pill-permesso'" :title="request.typeLabel">{{ request.typeShort }}</span>
-                        <component :is="getStatusIcon(request.status)" :size="15" :class="statusIconClasses(request.status)" :title="statusLabel(request.status)" class="shrink-0" />
-                      </button>
-                      <div class="sidebar-actions">
-                        <button class="p-0.5 rounded text-ink-faint cursor-pointer hover:text-accent-fg transition-colors" :title="$t('edit')" @click="openEditFromRequest(request)"><IconEdit :size="14" /></button>
-                        <button class="p-0.5 rounded text-ink-faint cursor-pointer hover:text-danger transition-colors" :title="$t('delete')" @click="deleteRequestDirect(request)"><IconTrash :size="14" /></button>
-                      </div>
-                    </div>
+                    <SidebarRequestRow
+                      v-for="request in group.requests"
+                      :key="request.id"
+                      :request="request"
+                      show-actions
+                      @navigate="navigateToRequest(request)"
+                      @edit="openEditFromRequest(request)"
+                      @delete="deleteRequestDirect(request)"
+                    />
                   </div>
                 </div>
               </div>
@@ -227,14 +227,12 @@
                 <div v-for="group in pastByMonth" :key="group.monthKey" class="mb-2 last:mb-0">
                   <div class="text-[10px] font-semibold text-ink-faint uppercase tracking-wide px-1 py-1 capitalize">{{ group.label }}</div>
                   <div>
-                    <div v-for="request in group.requests" :key="request.id" class="sidebar-request-row group">
-                      <button class="sidebar-request-btn" @click="navigateToRequest(request)">
-                        <span class="sidebar-date">{{ request.dateDayOnly }}</span>
-                        <span class="sidebar-hours">{{ request.totalHoursLabel }}</span>
-                        <span class="sidebar-type" :class="request.projectId === VACATION_PROJECT_ID ? 'pill-ferie' : 'pill-permesso'" :title="request.typeLabel">{{ request.typeShort }}</span>
-                        <component :is="getStatusIcon(request.status)" :size="15" :class="statusIconClasses(request.status)" :title="statusLabel(request.status)" class="shrink-0" />
-                      </button>
-                    </div>
+                    <SidebarRequestRow
+                      v-for="request in group.requests"
+                      :key="request.id"
+                      :request="request"
+                      @navigate="navigateToRequest(request)"
+                    />
                   </div>
                 </div>
               </div>
@@ -304,15 +302,18 @@
     <Modal v-model="showRequestModal" confirmable @confirm="onRequestConfirm">
       <h3 class="text-lg font-bold text-ink mb-1">{{ requestModalMode === 'create' ? $t('calendar_page.create_request_title') : $t('calendar_page.edit_request_title') }}</h3>
       <p v-if="requestModalMode === 'edit' && editingRequest" class="text-xs text-ink-muted mb-4">
-        <span class="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded" :class="statusBadgeClasses(editingRequest.status)">{{ statusLabel(editingRequest.status) }}</span>
+        <RequestStatusBadge :status="editingRequest.status" />
       </p>
       <div v-if="requestError" class="w-full mb-4 p-3 rounded-lg border border-danger bg-danger-soft text-danger-text text-xs font-medium">{{ requestError }}</div>
       <div class="w-full mb-4">
         <label class="text-xs font-semibold text-ink-muted block mb-1.5">{{ $t('calendar_page.request_type') }}</label>
-        <div class="flex gap-2">
-          <button class="flex-1 px-3 py-2 text-sm font-medium rounded-lg border-2 transition-colors" :class="modalProjectId === VACATION_PROJECT_ID ? 'border-vacation bg-vacation-soft text-vacation-text' : 'border-stroke-muted text-ink-muted hover:bg-card-hover'" @click="modalProjectId = VACATION_PROJECT_ID">{{ $t('calendar_page.vacation_label') }}</button>
-          <button class="flex-1 px-3 py-2 text-sm font-medium rounded-lg border-2 transition-colors" :class="modalProjectId === LEAVES_PROJECT_ID ? 'border-vacation bg-vacation-soft text-vacation-text' : 'border-stroke-muted text-ink-muted hover:bg-card-hover'" @click="modalProjectId = LEAVES_PROJECT_ID">{{ $t('calendar_page.leaves_label') }}</button>
-        </div>
+        <LeaveTypeToggle
+          v-model="modalProjectId"
+          :vacation-id="VACATION_PROJECT_ID"
+          :leaves-id="LEAVES_PROJECT_ID"
+          :vacation-label="$t('calendar_page.vacation_label')"
+          :leaves-label="$t('calendar_page.leaves_label')"
+        />
       </div>
       <div class="w-full mb-4">
         <label class="text-xs font-semibold text-ink-muted block mb-1.5">{{ $t('calendar_page.selected_days') }}</label>
@@ -325,18 +326,14 @@
       </div>
       <div v-if="requestModalMode === 'create'" class="w-full mb-4">
         <label class="text-xs font-semibold text-ink-muted block mb-1.5">{{ $t('calendar_page.hours_per_day') }}</label>
-        <div class="flex gap-2">
-          <button v-for="option in [4, 8]" :key="option" class="px-4 py-2 text-sm font-medium rounded-lg border-2 transition-colors" :class="modalHoursPerDay === option && modalCustomHours === null ? 'border-accent bg-accent-soft text-accent-fg' : 'border-stroke-muted text-ink-muted hover:bg-card-hover'" @click="modalHoursPerDay = option; modalCustomHours = null">{{ option }}h</button>
-          <button class="px-4 py-2 text-sm font-medium rounded-lg border-2 transition-colors" :class="modalCustomHours !== null ? 'border-accent bg-accent-soft text-accent-fg' : 'border-stroke-muted text-ink-muted hover:bg-card-hover'" @click="modalCustomHours = modalCustomHours ?? 1; modalHoursPerDay = modalCustomHours">{{ $t('calendar_page.hours_custom') }}</button>
-        </div>
-        <div v-if="modalCustomHours !== null" class="mt-2 flex items-center gap-2">
-          <div class="inline-flex items-stretch rounded-lg border border-stroke overflow-hidden">
-            <button class="px-2.5 flex items-center text-ink-muted hover:bg-card-hover hover:text-ink transition-colors disabled:opacity-30 disabled:cursor-not-allowed" :disabled="modalCustomHours <= 0.5" @click="modalCustomHours = Math.max(0.5, modalCustomHours - 0.5); modalHoursPerDay = modalCustomHours"><IconMinus :size="14" /></button>
-            <input v-model.number="modalCustomHours" type="number" min="0.5" max="8" step="0.5" class="custom-hours-input w-12 text-center text-sm font-medium bg-input text-ink py-2 border-x border-stroke focus:outline-none" @input="modalHoursPerDay = modalCustomHours">
-            <button class="px-2.5 flex items-center text-ink-muted hover:bg-card-hover hover:text-ink transition-colors disabled:opacity-30 disabled:cursor-not-allowed" :disabled="modalCustomHours >= 8" @click="modalCustomHours = Math.min(8, modalCustomHours + 0.5); modalHoursPerDay = modalCustomHours"><IconPlus :size="14" /></button>
-          </div>
-          <span class="text-xs text-ink-muted">{{ $t('calendar_page.hours_custom_hint') }}</span>
-        </div>
+        <HoursPerDayPicker
+          :hours="modalHoursPerDay"
+          :custom-hours="modalCustomHours"
+          :custom-label="$t('calendar_page.hours_custom')"
+          :custom-hint="$t('calendar_page.hours_custom_hint')"
+          @update:hours="modalHoursPerDay = $event"
+          @update:custom-hours="modalCustomHours = $event"
+        />
       </div>
       <div class="w-full mb-6">
         <label class="text-xs font-semibold text-ink-muted block mb-1.5">{{ $t('notes') }}</label>
@@ -361,25 +358,24 @@
       <div v-if="bulkError" class="w-full mb-4 p-3 rounded-lg border border-danger bg-danger-soft text-danger-text text-xs font-medium">{{ bulkError }}</div>
       <div class="w-full mb-4">
         <label class="text-xs font-semibold text-ink-muted block mb-1.5">{{ $t('calendar_page.request_type') }}</label>
-        <div class="flex gap-2">
-          <button class="flex-1 px-3 py-2 text-sm font-medium rounded-lg border-2 transition-colors" :class="bulkEditProjectId === VACATION_PROJECT_ID ? 'border-vacation bg-vacation-soft text-vacation-text' : 'border-stroke-muted text-ink-muted hover:bg-card-hover'" @click="bulkEditProjectId = VACATION_PROJECT_ID">{{ $t('calendar_page.vacation_label') }}</button>
-          <button class="flex-1 px-3 py-2 text-sm font-medium rounded-lg border-2 transition-colors" :class="bulkEditProjectId === LEAVES_PROJECT_ID ? 'border-vacation bg-vacation-soft text-vacation-text' : 'border-stroke-muted text-ink-muted hover:bg-card-hover'" @click="bulkEditProjectId = LEAVES_PROJECT_ID">{{ $t('calendar_page.leaves_label') }}</button>
-        </div>
+        <LeaveTypeToggle
+          v-model="bulkEditProjectId"
+          :vacation-id="VACATION_PROJECT_ID"
+          :leaves-id="LEAVES_PROJECT_ID"
+          :vacation-label="$t('calendar_page.vacation_label')"
+          :leaves-label="$t('calendar_page.leaves_label')"
+        />
       </div>
       <div class="w-full mb-4">
         <label class="text-xs font-semibold text-ink-muted block mb-1.5">{{ $t('calendar_page.hours_per_day') }}</label>
-        <div class="flex gap-2">
-          <button v-for="option in [4, 8]" :key="option" class="px-4 py-2 text-sm font-medium rounded-lg border-2 transition-colors" :class="bulkEditHoursPerDay === option && bulkEditCustomHours === null ? 'border-accent bg-accent-soft text-accent-fg' : 'border-stroke-muted text-ink-muted hover:bg-card-hover'" @click="bulkEditHoursPerDay = option; bulkEditCustomHours = null">{{ option }}h</button>
-          <button class="px-4 py-2 text-sm font-medium rounded-lg border-2 transition-colors" :class="bulkEditCustomHours !== null ? 'border-accent bg-accent-soft text-accent-fg' : 'border-stroke-muted text-ink-muted hover:bg-card-hover'" @click="bulkEditCustomHours = bulkEditCustomHours ?? 1; bulkEditHoursPerDay = bulkEditCustomHours">{{ $t('calendar_page.hours_custom') }}</button>
-        </div>
-        <div v-if="bulkEditCustomHours !== null" class="mt-2 flex items-center gap-2">
-          <div class="inline-flex items-stretch rounded-lg border border-stroke overflow-hidden">
-            <button class="px-2.5 flex items-center text-ink-muted hover:bg-card-hover hover:text-ink transition-colors disabled:opacity-30 disabled:cursor-not-allowed" :disabled="bulkEditCustomHours <= 0.5" @click="bulkEditCustomHours = Math.max(0.5, bulkEditCustomHours - 0.5); bulkEditHoursPerDay = bulkEditCustomHours"><IconMinus :size="14" /></button>
-            <input v-model.number="bulkEditCustomHours" type="number" min="0.5" max="8" step="0.5" class="custom-hours-input w-12 text-center text-sm font-medium bg-input text-ink py-2 border-x border-stroke focus:outline-none" @input="bulkEditHoursPerDay = bulkEditCustomHours">
-            <button class="px-2.5 flex items-center text-ink-muted hover:bg-card-hover hover:text-ink transition-colors disabled:opacity-30 disabled:cursor-not-allowed" :disabled="bulkEditCustomHours >= 8" @click="bulkEditCustomHours = Math.min(8, bulkEditCustomHours + 0.5); bulkEditHoursPerDay = bulkEditCustomHours"><IconPlus :size="14" /></button>
-          </div>
-          <span class="text-xs text-ink-muted">{{ $t('calendar_page.hours_custom_hint') }}</span>
-        </div>
+        <HoursPerDayPicker
+          :hours="bulkEditHoursPerDay"
+          :custom-hours="bulkEditCustomHours"
+          :custom-label="$t('calendar_page.hours_custom')"
+          :custom-hint="$t('calendar_page.hours_custom_hint')"
+          @update:hours="bulkEditHoursPerDay = $event"
+          @update:custom-hours="bulkEditCustomHours = $event"
+        />
       </div>
       <div class="w-full mb-4">
         <label class="text-xs font-semibold text-ink-muted block mb-1.5">{{ $t('notes') }}</label>
@@ -409,9 +405,10 @@
 import { ref, computed, watch, onMounted, onUpdated, onBeforeUnmount, nextTick } from 'vue'
 import { startOfMonth, endOfMonth, getDay, addMonths, addDays, format, differenceInCalendarMonths } from 'date-fns'
 import { it } from 'date-fns/locale'
-import { IconChevronLeft, IconChevronRight, IconCheck, IconX, IconEdit, IconTrash, IconClock, IconCircleCheck, IconCircleX, IconMinus, IconPlus } from '@tabler/icons-vue'
+import { IconChevronLeft, IconChevronRight, IconCheck, IconX } from '@tabler/icons-vue'
 import { createOutOfOfficeEvent } from '~/utils/gCal'
 import { formatDecimalHoursLabel } from '~/utils/duration'
+import { WEEKDAY_HEADERS_IT, buildMonthGridCells } from '~/utils/calendarGrid'
 
 definePageMeta({ middleware: 'auth' })
 
@@ -476,7 +473,8 @@ const bulkDeleting = ref(false)
 const bulkProgress = ref({ current: 0, total: 0 })
 const bulkError = ref(null)
 
-const weekdayHeaders = ['Lu', 'Ma', 'Me', 'Gi', 'Ve', 'Sa', 'Do']
+const weekdayHeaders = WEEKDAY_HEADERS_IT
+const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.userAgent)
 
 const sidebarMaxHeight = computed(() => calendarHeight.value ? `${calendarHeight.value}px` : 'none')
 const displayedMonth = computed(() => monthOffset.value === 0 ? today.value : addMonths(startOfMonth(today.value), monthOffset.value))
@@ -531,23 +529,25 @@ const selectedDates = computed(() => {
 })
 
 const calendarCells = computed(() => {
-  const monthStart = startOfMonth(displayedMonth.value)
-  const monthEnd = endOfMonth(displayedMonth.value)
-  const startDow = getDay(monthStart)
-  const leadingBlanks = startDow === 0 ? 6 : startDow - 1
-  const cells = []
-  for (let blank = 0; blank < leadingBlanks; blank++) cells.push({ key: `blank-${blank}`, dayNumber: null })
-  let current = new Date(monthStart)
-  while (current <= monthEnd) {
-    const dow = getDay(current)
-    const isWeekend = dow === 0 || dow === 6
-    const dateKey = format(current, 'yyyy-MM-dd')
-    const dayData = planningsByDate.value[dateKey] || { vacation: 0, leaves: 0, vacationPending: false, leavesPending: false, requestIds: [] }
-    const holidayName = holidaysByDate.value[dateKey]
-    cells.push({ key: dateKey, dayNumber: current.getDate(), isWeekend, isHoliday: !!holidayName, holidayName: holidayName || '', isToday: dateKey === todayStr.value, vacation: dayData.vacation, leaves: dayData.leaves, vacationPending: dayData.vacationPending, leavesPending: dayData.leavesPending, requestIds: dayData.requestIds, dateKey })
-    current = addDays(current, 1)
-  }
-  return cells
+  return buildMonthGridCells(displayedMonth.value).map((cell) => {
+    if (cell.dayNumber === null) return { key: cell.key, dayNumber: null }
+    const dayData = planningsByDate.value[cell.dateKey] || { vacation: 0, leaves: 0, vacationPending: false, leavesPending: false, requestIds: [] }
+    const holidayName = holidaysByDate.value[cell.dateKey]
+    return {
+      key: cell.key,
+      dayNumber: cell.dayNumber,
+      isWeekend: cell.isWeekend,
+      isHoliday: !!holidayName,
+      holidayName: holidayName || '',
+      isToday: cell.dateKey === todayStr.value,
+      vacation: dayData.vacation,
+      leaves: dayData.leaves,
+      vacationPending: dayData.vacationPending,
+      leavesPending: dayData.leavesPending,
+      requestIds: dayData.requestIds,
+      dateKey: cell.dateKey,
+    }
+  })
 })
 
 const exportableEvents = computed(() => {
@@ -627,33 +627,6 @@ onUpdated(() => measureCalendar())
 onBeforeUnmount(() => { document.removeEventListener('mouseup', onDocumentMouseUp); document.removeEventListener('keydown', onBulkEscKey) })
 
 function measureCalendar() { if (calendarPanel.value) calendarHeight.value = calendarPanel.value.offsetHeight }
-
-function getStatusIcon(status) {
-  if (status === 'approved') return IconCircleCheck
-  if (status === 'pending') return IconClock
-  return IconCircleX
-}
-
-function statusIconClasses(status) {
-  if (status === 'approved') return 'text-vacation-text'
-  if (status === 'pending') return 'text-pending-text'
-  if (status === 'rejected' || status === 'conflict') return 'text-danger'
-  return 'text-ink-muted'
-}
-
-function statusLabel(status) {
-  if (status === 'pending') return $t('calendar_page.pending')
-  if (status === 'approved') return $t('calendar_page.approved')
-  if (status === 'rejected') return $t('calendar_page.rejected')
-  if (status === 'conflict') return $t('calendar_page.conflict')
-  return status
-}
-
-function statusBadgeClasses(status) {
-  if (status === 'pending') return 'bg-pending-soft text-pending-text'
-  if (status === 'approved') return 'bg-vacation-soft text-vacation-text'
-  return 'bg-card-hover text-ink-muted'
-}
 
 function formatDays(hours) {
   const totalHours = Math.abs(Number(hours))
@@ -1030,16 +1003,6 @@ async function executeGCalExport(events) {
 .sidebar-tab { @apply relative z-10 flex-1 text-xs font-bold uppercase tracking-wide py-1.5 rounded-md transition-colors text-center cursor-pointer; }
 .sidebar-tab-active { @apply text-ink; }
 .sidebar-tab-inactive { @apply text-ink-faint hover:text-ink-muted; }
-.sidebar-request-row { @apply flex items-center rounded transition-colors px-2; gap: 0.75rem; min-height: 2.25rem; }
-.sidebar-request-row:hover { @apply bg-card-hover; }
-.sidebar-request-btn { @apply flex-1 min-w-0 flex items-center text-left cursor-pointer; gap: 0.75rem; }
-.sidebar-date { @apply text-sm font-semibold text-ink tabular-nums whitespace-nowrap; width: 3rem; flex-shrink: 0; }
-.sidebar-hours { @apply text-xs text-ink-muted whitespace-nowrap tabular-nums; width: 2rem; flex-shrink: 0; }
-.sidebar-type { @apply text-[10px] font-bold leading-none px-1.5 py-0.5 rounded; flex-shrink: 0; min-width: 1.25rem; text-align: center; }
-.sidebar-actions { @apply flex items-center shrink-0 opacity-0 transition-opacity; gap: 0.25rem; }
-.sidebar-request-row:hover .sidebar-actions { @apply opacity-100; }
-.pill-ferie { background: rgba(245, 158, 11, 0.15); color: #d97706; }
-.pill-permesso { background: var(--color-accent); color: #fff; }
 .gcal-icon { color: #4285F4; }
 .gcal-btn { background: rgba(66, 133, 244, 0.12); color: #4285F4; border: 1px solid rgba(66, 133, 244, 0.3); }
 .gcal-btn:hover { background: #4285F4; color: #fff; }
@@ -1058,9 +1021,6 @@ async function executeGCalExport(events) {
 .bg-budget-remaining { background: var(--color-budget-remaining, var(--color-stroke-muted)); }
 .time-pick-input { @apply flex-1 px-3 py-2 text-sm rounded-lg border border-stroke text-ink; background: var(--color-card-hover); color-scheme: light; }
 .time-pick-input:focus { @apply outline-none ring-1 ring-focus-ring; }
-.custom-hours-input::-webkit-inner-spin-button,
-.custom-hours-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-.custom-hours-input { -moz-appearance: textfield; appearance: textfield; }
 .bulk-selected-cell { animation: bulk-pulse 1.5s ease-in-out infinite; }
 @keyframes bulk-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.75; } }
 .bulk-toolbar-enter-active, .bulk-toolbar-leave-active { transition: all 0.2s ease; }
@@ -1068,8 +1028,6 @@ async function executeGCalExport(events) {
 </style>
 
 <style>
-.dark .pill-ferie { background: rgba(251, 191, 36, 0.18); color: #fbbf24; }
-.dark .pill-permesso { color: #1e1b4b; }
 .dark .gcal-icon { color: #6ea8ff; }
 .dark .gcal-btn { background: rgba(110, 168, 255, 0.15); color: #6ea8ff; border-color: rgba(110, 168, 255, 0.35); }
 .dark .gcal-btn:hover { background: #6ea8ff; color: #1a1a2e; }

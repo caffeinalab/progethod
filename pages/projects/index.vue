@@ -60,12 +60,12 @@
             <div v-else-if="project.stale" class="text-xs text-warning-text">{{ $t('projects_stale_hint') }}</div>
           </div>
           <div class="flex items-center gap-1 flex-shrink-0">
-            <button class="p-1.5 text-ink-faint hover:text-accent-fg rounded transition-colors cursor-pointer" :title="$t('edit')" @click="edit(project.id)">
+            <IconButton variant="ghost" :title="$t('edit')" @click="edit(project.id)">
               <IconEdit :size="16" />
-            </button>
-            <button class="p-1.5 text-ink-faint hover:text-danger rounded transition-colors cursor-pointer" :title="$t('delete')" @click="projectsStore.remove(project.id)">
+            </IconButton>
+            <IconButton variant="ghost-danger" :title="$t('delete')" @click="projectsStore.remove(project.id)">
               <IconTrash :size="16" />
-            </button>
+            </IconButton>
           </div>
         </div>
       </div>

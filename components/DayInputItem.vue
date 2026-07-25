@@ -53,34 +53,34 @@
             @update:model-value="handleUpdateEvent(entry.id, $event)"
             @user-submit="handleSubmit()"
           />
-          <button class="integration-btn integration-btn--danger" :disabled="entry.synced" @click="removeEntry(entry.id)">
+          <IconButton variant="danger" :disabled="entry.synced" @click="removeEntry(entry.id)">
             <IconTrash :size="16" :stroke-width="1.5" />
-          </button>
+          </IconButton>
         </div>
       </template>
     </div>
     <div class="flex items-center gap-2" style="padding-left: calc(1.25rem + 0.5rem)">
-      <button class="integration-btn integration-btn--add" :title="$t('actions')" aria-label="Aggiungi riga" @click="addEntry()">
+      <IconButton variant="add" :title="$t('actions')" aria-label="Aggiungi riga" @click="addEntry()">
         <IconPlus :size="18" />
-      </button>
+      </IconButton>
       <div class="w-px h-6 bg-stroke" aria-hidden="true" />
-      <button class="integration-btn integration-btn--gcal" :title="$t('keyboard_shortcuts.import_gcal')" @click="fetchGCal">
+      <IconButton variant="gcal" :title="$t('keyboard_shortcuts.import_gcal')" @click="fetchGCal">
         <IconsGoogleCalendarIcon :size="18" />
-      </button>
-      <button class="integration-btn integration-btn--jira" :title="isJiraConfigured ? $t('jira.fetch_activity') : $t('jira.login')" @click="handleJiraClick">
+      </IconButton>
+      <IconButton variant="jira" :title="isJiraConfigured ? $t('jira.fetch_activity') : $t('jira.login')" @click="handleJiraClick">
         <IconsJiraIcon :size="18" />
-      </button>
-      <button class="integration-btn integration-btn--gitlab" :title="isGitlabConfigured ? $t('gitlab.fetch_activity') : $t('gitlab.login')" @click="handleGitlabClick">
+      </IconButton>
+      <IconButton variant="gitlab" :title="isGitlabConfigured ? $t('gitlab.fetch_activity') : $t('gitlab.login')" @click="handleGitlabClick">
         <IconsGitlabIcon :size="18" />
-      </button>
+      </IconButton>
       <div class="flex-1" />
       <div class="flex items-center gap-2">
-        <button class="integration-btn integration-btn--submit" :disabled="disableSubmission" :title="$t('submit_daily_timesheet')" @click="submitDay">
+        <IconButton variant="submit" :disabled="disableSubmission" :title="$t('submit_daily_timesheet')" @click="submitDay">
           <IconSend :size="16" :stroke-width="1.5" />
-        </button>
-        <button class="integration-btn integration-btn--danger" :title="$t('reset_day')" @click="nukeDay">
+        </IconButton>
+        <IconButton variant="danger" :title="$t('reset_day')" @click="nukeDay">
           <IconTrashX :size="16" :stroke-width="1.5" />
-        </button>
+        </IconButton>
       </div>
     </div>
     <NukeTimesheetModal v-model="showNukeModal" :day-entries="entries" :day="dayId" />
@@ -144,11 +144,16 @@ const holidayHoursValue = computed(() => {
   return (dayOfWeek !== 0 && dayOfWeek !== 6) ? 8 : 0
 })
 
+const syncedLocalHours = computed(() =>
+  entries.value
+    .filter(entry => entry.synced)
+    .reduce((sum, entry) => sum + (entry.data.duration || 0), 0) / 60,
+)
+
 const effectiveWethodHours = computed(() => {
   const rawWethod = props.wethodHours || 0
-  const localHours = totalDuration.value / 60
   const absenceHours = (props.leaveHours || 0) + holidayHoursValue.value
-  return Math.max(rawWethod, localHours + absenceHours)
+  return Math.max(rawWethod, syncedLocalHours.value + absenceHours)
 })
 
 const formattedTotalHours = computed(() => formatDurationLabel(totalDuration.value))
@@ -306,18 +311,4 @@ defineExpose({ addEntry, focusFirstEntry, focusPrevEntry, focusNextEntry, editCu
   .entry-row { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; place-items: center; padding: 0.25rem 0; }
   .entries-th { @apply w-full text-ink text-sm font-bold leading-tight tracking-normal }
   .entries-th-muted { @apply w-full text-ink-faint text-xs font-medium leading-tight tracking-normal }
-  .integration-btn { @apply relative flex items-center justify-center w-10 h-10 rounded-lg border border-stroke-muted bg-card shadow transition-all duration-150 ease-in-out cursor-pointer focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-1; color: var(--color-ink-secondary); }
-  .integration-btn:not(:disabled):hover { background-color: var(--color-card-hover); border-color: var(--color-stroke); }
-  .integration-btn:disabled { background-color: var(--color-card-dim); color: var(--color-ink-disabled); cursor: default; }
-  .integration-btn--add { color: var(--color-accent-fg); }
-  .integration-btn--danger { color: var(--color-ink-muted); }
-  .integration-btn--danger:not(:disabled):hover { border-color: var(--color-danger); }
-  .integration-btn--submit:not(:disabled) { background-color: var(--color-accent); border-color: var(--color-accent); color: var(--color-ink-inverse); }
-  .integration-btn--submit:not(:disabled):hover { background-color: var(--color-accent-hover); border-color: var(--color-accent-hover); }
-  .integration-btn--gcal { color: #4285F4; }
-  .integration-btn--jira { color: #0052CC; }
-  .integration-btn--gitlab { color: #FC6D26; }
-  .dark .integration-btn--gcal { color: #6ea8ff; }
-  .dark .integration-btn--jira { color: #5b9bff; }
-  .dark .integration-btn--gitlab { color: #ff8f56; }
 </style>

@@ -8,17 +8,15 @@
         {{ monthLabel }}
       </p>
 
-      <div v-if="loading" class="flex flex-col items-center py-8">
-        <span class="inline-block w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
-        <p class="text-sm text-ink-muted mt-3">{{ $t('office_days_modal_loading') }}</p>
-      </div>
+      <LoadingState v-if="loading" variant="modal" :message="$t('office_days_modal_loading')" />
 
-      <div v-else-if="error" class="text-center py-6">
-        <p class="text-sm text-danger">{{ $t('office_days_modal_error') }}</p>
-        <button class="mt-3 text-sm text-accent-fg hover:text-accent-hover font-medium" @click="fetchData">
-          {{ $t('office_days_modal_retry') }}
-        </button>
-      </div>
+      <ErrorState
+        v-else-if="error"
+        variant="modal"
+        :message="$t('office_days_modal_error')"
+        :retry-label="$t('office_days_modal_retry')"
+        @retry="fetchData"
+      />
 
       <div v-else-if="result !== null" class="space-y-5">
         <div>

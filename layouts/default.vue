@@ -125,15 +125,7 @@
                     @click.stop="preferencesStore.setHighContrast(!preferencesStore.highContrast)"
                   >
                     <span>{{ $t('high_contrast') }}</span>
-                    <span
-                      class="toggle-track relative inline-flex flex-shrink-0 rounded-full transition-colors duration-200"
-                      :class="preferencesStore.highContrast ? 'bg-accent-hover' : 'bg-ink-disabled'"
-                    >
-                      <span
-                        class="toggle-knob inline-block rounded-full bg-card shadow transform transition-transform duration-200"
-                        :class="preferencesStore.highContrast ? 'translate-x-3' : 'translate-x-0'"
-                      />
-                    </span>
+                    <ToggleSwitch :model-value="preferencesStore.highContrast" />
                   </li>
                   <li class="border-t border-stroke-muted my-2" />
                   <li
@@ -141,15 +133,7 @@
                     @click.stop="preferencesStore.setRequireSubmitConfirmation(!preferencesStore.isConfirmOnSubmitRequired)"
                   >
                     <span>{{ $t('require_confirm_on_submit_short') }}</span>
-                    <span
-                      class="toggle-track relative inline-flex flex-shrink-0 rounded-full transition-colors duration-200"
-                      :class="preferencesStore.isConfirmOnSubmitRequired ? 'bg-accent-hover' : 'bg-ink-disabled'"
-                    >
-                      <span
-                        class="toggle-knob inline-block rounded-full bg-card shadow transform transition-transform duration-200"
-                        :class="preferencesStore.isConfirmOnSubmitRequired ? 'translate-x-3' : 'translate-x-0'"
-                      />
-                    </span>
+                    <ToggleSwitch :model-value="preferencesStore.isConfirmOnSubmitRequired" />
                   </li>
                 </ul>
                 <img v-if="avatarUrl" class="rounded-full h-10 w-10 object-cover cursor-pointer" :src="avatarUrl" alt="User avatar">
@@ -243,15 +227,7 @@
               @click.stop="preferencesStore.setHighContrast(!preferencesStore.highContrast)"
             >
               <span>{{ $t('high_contrast') }}</span>
-              <span
-                class="toggle-track relative inline-flex flex-shrink-0 rounded-full transition-colors duration-200"
-                :class="preferencesStore.highContrast ? 'bg-accent-hover' : 'bg-ink-disabled'"
-              >
-                <span
-                  class="toggle-knob inline-block rounded-full bg-card shadow transform transition-transform duration-200"
-                  :class="preferencesStore.highContrast ? 'translate-x-3' : 'translate-x-0'"
-                />
-              </span>
+              <ToggleSwitch :model-value="preferencesStore.highContrast" />
             </button>
           </li>
           <li>
@@ -260,15 +236,7 @@
               @click.stop="preferencesStore.setRequireSubmitConfirmation(!preferencesStore.isConfirmOnSubmitRequired)"
             >
               <span>{{ $t('require_confirm_on_submit_short') }}</span>
-              <span
-                class="toggle-track relative inline-flex flex-shrink-0 rounded-full transition-colors duration-200"
-                :class="preferencesStore.isConfirmOnSubmitRequired ? 'bg-accent-hover' : 'bg-ink-disabled'"
-              >
-                <span
-                  class="toggle-knob inline-block rounded-full bg-card shadow transform transition-transform duration-200"
-                  :class="preferencesStore.isConfirmOnSubmitRequired ? 'translate-x-3' : 'translate-x-0'"
-                />
-              </span>
+              <ToggleSwitch :model-value="preferencesStore.isConfirmOnSubmitRequired" />
             </button>
           </li>
         </ul>
@@ -356,17 +324,6 @@ onBeforeUnmount(() => {
   @reference "~/assets/css/tailwind.css";
   .navbar > .router-link-exact-active {
     @apply border-b-2 border-accent text-accent-fg;
-  }
-
-  .toggle-track {
-    width: 1.75rem;
-    height: 1rem;
-    padding: 0.125rem;
-  }
-
-  .toggle-knob {
-    width: 0.75rem;
-    height: 0.75rem;
   }
 
   .dark .logo-img {

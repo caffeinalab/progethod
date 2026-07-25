@@ -75,8 +75,9 @@
 
 <script setup>
 import { ref, computed, watch, onBeforeUnmount } from 'vue'
-import { startOfMonth, endOfMonth, getDay, isSameDay, addMonths, addDays, format } from 'date-fns'
+import { startOfMonth, endOfMonth, isSameDay, addMonths, format } from 'date-fns'
 import { it } from 'date-fns/locale'
+import { WEEKDAY_HEADERS_IT, buildMonthGridCells } from '~/utils/calendarGrid'
 
 const { t: $t } = useI18n()
 const { today } = useLiveToday()
@@ -102,7 +103,7 @@ const displayedMonthLabel = computed(() => {
   return format(displayedMonth.value, 'MMMM yyyy', { locale: it })
 })
 
-const weekdayHeaders = ['Lu', 'Ma', 'Me', 'Gi', 'Ve', 'Sa', 'Do']
+const weekdayHeaders = WEEKDAY_HEADERS_IT
 
 const trackedByDate = computed(() => {
   const map = {}
@@ -121,41 +122,23 @@ const holidaysByDate = computed(() => {
 })
 
 const calendarCells = computed(() => {
-  const monthStart = startOfMonth(displayedMonth.value)
-  const monthEnd = endOfMonth(displayedMonth.value)
-  const startDow = getDay(monthStart)
-  const leadingBlanks = startDow === 0 ? 6 : startDow - 1
-  const cells = []
-
-  for (let blank = 0; blank < leadingBlanks; blank++) {
-    cells.push({ key: `blank-${blank}`, dayNumber: null, isWeekend: false, tracked: null })
-  }
-
-  let current = new Date(monthStart)
-  while (current <= monthEnd) {
-    const dow = getDay(current)
-    const isWeekend = dow === 0 || dow === 6
-    const dateKey = format(current, 'yyyy-MM-dd')
-    const isToday = isSameDay(current, today.value)
-    const isFuture = current > today.value
-    const holidayName = holidaysByDate.value[dateKey]
-
-    cells.push({
-      key: dateKey,
-      dayNumber: current.getDate(),
-      isWeekend,
+  return buildMonthGridCells(displayedMonth.value).map((cell) => {
+    if (cell.dayNumber === null) {
+      return { key: cell.key, dayNumber: null, isWeekend: false, tracked: null }
+    }
+    const holidayName = holidaysByDate.value[cell.dateKey]
+    return {
+      key: cell.key,
+      dayNumber: cell.dayNumber,
+      isWeekend: cell.isWeekend,
       isHoliday: !!holidayName,
       holidayName: holidayName || '',
-      isToday,
-      isFuture,
-      tracked: trackedByDate.value[dateKey] ?? null,
-      dateKey,
-    })
-
-    current = addDays(current, 1)
-  }
-
-  return cells
+      isToday: isSameDay(cell.date, today.value),
+      isFuture: cell.date > today.value,
+      tracked: trackedByDate.value[cell.dateKey] ?? null,
+      dateKey: cell.dateKey,
+    }
+  })
 })
 
 watch(monthOffset, () => {

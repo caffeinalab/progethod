@@ -8,17 +8,15 @@
         {{ dayLabel }}
       </p>
 
-      <div v-if="loading" class="flex flex-col items-center py-8">
-        <span class="inline-block w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
-        <p class="text-sm text-ink-muted mt-3">{{ $t('wethod_hours_modal.loading') }}</p>
-      </div>
+      <LoadingState v-if="loading" variant="modal" :message="$t('wethod_hours_modal.loading')" />
 
-      <div v-else-if="error" class="text-center py-6">
-        <p class="text-sm text-danger">{{ $t('wethod_hours_modal.error') }}</p>
-        <button class="mt-3 text-sm text-accent-fg hover:text-accent-hover font-medium" @click="fetchData">
-          {{ $t('wethod_hours_modal.retry') }}
-        </button>
-      </div>
+      <ErrorState
+        v-else-if="error"
+        variant="modal"
+        :message="$t('wethod_hours_modal.error')"
+        :retry-label="$t('wethod_hours_modal.retry')"
+        @retry="fetchData"
+      />
 
       <div v-else-if="entries.length === 0" class="text-center py-6">
         <p class="text-sm text-ink-faint">{{ $t('wethod_hours_modal.empty') }}</p>

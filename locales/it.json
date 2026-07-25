@@ -240,7 +240,8 @@
     "bulk_edit_description": "Le modifiche verranno applicate a tutte le richieste selezionate.",
     "bulk_edit_saving": "Salvataggio {current}/{total}...",
     "bulk_delete_confirm": "Eliminare {count} richieste selezionate?",
-    "bulk_deleting": "Eliminazione {current}/{total}..."
+    "bulk_deleting": "Eliminazione {current}/{total}...",
+    "bulk_hint": "{key}+Click per selezionare più richieste"
   },
   "guide_button": "Guida",
   "keyboard_shortcuts_button": "Scorciatoie Tastiera",
