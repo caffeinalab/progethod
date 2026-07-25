@@ -66,18 +66,22 @@ import { formatDecimalHoursLabel } from '~/utils/duration'
 
 type HourTypeKey = 'internal' | 'remote' | 'travel' | 'overtime' | 'night_shift'
 
-interface BoardArea {
-  id: number
-  name?: string | null
-  notes?: string | null
-  hours?: Partial<Record<HourTypeKey, number | null>>
+interface DetailHours {
+  internal: number
+  remote: number
+  travel: number
+  overtime: number
+  night_shift: number
 }
 
-interface BoardProject {
-  id?: number
-  date?: string
-  project?: { id: number; name: string }
-  areas?: BoardArea[]
+interface DetailEntry {
+  projectId: number
+  projectName: string
+  areaId: number
+  areaName: string | null
+  notes: string | null
+  hours: DetailHours
+  total: number
 }
 
 interface BreakdownEntry {
@@ -101,12 +105,14 @@ const HOUR_TYPES: Array<{ key: HourTypeKey; i18nKey: string }> = [
 const props = defineProps<{
   modelValue: boolean
   day: string
+  expectedHours?: number | null
 }>()
 
 const emit = defineEmits<{ 'update:modelValue': [value: boolean] }>()
 
 const { t } = useI18n()
 const api = useApi()
+const preferencesStore = usePreferencesStore()
 
 const loading = ref(false)
 const error = ref(false)
@@ -138,10 +144,19 @@ async function fetchData() {
   error.value = false
 
   try {
-    const response = await api.$get<{ data: BoardProject[] }>('timetrackingboard', {
-      params: { date: props.day },
-    })
-    entries.value = parseBoardEntries(response?.data || [])
+    const params: Record<string, string> = { date: props.day }
+
+    if (props.expectedHours != null && props.expectedHours > 0) {
+      params.expected = String(props.expectedHours)
+    }
+
+    const selectedBuIds = preferencesStore.selectedBusinessUnitIds
+    if (selectedBuIds !== null) {
+      params.bu = selectedBuIds.map(String).join(',')
+    }
+
+    const response = await api.$get<{ data: { entries: DetailEntry[] } }>('tracked-hours-detail', { params })
+    entries.value = mapDetailEntries(response?.data?.entries || [])
   } catch {
     error.value = true
   } finally {
@@ -149,36 +164,25 @@ async function fetchData() {
   }
 }
 
-function parseBoardEntries(projects: BoardProject[]): BreakdownEntry[] {
-  const result: BreakdownEntry[] = []
+function mapDetailEntries(detailEntries: DetailEntry[]): BreakdownEntry[] {
+  return detailEntries.map((entry) => {
+    const types = HOUR_TYPES
+      .filter(({ key }) => (entry.hours?.[key] || 0) > 0)
+      .map(({ key, i18nKey }) => ({
+        key,
+        label: t(i18nKey),
+        hoursLabel: formatDecimalHoursLabel(entry.hours[key] || 0),
+      }))
 
-  for (const project of projects) {
-    const projectName = project.project?.name || '—'
-    for (const area of project.areas || []) {
-      const hours = area.hours || {}
-      const types = HOUR_TYPES
-        .filter(({ key }) => (hours[key] || 0) > 0)
-        .map(({ key, i18nKey }) => ({
-          key,
-          label: t(i18nKey),
-          hoursLabel: formatDecimalHoursLabel(hours[key] || 0),
-        }))
-
-      const total = HOUR_TYPES.reduce((sum, { key }) => sum + (hours[key] || 0), 0)
-      if (total <= 0) { continue }
-
-      result.push({
-        key: `${project.project?.id || project.id}-${area.id}`,
-        projectName,
-        areaName: area.name || t('wethod_hours_modal.generic_area'),
-        notes: typeof area.notes === 'string' ? area.notes.trim() : '',
-        total,
-        totalLabel: formatDecimalHoursLabel(total),
-        types,
-      })
+    return {
+      key: `${entry.projectId}-${entry.areaId}`,
+      projectName: entry.projectName || '—',
+      areaName: entry.areaName || t('wethod_hours_modal.generic_area'),
+      notes: typeof entry.notes === 'string' ? entry.notes.trim() : '',
+      total: entry.total,
+      totalLabel: formatDecimalHoursLabel(entry.total),
+      types,
     }
-  }
-
-  return result.sort((first, second) => second.total - first.total || first.projectName.localeCompare(second.projectName))
+  })
 }
 </script>

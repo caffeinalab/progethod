@@ -87,7 +87,7 @@
     <SubmitTimesheetModal v-model="showSubmitModal" :timesheet-data="timesheetData" />
     <JiraActivityModal v-model="showJiraModal" :day="dayId" @select="handleJiraIssueSelect" />
     <GitlabActivityModal v-model="showGitlabModal" :day="dayId" @select="handleGitlabCommitSelect" />
-    <WethodHoursModal v-model="showWethodHoursModal" :day="dayId" />
+    <WethodHoursModal v-model="showWethodHoursModal" :day="dayId" :expected-hours="wethodHours" />
   </div>
 </template>
 

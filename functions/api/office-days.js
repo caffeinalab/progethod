@@ -1,7 +1,12 @@
-import { getRequest } from '../utils/client'
 import { JSONResponse } from '../utils/response'
+import {
+  fetchTimetrackingBoardPages,
+  hoursReachExpected,
+  sumBoardInternalHours,
+} from '../utils/fetchTimetrackingBoard'
 
 const CONCURRENCY = 5
+const OFFICE_DAY_THRESHOLD = 8
 
 export async function onRequestGet ({ request, env, data: { authToken } }) {
   const { searchParams } = new URL(request.url)
@@ -24,26 +29,24 @@ export async function onRequestGet ({ request, env, data: { authToken } }) {
     const results = await Promise.all(
       chunk.map(async (date) => {
         const params = new URLSearchParams({ date })
-        const { body, status } = await getRequest('timetrackingboard', params, authToken, env)
+        const { entries, status } = await fetchTimetrackingBoardPages(
+          params,
+          authToken,
+          env,
+          {
+            shouldStop: (allEntries) =>
+              hoursReachExpected(sumBoardInternalHours(allEntries), OFFICE_DAY_THRESHOLD),
+          },
+        )
 
-        if (status !== 200 || !Array.isArray(body?.data)) {
+        if (status !== 200) {
           return null
         }
 
-        let totalInternal = 0
-        for (const project of body.data) {
-          if (project.project?.project_type?.is_timesheet_automatic) {
-            continue
-          }
-          for (const area of project.areas || []) {
-            if (area.hours?.internal > 0) {
-              totalInternal += area.hours.internal
-            }
-          }
-        }
-
-        return totalInternal >= 8 ? date : null
-      })
+        return hoursReachExpected(sumBoardInternalHours(entries), OFFICE_DAY_THRESHOLD)
+          ? date
+          : null
+      }),
     )
 
     results.filter(Boolean).forEach(date => officeDays.push(date))
