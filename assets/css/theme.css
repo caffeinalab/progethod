@@ -331,13 +331,25 @@
   border-bottom: 1px solid var(--color-stroke-muted);
 }
 
-/* ─── Day-card background overrides ─── */
-.day-card {
-  background: #f3f4f6;
+/* Raised surfaces (day cards, project/preset cards) — same hex as before in
+   base light/dark; HC maps to card-hover so contrast tokens apply. */
+:root {
+  --base-card-raised: #f3f4f6;
+  --color-card-raised: var(--base-card-raised);
+}
+.dark {
+  --base-card-raised: #3e3f44;
+  --color-card-raised: var(--base-card-raised);
+}
+.high-contrast {
+  --color-card-raised: var(--color-card-hover);
+}
+.dark.high-contrast {
+  --color-card-raised: var(--color-card-hover);
 }
 
-.dark .day-card {
-  background: #3e3f44;
+.day-card {
+  background: var(--color-card-raised);
 }
 
 .dark nav .bg-ink-disabled {
@@ -355,7 +367,7 @@
 
 .dark .project-card:not(.project-card--stale),
 .dark .preset-card {
-  background: #3e3f44;
+  background: var(--color-card-raised);
 }
 
 .project-card--stale {
