@@ -335,18 +335,6 @@
   background: #3e3f44;
 }
 
-.dark .day-card .day-stat-box {
-  background-color: var(--color-card);
-}
-
-.dark .day-card .day-stat-label {
-  color: var(--color-ink-secondary);
-}
-
-.dark .day-card .day-stat-value {
-  color: var(--color-ink);
-}
-
 .dark nav .bg-ink-disabled {
   background-color: var(--color-ink-faint);
 }

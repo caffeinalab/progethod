@@ -7,22 +7,27 @@
       <LocationInput v-model="location" variant="text" @update:model-value="handleLocationChange" />
 
       <div class="flex items-center gap-2 ml-auto">
-        <div class="day-stat-box">
-          <span class="day-stat-label">{{ $t('total') }}</span>
-          <span class="day-stat-value">{{ printableDuration.hours }}h<template v-if="printableDuration.minutes"> {{ printableDuration.minutes }}m</template></span>
-        </div>
-        <div class="day-stat-box" :class="trackedBadgeClasses">
-          <span class="day-stat-label">{{ $t('wethod_tracked_short') }}</span>
-          <span class="day-stat-value">{{ formattedTrackedHours }}</span>
-        </div>
-        <div v-if="holidayName" class="day-stat-box day-stat-box--holiday-active">
-          <span class="day-stat-label">{{ $t('calendar_page.holiday_label') }}</span>
-          <span class="day-stat-value">{{ holidayName }}</span>
-        </div>
-        <div v-if="(leaveHours || 0) > 0" class="day-stat-box day-stat-box--vacation">
-          <span class="day-stat-label">{{ $t('calendar_page.leave_label') }}</span>
-          <span class="day-stat-value">{{ formattedLeaveHours }}</span>
-        </div>
+        <DayStatBadge :label="$t('total')" :value="formattedTotalHours" />
+        <DayStatBadge
+          v-if="holidayName"
+          :label="$t('calendar_page.holiday_label')"
+          :value="holidayName"
+          variant="holiday"
+        />
+        <DayStatBadge
+          v-if="(leaveHours || 0) > 0"
+          :label="$t('calendar_page.leave_label')"
+          :value="formattedLeaveHours"
+          variant="vacation"
+        />
+        <DayStatBadge
+          :label="$t('wethod_tracked_short')"
+          :value="formattedTrackedHours"
+          :variant="trackedBadgeVariant"
+          clickable
+          :title="$t('wethod_hours_modal.open_hint')"
+          @click="showWethodHoursModal = true"
+        />
       </div>
     </div>
     <div>
@@ -82,6 +87,7 @@
     <SubmitTimesheetModal v-model="showSubmitModal" :timesheet-data="timesheetData" />
     <JiraActivityModal v-model="showJiraModal" :day="dayId" @select="handleJiraIssueSelect" />
     <GitlabActivityModal v-model="showGitlabModal" :day="dayId" @select="handleGitlabCommitSelect" />
+    <WethodHoursModal v-model="showWethodHoursModal" :day="dayId" />
   </div>
 </template>
 
@@ -89,7 +95,7 @@
 import { IconTrash, IconPlus, IconSend, IconTrashX } from '@tabler/icons-vue'
 import { format as formatDate } from 'date-fns'
 import { it } from 'date-fns/locale'
-import { getPrintableDuration } from '~/utils/duration'
+import { formatDecimalHoursLabel, formatDurationLabel } from '~/utils/duration'
 import { prepareForSubmission } from '~/utils/timesheetMapper'
 import { getEvents, mapEventsToTimesheetEntries } from '~/utils/gCal'
 import { connectJira } from '~/utils/jira'
@@ -119,6 +125,7 @@ const showNukeModal = ref(false)
 const showSubmitModal = ref(false)
 const showJiraModal = ref(false)
 const showGitlabModal = ref(false)
+const showWethodHoursModal = ref(false)
 const timesheetData = ref<unknown[]>([])
 const focusedEntryIndex = ref(0)
 const entryRefs = ref<Record<number, any>>({})
@@ -131,32 +138,31 @@ const disableSubmission = computed(() => entries.value.every(entry => entry.sync
 const totalDuration = computed(() => entries.value.reduce((sum, entry) => sum + (entry.data.duration || 0), 0))
 const totalDecimalDuration = computed(() => entries.value.reduce((sum, entry) => ((sum * 10) + (entry.data.decimal_duration || 0) * 10) / 10, 0))
 
-const formattedTrackedHours = computed(() => {
-  const value = props.wethodHours || 0
-  let hours = Math.floor(value)
-  let minutes = Math.round((value - hours) * 60)
-  if (minutes >= 60) { hours += 1; minutes = 0 }
-  if (minutes === 0) { return `${hours}h` }
-  return `${hours}h ${minutes}m`
+const holidayHoursValue = computed(() => {
+  if (!props.holidayName) { return 0 }
+  const dayOfWeek = props.day.getDay()
+  return (dayOfWeek !== 0 && dayOfWeek !== 6) ? 8 : 0
 })
 
-const trackedBadgeClasses = computed(() => {
-  if (props.wethodHours == null || props.wethodHours === 0) { return '' }
-  if (props.wethodHours >= 8) { return 'day-stat-box--success' }
-  return 'day-stat-box--warning'
+const effectiveWethodHours = computed(() => {
+  const rawWethod = props.wethodHours || 0
+  const localHours = totalDuration.value / 60
+  const absenceHours = (props.leaveHours || 0) + holidayHoursValue.value
+  return Math.max(rawWethod, localHours + absenceHours)
 })
 
-const formattedLeaveHours = computed(() => {
-  const value = props.leaveHours || 0
-  let hours = Math.floor(value)
-  let minutes = Math.round((value - hours) * 60)
-  if (minutes >= 60) { hours += 1; minutes = 0 }
-  if (minutes === 0) { return `${hours}h` }
-  return `${hours}h ${minutes}m`
+const formattedTotalHours = computed(() => formatDurationLabel(totalDuration.value))
+const formattedTrackedHours = computed(() => formatDecimalHoursLabel(effectiveWethodHours.value))
+const formattedLeaveHours = computed(() => formatDecimalHoursLabel(props.leaveHours || 0))
+
+const trackedBadgeVariant = computed(() => {
+  const value = effectiveWethodHours.value
+  if (value === 0) { return 'default' as const }
+  if (value >= 8) { return 'success' as const }
+  return 'warning' as const
 })
 
 const totalNotAdjustable = computed(() => totalDuration.value >= DAY_DURATION && totalDuration.value % 60)
-const printableDuration = computed(() => getPrintableDuration(totalDuration.value))
 
 onMounted(() => {
   location.value = entries.value.reduce((acc, entry) => {
@@ -314,16 +320,4 @@ defineExpose({ addEntry, focusFirstEntry, focusPrevEntry, focusNextEntry, editCu
   .dark .integration-btn--gcal { color: #6ea8ff; }
   .dark .integration-btn--jira { color: #5b9bff; }
   .dark .integration-btn--gitlab { color: #ff8f56; }
-  .day-stat-box { @apply flex items-center gap-1.5 px-3 py-1 bg-card rounded-lg border border-stroke-muted shadow text-sm; }
-  .day-stat-box--success { border-color: var(--color-success); background-color: var(--color-success-soft); }
-  .day-stat-box--success .day-stat-value { color: var(--color-success-text); }
-  .day-stat-box--warning { border-color: var(--color-warning); background-color: var(--color-warning-soft); }
-  .day-stat-box--warning .day-stat-value { color: var(--color-warning-text); }
-  .day-stat-box--vacation { border-color: var(--color-vacation); background-color: var(--color-vacation-soft); }
-  .day-stat-box--vacation .day-stat-value { color: var(--color-vacation-text); }
-  .day-stat-box--holiday-active { border-color: var(--color-success); background-color: var(--color-success-soft); }
-  .day-stat-box--holiday-active .day-stat-label { color: var(--color-success-text); }
-  .day-stat-box--holiday-active .day-stat-value { @apply text-xs font-medium; color: var(--color-success-text); }
-  .day-stat-label { @apply text-ink-faint text-xs font-medium; }
-  .day-stat-value { @apply text-ink font-bold tabular-nums; }
 </style>
