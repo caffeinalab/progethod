@@ -13,11 +13,11 @@
         >
           <div
             class="relative w-9 h-9 shrink-0 rounded-full p-[2.5px]"
-            :style="ringStyle(status)"
+            :style="ringStyle(status, index)"
             aria-hidden="true"
           >
             <span
-              class="flex h-full w-full items-center justify-center rounded-full text-xs font-semibold tabular-nums text-ink leading-none"
+              class="flex h-full w-full items-center justify-center rounded-full text-xs font-semibold tabular-nums leading-none"
               :class="ringInnerClass(status, index)"
             >
               {{ status.dayOfMonth }}
@@ -107,12 +107,17 @@ function dayButtonClass(status: WeekDayStatus, index: number) {
 }
 
 function ringInnerClass(status: WeekDayStatus, index: number) {
-  if (selectedIndex.value === index) { return 'bg-accent-soft' }
-  if (status.needsAttention) { return 'bg-warning-soft' }
-  return 'bg-card'
+  // Soft washes are translucent — they let the progress ring bleed under the day number.
+  if (selectedIndex.value === index) { return 'bg-accent text-ink-inverse' }
+  if (status.needsAttention) { return 'bg-card text-ink' }
+  return 'bg-card text-ink'
 }
 
-function ringStyle(status: WeekDayStatus) {
+function ringStyle(status: WeekDayStatus, index: number) {
+  // Selected day already uses a solid accent disc — skip the progress ring outline.
+  if (selectedIndex.value === index) {
+    return { background: 'var(--color-accent)' }
+  }
   const fillDegrees = Math.round(status.fillRatio * 360)
   const color = fillProgressColor(status)
   return {
