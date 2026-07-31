@@ -73,7 +73,7 @@
             <MonthCalendar
               ref="monthCalendarRef"
               :reference-date="weekAnchor"
-              :tracked-hours="calendarTrackedHours"
+              :tracked-hours="calendarEffectiveHours"
               :holidays="holidays"
               :label="monthLabel"
               @day-click="onCalendarDayClick"
@@ -125,8 +125,15 @@ import { it } from 'date-fns/locale'
 
 definePageMeta({ middleware: 'auth' })
 
+const LEAVE_PROJECT_IDS = new Set([83, 90])
+
+type TrackedHoursEntry = { date: string; value: number }
+type VacationHoursEntry = { date: string; amount: number; projectId: number }
+type PlanningRow = { employee_id: number; project_id: number; day: string; amount: number }
+
 const config = useRuntimeConfig()
 const userStore = useUserStore()
+const entriesStore = useEntriesStore()
 const eventBus = useEventBus()
 const api = useApi()
 const { today } = useLiveToday()
@@ -135,12 +142,14 @@ const router = useRouter()
 
 const queryWeek = parseInt(route.query.week as string, 10)
 const weekOffset = ref(Number.isFinite(queryWeek) ? queryWeek : 0)
-const weekTrackedHours = ref<Array<{ date: string; value: number }>>([])
-const monthTrackedHours = ref<Array<{ date: string; value: number }>>([])
-const calendarTrackedHours = ref<Array<{ date: string; value: number }>>([])
+const weekTrackedHours = ref<TrackedHoursEntry[]>([])
+const monthTrackedHours = ref<TrackedHoursEntry[]>([])
+const calendarTrackedHours = ref<TrackedHoursEntry[]>([])
+const calendarLeaveByDay = ref<Record<string, number>>({})
 const trackedHoursLoading = ref(false)
 const showOfficeDaysModal = ref(false)
-const weekVacationHours = ref<Array<{ date: string; amount: number; projectId: number }>>([])
+const weekVacationHours = ref<VacationHoursEntry[]>([])
+const monthVacationHours = ref<VacationHoursEntry[]>([])
 const holidays = ref<Array<{ date: string; name: string }>>([])
 const holidaysFetchFailed = ref(false)
 const focusedDayIndex = ref<number | null>(null)
@@ -149,6 +158,59 @@ const navigating = ref(false)
 const showExtensionGuide = ref(false)
 const monthCalendarRef = ref<any>(null)
 const dayRefs = ref<Record<number, any>>({})
+
+function leaveHoursMap(entries: VacationHoursEntry[]): Record<string, number> {
+  const map: Record<string, number> = {}
+  for (const entry of entries) {
+    map[entry.date] = (map[entry.date] || 0) + entry.amount
+  }
+  return map
+}
+
+function extractLeaveEntries(
+  plannings: Record<string, PlanningRow[]>,
+  employeeId: number,
+): VacationHoursEntry[] {
+  const entries: VacationHoursEntry[] = []
+  for (const group of Object.values(plannings)) {
+    if (!Array.isArray(group)) { continue }
+    for (const planning of group) {
+      if (planning.employee_id === employeeId && LEAVE_PROJECT_IDS.has(planning.project_id)) {
+        entries.push({ date: planning.day, amount: planning.amount, projectId: planning.project_id })
+      }
+    }
+  }
+  return entries
+}
+
+function syncedLocalHoursForDay(dayKey: string): number {
+  return entriesStore.entries
+    .filter(entry => entry.day === dayKey && entry.synced)
+    .reduce((sum, entry) => sum + (entry.data.duration || 0), 0) / 60
+}
+
+/** Same projection as the day “Ore su Wethod” badge (without holidays). */
+function buildEffectiveTrackedHours(
+  trackedHours: TrackedHoursEntry[],
+  leaveByDay: Record<string, number>,
+): TrackedHoursEntry[] {
+  const trackedByDay: Record<string, number> = {}
+  for (const entry of trackedHours) {
+    trackedByDay[entry.date] = entry.value
+  }
+  const dateKeys = new Set([
+    ...Object.keys(trackedByDay),
+    ...Object.keys(leaveByDay),
+  ])
+  return [...dateKeys].map((dateKey) => {
+    const rawWethod = trackedByDay[dateKey] || 0
+    const leaveHours = leaveByDay[dateKey] || 0
+    return {
+      date: dateKey,
+      value: Math.max(rawWethod, syncedLocalHoursForDay(dateKey) + leaveHours),
+    }
+  })
+}
 
 const dismissedAt = typeof localStorage !== 'undefined' ? localStorage.getItem('monthEndReminderDismissedAt') : null
 const monthEndReminderDismissed = ref(!!(dismissedAt && (Date.now() - parseInt(dismissedAt, 10)) < 24 * 60 * 60 * 1000))
@@ -168,7 +230,14 @@ const weekTo = computed(() => formatDate(days.value[6], 'yyyy-MM-dd'))
 const monthFrom = computed(() => formatDate(startOfMonth(weekAnchor.value), 'yyyy-MM-dd'))
 const monthTo = computed(() => formatDate(endOfMonth(weekAnchor.value), 'yyyy-MM-dd'))
 const weekTrackedTotal = computed(() => weekTrackedHours.value.reduce((sum, entry) => sum + (entry.value || 0), 0))
-const monthTrackedDays = computed(() => monthTrackedHours.value.filter(entry => entry.value >= 8).length)
+const monthLeaveByDay = computed(() => leaveHoursMap(monthVacationHours.value))
+const monthEffectiveHours = computed(() =>
+  buildEffectiveTrackedHours(monthTrackedHours.value, monthLeaveByDay.value),
+)
+const monthTrackedDays = computed(() => monthEffectiveHours.value.filter(entry => entry.value >= 8).length)
+const calendarEffectiveHours = computed(() =>
+  buildEffectiveTrackedHours(calendarTrackedHours.value, calendarLeaveByDay.value),
+)
 const weekExpectedHours = computed(() => {
   const holidaysInWeek = holidays.value.filter((holiday) => {
     if (holiday.date < weekFrom.value || holiday.date > weekTo.value) { return false }
@@ -197,15 +266,7 @@ const trackedHoursByDay = computed(() => {
   for (const entry of weekTrackedHours.value) { map[entry.date] = entry.value }
   return map
 })
-const leaveHoursByDay = computed(() => {
-  const map: Record<string, number> = {}
-  for (const entry of weekVacationHours.value) {
-    if (entry.projectId === 83 || entry.projectId === 90) {
-      map[entry.date] = (map[entry.date] || 0) + entry.amount
-    }
-  }
-  return map
-})
+const leaveHoursByDay = computed(() => leaveHoursMap(weekVacationHours.value))
 const holidaysByDate = computed(() => {
   const map: Record<string, string> = {}
   for (const holiday of holidays.value) { map[holiday.date] = holiday.name }
@@ -281,24 +342,25 @@ async function fetchTrackedHours() {
   }
 }
 
+async function fetchLeaveForRange(from: string, to: string, employeeId: number): Promise<VacationHoursEntry[]> {
+  const response = await api.$get<{ data: { plannings: Record<string, PlanningRow[]> } }>('planningboard', { params: { from, to } })
+  return extractLeaveEntries(response?.data?.plannings || {}, employeeId)
+}
+
 async function fetchVacationHours() {
   if (!userStore.canMakeRequests) { return }
   const snapshotOffset = weekOffset.value
   try {
     const employeeId = userStore.info.employee_id
-    const response = await api.$get<{ data: { plannings: Record<string, Array<{ employee_id: number; project_id: number; day: string; amount: number }>> } }>('planningboard', { params: { from: weekFrom.value, to: weekTo.value } })
+    if (!employeeId) { return }
+    const [weekEntries, monthEntries] = await Promise.all([
+      fetchLeaveForRange(weekFrom.value, weekTo.value, employeeId),
+      fetchLeaveForRange(monthFrom.value, monthTo.value, employeeId),
+    ])
     if (weekOffset.value !== snapshotOffset) { return }
-    const plannings = response?.data?.plannings || {}
-    const entries: Array<{ date: string; amount: number; projectId: number }> = []
-    for (const group of Object.values(plannings)) {
-      if (!Array.isArray(group)) { continue }
-      for (const planning of group) {
-        if (planning.employee_id === employeeId && (planning.project_id === 83 || planning.project_id === 90)) {
-          entries.push({ date: planning.day, amount: planning.amount, projectId: planning.project_id })
-        }
-      }
-    }
-    weekVacationHours.value = entries
+    weekVacationHours.value = weekEntries
+    monthVacationHours.value = monthEntries
+    calendarLeaveByDay.value = leaveHoursMap(monthEntries)
   } catch { /* empty */ }
 }
 
@@ -321,13 +383,28 @@ function onCalendarDayClick(dateKey: string) {
 }
 
 async function onCalendarMonthChanged({ from, to }: { from: string; to: string }) {
-  if (from === monthFrom.value && to === monthTo.value) { calendarTrackedHours.value = monthTrackedHours.value; return }
-  if (!userStore.canMakeRequests) { calendarTrackedHours.value = []; return }
+  if (from === monthFrom.value && to === monthTo.value) {
+    calendarTrackedHours.value = monthTrackedHours.value
+    calendarLeaveByDay.value = monthLeaveByDay.value
+    return
+  }
+  if (!userStore.canMakeRequests) {
+    calendarTrackedHours.value = []
+    calendarLeaveByDay.value = {}
+    return
+  }
   try {
-    const employeeId = userStore.info.employee_id || ''
-    const response = await api.$get<{ data: Array<{ date: string; value: number }> }>('tracked-hours', { params: { from, to, employeeId } })
-    if (Array.isArray(response?.data)) { calendarTrackedHours.value = response.data }
-  } catch { calendarTrackedHours.value = [] }
+    const employeeId = userStore.info.employee_id
+    const [trackedResponse, leaveEntries] = await Promise.all([
+      api.$get<{ data: TrackedHoursEntry[] }>('tracked-hours', { params: { from, to, employeeId: employeeId || '' } }),
+      employeeId ? fetchLeaveForRange(from, to, employeeId) : Promise.resolve([] as VacationHoursEntry[]),
+    ])
+    calendarTrackedHours.value = Array.isArray(trackedResponse?.data) ? trackedResponse.data : []
+    calendarLeaveByDay.value = leaveHoursMap(leaveEntries)
+  } catch {
+    calendarTrackedHours.value = []
+    calendarLeaveByDay.value = {}
+  }
 }
 
 function dismissMonthEndReminder() {
