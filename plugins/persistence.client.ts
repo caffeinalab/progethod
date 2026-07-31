@@ -85,6 +85,7 @@ export default defineNuxtPlugin(() => {
         selectedBusinessUnitIds: preferencesStore.selectedBusinessUnitIds,
         theme: preferencesStore.theme,
         highContrast: preferencesStore.highContrast,
+        weekLayout: preferencesStore.weekLayout,
       },
     }
 

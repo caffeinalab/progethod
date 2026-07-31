@@ -98,6 +98,7 @@ import { IconTrash, IconPlus, IconSend, IconTrashX } from '@tabler/icons-vue'
 import { format as formatDate } from 'date-fns'
 import { it } from 'date-fns/locale'
 import { formatDecimalHoursLabel, formatDurationLabel } from '~/utils/duration'
+import { effectiveWethodHours } from '~/utils/effectiveHours'
 import { prepareForSubmission } from '~/utils/timesheetMapper'
 import { getEvents, mapEventsToTimesheetEntries } from '~/utils/gCal'
 import { connectJira } from '~/utils/jira'
@@ -152,18 +153,19 @@ const syncedLocalHours = computed(() =>
     .reduce((sum, entry) => sum + (entry.data.duration || 0), 0) / 60,
 )
 
-const effectiveWethodHours = computed(() => {
-  const rawWethod = props.wethodHours || 0
-  const absenceHours = (props.leaveHours || 0) + holidayHoursValue.value
-  return Math.max(rawWethod, syncedLocalHours.value + absenceHours)
-})
+const effectiveTrackedHours = computed(() => effectiveWethodHours({
+  rawWethod: props.wethodHours,
+  syncedLocalHours: syncedLocalHours.value,
+  leaveHours: props.leaveHours,
+  holidayHours: holidayHoursValue.value,
+}))
 
 const formattedTotalHours = computed(() => formatDurationLabel(totalDuration.value))
-const formattedTrackedHours = computed(() => formatDecimalHoursLabel(effectiveWethodHours.value))
+const formattedTrackedHours = computed(() => formatDecimalHoursLabel(effectiveTrackedHours.value))
 const formattedLeaveHours = computed(() => formatDecimalHoursLabel(props.leaveHours || 0))
 
 const trackedBadgeVariant = computed(() => {
-  const value = effectiveWethodHours.value
+  const value = effectiveTrackedHours.value
   if (value === 0) { return 'default' as const }
   if (value >= 8) { return 'success' as const }
   return 'warning' as const
@@ -278,7 +280,12 @@ async function fetchGCal() {
   try {
     const userProjects = projectsStore.projects
     const events = await getEvents(props.day)
-    const entriesFromCalendar = mapEventsToTimesheetEntries(events, entries.value, userProjects)
+    const entriesFromCalendar = mapEventsToTimesheetEntries(
+      events,
+      entries.value,
+      userProjects,
+      apiDataStore.projects,
+    )
     entriesFromCalendar.forEach((entry: any) =>
       entriesStore.add({ day: dayId.value, data: { location: location.value, ...entry } }),
     )

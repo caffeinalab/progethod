@@ -90,21 +90,20 @@
     </div>
 
     <div class="container mx-auto px-6">
-      <div
-        v-for="(day, index) of days"
-        :key="day.toString()"
-        class="day-card w-full rounded-lg border mb-5 p-2 shadow-sm transition-shadow duration-150"
-        :class="dayCardClasses(day, index)"
-      >
-        <DayInputItem
-          :ref="(el: any) => { dayRefs[index] = el }"
-          :day="day"
-          :focused="navigating && insideDay && focusedDayIndex === index"
-          :wethod-hours="trackedHoursByDay[formatDate(day, 'yyyy-MM-dd')]"
-          :leave-hours="leaveHoursByDay[formatDate(day, 'yyyy-MM-dd')]"
-          :holiday-name="holidaysByDate[formatDate(day, 'yyyy-MM-dd')]"
-        />
-      </div>
+      <!-- A/B week layouts — temporary; delete components/ab-week-layouts/ when done -->
+      <AbWeekLayoutsHost
+        ref="weekLayoutRef"
+        :layout="preferencesStore.weekLayout"
+        :days="days"
+        :today="today"
+        :wethod-hours-by-day="trackedHoursByDay"
+        :leave-hours-by-day="leaveHoursByDay"
+        :holidays-by-date="holidaysByDate"
+        :focused="navigating && insideDay"
+        :focused-day-index="focusedDayIndex"
+        :navigating="navigating"
+        :inside-day="insideDay"
+      />
     </div>
 
     <OfficeDaysModal
@@ -122,6 +121,7 @@
 import { IconAlertTriangle, IconChevronLeft, IconChevronRight, IconBuilding } from '@tabler/icons-vue'
 import { isSameDay, startOfMonth, endOfMonth, subDays, getDay, isAfter, isBefore, addWeeks, startOfWeek, addDays, format as formatDate } from 'date-fns'
 import { it } from 'date-fns/locale'
+import { effectiveWethodHours } from '~/utils/effectiveHours'
 
 definePageMeta({ middleware: 'auth' })
 
@@ -133,12 +133,15 @@ type PlanningRow = { employee_id: number; project_id: number; day: string; amoun
 
 const config = useRuntimeConfig()
 const userStore = useUserStore()
+const preferencesStore = usePreferencesStore()
 const entriesStore = useEntriesStore()
 const eventBus = useEventBus()
 const api = useApi()
 const { today } = useLiveToday()
 const route = useRoute()
 const router = useRouter()
+
+const weekLayoutRef = ref<{ getDayComponent?: (index: number) => any } | null>(null)
 
 const queryWeek = parseInt(route.query.week as string, 10)
 const weekOffset = ref(Number.isFinite(queryWeek) ? queryWeek : 0)
@@ -157,7 +160,6 @@ const insideDay = ref(false)
 const navigating = ref(false)
 const showExtensionGuide = ref(false)
 const monthCalendarRef = ref<any>(null)
-const dayRefs = ref<Record<number, any>>({})
 
 function leaveHoursMap(entries: VacationHoursEntry[]): Record<string, number> {
   const map: Record<string, number> = {}
@@ -202,14 +204,14 @@ function buildEffectiveTrackedHours(
     ...Object.keys(trackedByDay),
     ...Object.keys(leaveByDay),
   ])
-  return [...dateKeys].map((dateKey) => {
-    const rawWethod = trackedByDay[dateKey] || 0
-    const leaveHours = leaveByDay[dateKey] || 0
-    return {
-      date: dateKey,
-      value: Math.max(rawWethod, syncedLocalHoursForDay(dateKey) + leaveHours),
-    }
-  })
+  return [...dateKeys].map((dateKey) => ({
+    date: dateKey,
+    value: effectiveWethodHours({
+      rawWethod: trackedByDay[dateKey] || 0,
+      syncedLocalHours: syncedLocalHoursForDay(dateKey),
+      leaveHours: leaveByDay[dateKey] || 0,
+    }),
+  }))
 }
 
 const dismissedAt = typeof localStorage !== 'undefined' ? localStorage.getItem('monthEndReminderDismissedAt') : null
@@ -294,27 +296,17 @@ watch(weekOffset, (value) => {
   fetchVacationHours()
 })
 
-function dayCardClasses(day: Date, index: number): string[] {
-  const classes: string[] = []
-  if (isSameDay(day, today.value)) { classes.push('border-accent bg-accent-soft') }
-  else { classes.push('border-stroke') }
-  if (navigating.value && focusedDayIndex.value === index && !insideDay.value) {
-    classes.push('ring-2 ring-focus-ring ring-offset-2 ring-offset-page')
-  }
-  return classes
-}
-
 function deactivateNav() { navigating.value = false; insideDay.value = false }
 function activateNav() { navigating.value = true; if (focusedDayIndex.value === null) { focusedDayIndex.value = 0 } }
 
 function getFocusedDayComponent() {
   if (focusedDayIndex.value === null) { focusedDayIndex.value = 0 }
-  return dayRefs.value[focusedDayIndex.value]
+  return weekLayoutRef.value?.getDayComponent?.(focusedDayIndex.value)
 }
 
 function scrollFocusedIntoView() {
   nextTick(() => {
-    const component = dayRefs.value[focusedDayIndex.value!]
+    const component = getFocusedDayComponent()
     const element = component?.$el
     if (!element) { return }
     const navHeight = 64
@@ -416,8 +408,9 @@ function scrollToToday() {
   if (weekOffset.value !== 0) { return }
   const todayIndex = days.value.findIndex(day => isSameDay(day, today.value))
   if (todayIndex < 0) { return }
+  focusedDayIndex.value = todayIndex
   nextTick(() => {
-    const component = dayRefs.value[todayIndex]
+    const component = getFocusedDayComponent()
     const element = component?.$el
     if (element) { element.scrollIntoView({ block: 'center', behavior: 'smooth' }) }
   })

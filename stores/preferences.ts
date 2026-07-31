@@ -1,4 +1,9 @@
 import { defineStore } from 'pinia'
+import {
+  DEFAULT_WEEK_LAYOUT,
+  isWeekLayoutKey,
+  type WeekLayoutKey,
+} from '~/components/ab-week-layouts/types'
 
 export const usePreferencesStore = defineStore('preferences', {
   state: () => ({
@@ -6,6 +11,8 @@ export const usePreferencesStore = defineStore('preferences', {
     selectedBusinessUnitIds: null as number[] | null,
     theme: 'auto' as 'auto' | 'light' | 'dark',
     highContrast: false,
+    // A/B week layouts — temporary; remove with components/ab-week-layouts/
+    weekLayout: DEFAULT_WEEK_LAYOUT as WeekLayoutKey,
   }),
 
   getters: {
@@ -24,6 +31,10 @@ export const usePreferencesStore = defineStore('preferences', {
     },
     setHighContrast(value: boolean) {
       this.highContrast = value
+    },
+    setWeekLayout(value: WeekLayoutKey) {
+      if (!isWeekLayoutKey(value)) { return }
+      this.weekLayout = value
     },
   },
 })

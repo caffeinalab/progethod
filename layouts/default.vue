@@ -164,6 +164,24 @@
                     <span>{{ $t('high_contrast') }}</span>
                     <ToggleSwitch :model-value="preferencesStore.highContrast" />
                   </li>
+                  <!-- A/B week layouts — temporary; remove with components/ab-week-layouts/ -->
+                  <li class="py-2">
+                    <span class="text-xs font-semibold text-ink-faint uppercase tracking-wider">{{ $t('week_layout_label') }}</span>
+                    <div class="grid grid-cols-2 gap-1 mt-1.5">
+                      <button
+                        v-for="option in weekLayoutOptions"
+                        :key="option.value"
+                        type="button"
+                        class="flex items-center justify-center py-1.5 text-xs rounded transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+                        :class="preferencesStore.weekLayout === option.value
+                          ? 'bg-accent text-ink-inverse font-semibold'
+                          : 'text-ink-muted hover:text-ink-secondary hover:bg-card-hover'"
+                        @click.stop="preferencesStore.setWeekLayout(option.value)"
+                      >
+                        {{ option.label }}
+                      </button>
+                    </div>
+                  </li>
                   <li class="border-t border-stroke-muted my-2" />
                   <li
                     class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal py-2 hover:text-accent-fg flex items-center justify-between focus:text-accent-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring rounded"
@@ -302,6 +320,24 @@
               <ToggleSwitch :model-value="preferencesStore.highContrast" />
             </button>
           </li>
+          <!-- A/B week layouts — temporary; remove with components/ab-week-layouts/ -->
+          <li class="py-2">
+            <span class="text-xs font-semibold text-ink-faint uppercase tracking-wider">{{ $t('week_layout_label') }}</span>
+            <div class="grid grid-cols-2 gap-1 mt-1.5">
+              <button
+                v-for="option in weekLayoutOptions"
+                :key="option.value"
+                type="button"
+                class="flex items-center justify-center py-1.5 text-xs rounded transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+                :class="preferencesStore.weekLayout === option.value
+                  ? 'bg-accent text-ink-inverse font-semibold'
+                  : 'text-ink-muted hover:text-ink-secondary hover:bg-card-hover'"
+                @click.stop="preferencesStore.setWeekLayout(option.value)"
+              >
+                {{ option.label }}
+              </button>
+            </div>
+          </li>
           <li>
             <button
               class="w-full flex items-center justify-between py-2 text-ink-secondary hover:text-accent-fg"
@@ -350,6 +386,7 @@ import {
 import { getBackupData, getBackupFile, triggerFileDownload, askForBackupFile, restoreBackup } from '~/utils/backupRestore'
 import { copyToClipboard } from '~/utils/clipboard'
 import { updateApiData } from '~/utils/updateApiData'
+import { WEEK_LAYOUT_KEYS, type WeekLayoutKey } from '~/components/ab-week-layouts/types'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -447,6 +484,14 @@ const themeOptions = computed(() => [
   { value: 'light' as const, label: t('theme_light'), icon: IconSun },
   { value: 'dark' as const, label: t('theme_dark'), icon: IconMoon },
 ])
+
+// A/B week layouts — temporary; remove with components/ab-week-layouts/
+const weekLayoutOptions = computed(() =>
+  WEEK_LAYOUT_KEYS.map(key => ({
+    value: key as WeekLayoutKey,
+    label: t(`week_layout_${key}`),
+  })),
+)
 
 function backup() {
   triggerFileDownload(getBackupFile(getBackupData()))
