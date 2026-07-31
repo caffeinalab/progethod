@@ -34,7 +34,7 @@
                 class="text-xs font-semibold text-accent-fg shrink-0"
               >oggi</span>
             </div>
-            <div class="text-xs truncate" :class="tone(status).text">
+            <div class="text-xs truncate" :class="sideLabelClass(status)">
               {{ sideLabel(status) }}
             </div>
           </div>
@@ -74,7 +74,7 @@
 <script setup lang="ts">
 import { format as formatDate, isSameDay } from 'date-fns'
 import type { WeekLayoutProps } from './types'
-import { buildWeekDayStatus, fillProgressColor, healthToneClasses, type WeekDayStatus } from './useDayStatus'
+import { buildWeekDayStatus, fillProgressColor, type WeekDayStatus } from './useDayStatus'
 
 const props = defineProps<WeekLayoutProps>()
 
@@ -92,10 +92,6 @@ const dayStatuses = computed(() =>
 )
 
 const selectedStatus = computed(() => dayStatuses.value[selectedIndex.value] || null)
-
-function tone(status: WeekDayStatus) {
-  return healthToneClasses(status.health, status.needsAttention)
-}
 
 function dayButtonClass(status: WeekDayStatus, index: number) {
   if (selectedIndex.value === index) {
@@ -131,10 +127,19 @@ function primaryHours(status: WeekDayStatus) {
 }
 
 function sideLabel(status: WeekDayStatus) {
-  if (status.unsyncedCount > 0) { return 'Pending' }
+  // Pending is shown under the hours column — avoid duplicating it here
   if (status.holidayName) { return status.holidayName }
   if (status.leaveHours > 0) { return `Assenze ${status.leaveHoursLabel}` }
+  if (status.unsyncedCount > 0) {
+    return status.needsAttention ? 'Non completo' : ''
+  }
   return status.statusLabel
+}
+
+/** Match the Pending column: warning when unsynced/incomplete, otherwise muted. */
+function sideLabelClass(status: WeekDayStatus) {
+  if (status.unsyncedCount > 0 || status.needsAttention) { return 'text-warning-text' }
+  return 'text-ink-muted'
 }
 
 watch(
