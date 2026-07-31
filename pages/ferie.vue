@@ -173,10 +173,16 @@
                     />
                   </div>
                   <div class="budget-details">
-                    <span><span class="inline-block w-1.5 h-1.5 rounded-sm bg-budget-used mr-0.5" />{{ formatDays(section.used) }}</span>
-                    <span><span class="inline-block w-1.5 h-1.5 rounded-sm bg-budget-planned mr-0.5" />{{ formatDays(section.planned) }}</span>
-                    <span v-if="Number(section.requested) > 0"><span class="inline-block w-1.5 h-1.5 rounded-sm bg-budget-requested mr-0.5" />{{ formatDays(section.requested) }}</span>
-                    <span class="font-medium tracking-wide" :class="remainingClass(section.remaining)">{{ remainingLabel(section.remaining, section.remainingLabelKey) }}</span>
+                    <div class="budget-details-segments">
+                      <span><span class="inline-block w-1.5 h-1.5 rounded-sm bg-budget-used mr-0.5" />{{ formatDays(section.used) }}</span>
+                      <span><span class="inline-block w-1.5 h-1.5 rounded-sm bg-budget-planned mr-0.5" />{{ formatDays(section.planned) }}</span>
+                      <span v-if="Number(section.requested) > 0"><span class="inline-block w-1.5 h-1.5 rounded-sm bg-budget-requested mr-0.5" />{{ formatDays(section.requested) }}</span>
+                    </div>
+                    <span class="budget-details-remaining font-medium tracking-wide" :class="remainingClass(section.remaining)">
+                      <template v-if="Number(section.remaining) < 0">{{ $t('calendar_page.budget_over_planned', { days: formatDays(Math.abs(Number(section.remaining))) }) }}</template>
+                      <template v-else-if="Number(section.remaining) === 0">{{ $t('calendar_page.budget_all_planned') }}</template>
+                      <template v-else>{{ $t(section.remainingLabelKey) }}: {{ formatDays(section.remaining) }}</template>
+                    </span>
                   </div>
                 </div>
               </div>
@@ -657,7 +663,6 @@ function targetMarkerPosition(section) {
 }
 
 function remainingClass(remainingHours) { const val = Number(remainingHours); if (val < 0) return 'text-danger'; if (val === 0) return 'text-vacation-text'; return 'text-ink' }
-function remainingLabel(remainingHours, labelKey = 'calendar_page.budget_remaining') { const val = Number(remainingHours); if (val < 0) return $t('calendar_page.budget_over_planned', { days: formatDays(Math.abs(val)) }); if (val === 0) return $t('calendar_page.budget_all_planned'); return $t(labelKey) + ': ' + formatDays(remainingHours) }
 
 function formatDateChip(dateStr) { return format(new Date(dateStr + 'T00:00:00'), 'EEE d MMM', { locale: it }) }
 
@@ -1034,7 +1039,9 @@ async function executeGCalExport(events) {
 .budget-bar-sm { @apply h-2; }
 .budget-bar-segment { transition: width 0.4s ease; min-width: 0; }
 .budget-target-marker { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--color-ink); border-radius: 1px; z-index: 1; opacity: 0.7; transition: left 0.4s ease; }
-.budget-details { @apply flex flex-wrap gap-x-3 gap-y-0.5 mt-1.5 text-xs text-ink-muted tabular-nums tracking-wide; }
+.budget-details { @apply flex items-baseline justify-between gap-x-2 mt-1.5 text-xs text-ink-muted tabular-nums tracking-wide; }
+.budget-details-segments { @apply flex flex-wrap gap-x-3 gap-y-0.5 min-w-0; }
+.budget-details-remaining { @apply shrink-0 text-right; }
 .bg-budget-used { background: var(--color-budget-used, #059669); }
 .bg-budget-planned { background: var(--color-budget-planned, #38bdf8); }
 .bg-budget-requested { background: var(--color-budget-requested, #fbbf24); }
