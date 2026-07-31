@@ -109,10 +109,9 @@ watch(() => props.modelValue, (open) => {
 })
 
 function selectItem(item: ActivityItem) {
+  if (addedIds.value.includes(item.id)) return
+  addedIds.value.push(item.id)
   emit('select', item)
-  if (!addedIds.value.includes(item.id)) {
-    addedIds.value.push(item.id)
-  }
 }
 
 async function copyId(text: string) {
