@@ -30,7 +30,7 @@ A simplified timesheet interface for Wethod. Data is stored locally (localStorag
 - `stores/user.ts` — Auth token, user info, integration tokens (Jira, GitLab, GCal)
 - `stores/apiData.ts` — Cached Wethod project data
 - `stores/preferences.ts` — UI preferences (confirm on submit, business unit filter, theme, high contrast)
-- **Business unit filter**: Compact navbar cell (`BU` + `selected/total`) left of the session status cell, with a shared left tray divider. Click opens an animated dropdown with search, select-all, and multi-select; hint suggests selecting your own BU and Corporate. Also in the mobile menu (`variant="menu"`). Selection is in `preferences.selectedBusinessUnitIds` and applied as `bu=` on project refresh / Wethod hours detail. Session status uses a key + green/red dot; its menu holds “Copia token Wethod”. Nav menus (status / BU / profile) are mutually exclusive via `nav-menu:open`.
+- **Business unit filter**: Compact navbar cell (`BU` + `selected/total`) left of the session status cell, with a shared left tray divider. Click opens an animated dropdown with search, select-all, and multi-select; hint suggests selecting your own BU and Corporate. Also in the mobile menu (`variant="menu"`). Selection is in `preferences.selectedBusinessUnitIds` and applied as `bu=` on project refresh / Wethod hours detail. Session status uses a key + green/red dot; its menu shows “Copia token Wethod” only when `canMakeRequests`, otherwise a non-clickable reauth hint (`session_expired` / `session_expired_hint`). Same on mobile. Nav menus (status / BU / profile) are mutually exclusive via `nav-menu:open`.
 
 ## Composables
 

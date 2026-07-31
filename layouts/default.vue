@@ -71,13 +71,22 @@
                   @click.stop
                 >
                   <li
+                    v-if="userStore.canMakeRequests"
                     class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring rounded"
-                    :class="{ 'text-success hover:text-success': tokenCopied, 'opacity-50 cursor-not-allowed hover:text-ink-secondary': !userStore.authToken && !tokenCopied }"
+                    :class="{ 'text-success hover:text-success': tokenCopied }"
                     @click="copyAuthToken()"
                   >
                     <IconCheck v-if="tokenCopied" :size="20" :stroke-width="1.5" />
                     <IconKey v-else :size="20" :stroke-width="1.5" />
                     <span class="ml-2">{{ tokenCopied ? $t('auth_token_copied') : $t('copy_auth_token') }}</span>
+                  </li>
+                  <li
+                    v-else
+                    class="px-1 py-2 select-none"
+                    role="status"
+                  >
+                    <p class="text-sm font-semibold text-danger">{{ $t('session_expired') }}</p>
+                    <p class="text-xs text-ink-muted mt-1 leading-snug">{{ $t('session_expired_hint') }}</p>
                   </li>
                 </ul>
               </Transition>
@@ -247,17 +256,24 @@
               <span>{{ $t('update_projects') }}</span>
             </button>
           </li>
-          <li>
+          <li v-if="userStore.canMakeRequests">
             <button
               class="w-full flex items-center gap-2 py-2 text-ink-secondary hover:text-accent-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring rounded"
-              :class="{ 'text-success hover:text-success': tokenCopied, 'opacity-50 cursor-not-allowed hover:text-ink-secondary': !userStore.authToken && !tokenCopied }"
-              :disabled="!userStore.authToken"
+              :class="{ 'text-success hover:text-success': tokenCopied }"
               @click="copyAuthToken()"
             >
               <IconCheck v-if="tokenCopied" :size="20" :stroke-width="1.5" />
               <IconKey v-else :size="20" :stroke-width="1.5" />
               <span>{{ tokenCopied ? $t('auth_token_copied') : $t('copy_auth_token') }}</span>
             </button>
+          </li>
+          <li
+            v-else
+            class="py-2 select-none"
+            role="status"
+          >
+            <p class="text-sm font-semibold text-danger">{{ $t('session_expired') }}</p>
+            <p class="text-xs text-ink-muted mt-1 leading-snug">{{ $t('session_expired_hint') }}</p>
           </li>
           <li class="border-t border-stroke-muted my-2" />
           <li class="py-2">
@@ -463,7 +479,7 @@ async function updateProjectsFromApi() {
 
 async function copyAuthToken() {
   const token = userStore.authToken
-  if (!token) return
+  if (!token || !userStore.canMakeRequests) return
 
   await copyToClipboard(token)
   tokenCopied.value = true
