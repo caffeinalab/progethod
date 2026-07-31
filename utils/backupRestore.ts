@@ -1,3 +1,9 @@
+import {
+  hydrateFromPersistedData,
+  withoutPersistence,
+  type PersistedState,
+} from '~/utils/persistedState'
+
 export function getBackupData(): Record<string, unknown> {
   const raw = window.localStorage.getItem('progethod')
   return raw ? JSON.parse(raw) : {}
@@ -26,16 +32,40 @@ export function askForBackupFile(): Promise<File | null> {
     const input = document.createElement('input')
     input.type = 'file'
     input.accept = '.json'
-    input.onchange = () => {
-      resolve(input.files?.[0] || null)
+
+    let settled = false
+    const settle = (file: File | null) => {
+      if (settled) { return }
+      settled = true
+      resolve(file)
     }
+
+    input.addEventListener('change', () => {
+      settle(input.files?.[0] || null)
+    })
+    input.addEventListener('cancel', () => {
+      settle(null)
+    })
     input.click()
   })
 }
 
 export async function restoreBackup(file: File): Promise<void> {
   const text = await file.text()
-  const data = JSON.parse(text)
-  window.localStorage.setItem('progethod', JSON.stringify(data))
-  window.location.reload()
+  const data = JSON.parse(text) as PersistedState
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    throw new Error('Invalid backup file')
+  }
+
+  // Keep the exact backup on disk, then replace store state without a full SPA reload.
+  // Persistence saves are suppressed during hydrate so we don't briefly wipe storage.
+  // Collections are assigned once (not cleared then refilled) so sync won't push an empty list.
+  window.localStorage.setItem('progethod', text)
+  withoutPersistence(() => {
+    useUserStore().$reset()
+    useEntriesStore().$reset()
+    useApiDataStore().$reset()
+    usePreferencesStore().$reset()
+    hydrateFromPersistedData(data, { replaceCollections: true })
+  })
 }

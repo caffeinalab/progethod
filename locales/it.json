@@ -91,6 +91,7 @@
   "require_confirm_on_submit_short": "Conferma invio",
   "reset_day": "Ripristina Giorno",
   "restore": "Ripristina",
+  "restore_loading": "Ripristino in corso...",
   "save": "Salva",
   "create_project_inline": "Crea \"{name}\"",
   "select_project": "Scegli Progetto",

@@ -116,10 +116,12 @@
                   </li>
                   <li
                     class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none"
+                    :class="{ 'opacity-50 pointer-events-none': isRestoring }"
                     @click="restore()"
                   >
-                    <IconDatabaseImport :size="20" :stroke-width="1.5" />
-                    <span class="ml-2">{{ $t('restore') }}</span>
+                    <IconLoader v-if="isRestoring" :size="20" class="animate-spin" />
+                    <IconDatabaseImport v-else :size="20" :stroke-width="1.5" />
+                    <span class="ml-2">{{ isRestoring ? $t('restore_loading') : $t('restore') }}</span>
                   </li>
                   <li
                     class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal mt-2 py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none"
@@ -228,9 +230,15 @@
             </button>
           </li>
           <li>
-            <button class="w-full flex items-center gap-2 py-2 text-ink-secondary hover:text-accent-fg" @click="restore(); showMobileMenu = false">
-              <IconDatabaseImport :size="20" :stroke-width="1.5" />
-              <span>{{ $t('restore') }}</span>
+            <button
+              class="w-full flex items-center gap-2 py-2 text-ink-secondary hover:text-accent-fg"
+              :disabled="isRestoring"
+              :class="{ 'opacity-50 cursor-not-allowed': isRestoring }"
+              @click="restore(); showMobileMenu = false"
+            >
+              <IconLoader v-if="isRestoring" :size="20" class="animate-spin" />
+              <IconDatabaseImport v-else :size="20" :stroke-width="1.5" />
+              <span>{{ isRestoring ? $t('restore_loading') : $t('restore') }}</span>
             </button>
           </li>
           <li>
@@ -296,6 +304,15 @@
     <KeyboardShortcutsHelp />
     <IntegrationHint />
     <AppGuideModal v-model="showGuide" />
+
+    <div
+      v-if="isRestoring"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-page/80 backdrop-blur-sm"
+      role="status"
+      aria-live="polite"
+    >
+      <LoadingState :message="$t('restore_loading')" />
+    </div>
   </div>
 </template>
 
@@ -329,6 +346,7 @@ const showDropdown = ref(false)
 const showStatusDropdown = ref(false)
 const showGuide = ref(false)
 const showMobileMenu = ref(false)
+const isRestoring = ref(false)
 const tokenCopied = ref(false)
 let tokenCopiedTimeout: ReturnType<typeof setTimeout> | null = null
 
@@ -419,9 +437,23 @@ function backup() {
 }
 
 async function restore() {
+  if (isRestoring.value) { return }
+
   const backupFile = await askForBackupFile()
-  if (backupFile) {
+  if (!backupFile) { return }
+
+  isRestoring.value = true
+  showDropdown.value = false
+  // Let the overlay paint before parse/hydrate work on the main thread.
+  await nextTick()
+  await new Promise<void>(resolve => requestAnimationFrame(() => resolve()))
+
+  try {
     await restoreBackup(backupFile)
+  } catch (error) {
+    console.error('Failed to restore backup:', error)
+  } finally {
+    isRestoring.value = false
   }
 }
 

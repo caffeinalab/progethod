@@ -1,5 +1,6 @@
 import { watch } from 'vue'
 import { differenceInDays, parse } from 'date-fns'
+import { hydrateFromPersistedData, isPersistSuppressed } from '~/utils/persistedState'
 
 function migratePillsToPresets() {
   try {
@@ -43,52 +44,13 @@ export default defineNuxtPlugin(() => {
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY)
       if (!raw) { return }
-      const data = JSON.parse(raw)
-
-      if (data.user) {
-        if (data.user.authToken) { userStore.setToken(data.user.authToken) }
-        if (data.user.isTokenExpired) { userStore.isTokenExpired = true }
-        if (data.user.info) { userStore.updateInfo(data.user.info) }
-        if (data.user.hasAuthorizedGCal) { userStore.hasAuthorizedGCal = true }
-        if (data.user.jira) { userStore.jira = data.user.jira }
-        if (data.user.gitlab) { userStore.gitlab = data.user.gitlab }
-      }
-
-      if (data.projects) {
-        projectsStore.projects = data.projects.projects || []
-        projectsStore.updatedAt = data.projects.updatedAt || null
-      }
-
-      if (data.presets) {
-        presetsStore.presets = data.presets.presets || []
-        presetsStore.updatedAt = data.presets.updatedAt || null
-      }
-
-      if (data.entries) {
-        entriesStore.entries = data.entries.entries || []
-      }
-
-      if (data.apiData) {
-        apiDataStore.projects = data.apiData.projects || []
-        apiDataStore.lastUpdatedAt = data.apiData.lastUpdatedAt || new Date(0).toISOString()
-      }
-
-      if (data.preferences) {
-        if (data.preferences.requireConfirmationOnSubmit !== undefined) {
-          preferencesStore.requireConfirmationOnSubmit = data.preferences.requireConfirmationOnSubmit
-        }
-        if (data.preferences.selectedBusinessUnitIds !== undefined) {
-          preferencesStore.selectedBusinessUnitIds = data.preferences.selectedBusinessUnitIds
-        }
-        if (data.preferences.theme) { preferencesStore.theme = data.preferences.theme }
-        if (data.preferences.highContrast !== undefined) {
-          preferencesStore.highContrast = data.preferences.highContrast
-        }
-      }
+      hydrateFromPersistedData(JSON.parse(raw))
     } catch { /* empty */ }
   }
 
   function saveToStorage() {
+    if (isPersistSuppressed()) { return }
+
     const today = new Date()
 
     const data = {
