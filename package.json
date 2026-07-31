@@ -33,6 +33,7 @@
     "concurrently": "^10.0.3",
     "nuxt": "^4.5.0",
     "tailwindcss": "^4.3.3",
+    "typescript": "^6.0.3",
     "wrangler": "^4.112.0"
   },
   "volta": {
