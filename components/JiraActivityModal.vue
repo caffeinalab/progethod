@@ -9,13 +9,31 @@
     :retry-label="$t('jira.retry')"
     :empty-text="$t('jira.no_activity')"
     :no-results-text="$t('jira.no_results')"
-    :groups="groupedIssues"
-    :is-empty="issues.length === 0"
+    :groups="filteredGroups"
+    :is-empty="filteredIssues.length === 0"
     :filter-item="filterIssue"
     @update:model-value="emit('update:modelValue', $event)"
     @retry="fetchActivity"
     @select="onSelect"
   >
+    <template v-if="issues.length > 0" #filters>
+      <div class="flex gap-2 mt-2">
+        <select
+          v-model="selectedBoard"
+          class="flex-1 px-2.5 py-1.5 border border-stroke-muted rounded-lg text-xs text-ink bg-card focus:ring-2 focus:ring-focus-ring focus:border-transparent outline-none"
+        >
+          <option value="">{{ $t('jira.all_boards') }}</option>
+          <option v-for="board in availableBoards" :key="board" :value="board">{{ board }}</option>
+        </select>
+        <select
+          v-model="selectedStatus"
+          class="flex-1 px-2.5 py-1.5 border border-stroke-muted rounded-lg text-xs text-ink bg-card focus:ring-2 focus:ring-focus-ring focus:border-transparent outline-none"
+        >
+          <option value="">{{ $t('jira.all_statuses') }}</option>
+          <option v-for="status in availableStatuses" :key="status" :value="status">{{ status }}</option>
+        </select>
+      </div>
+    </template>
     <template #item="{ item, copiedId, copy }">
       <div class="flex items-center gap-2">
         <code class="text-xs font-semibold text-accent-fg">{{ item.key }}</code>
@@ -70,10 +88,30 @@ const emit = defineEmits<{
 const loading = ref(false)
 const error = ref<string | null>(null)
 const issues = ref<JiraIssue[]>([])
+const selectedBoard = ref('')
+const selectedStatus = ref('')
 
-const groupedIssues = computed<ActivityGroup<JiraIssue>[]>(() => {
+const availableBoards = computed(() => {
+  const boards = new Set(issues.value.map((issue) => issue.project || 'Altro'))
+  return [...boards].sort()
+})
+
+const availableStatuses = computed(() => {
+  const statuses = new Set(issues.value.map((issue) => issue.status).filter(Boolean))
+  return [...statuses].sort()
+})
+
+const filteredIssues = computed(() => {
+  return issues.value.filter((issue) => {
+    if (selectedBoard.value && (issue.project || 'Altro') !== selectedBoard.value) return false
+    if (selectedStatus.value && issue.status !== selectedStatus.value) return false
+    return true
+  })
+})
+
+const filteredGroups = computed<ActivityGroup<JiraIssue>[]>(() => {
   const groups: Record<string, JiraIssue[]> = {}
-  for (const issue of issues.value) {
+  for (const issue of filteredIssues.value) {
     const project = issue.project || 'Altro'
     if (!groups[project]) groups[project] = []
     groups[project].push(issue)
@@ -84,7 +122,11 @@ const groupedIssues = computed<ActivityGroup<JiraIssue>[]>(() => {
 })
 
 watch(() => props.modelValue, (open) => {
-  if (open) fetchActivity()
+  if (open) {
+    selectedBoard.value = ''
+    selectedStatus.value = ''
+    fetchActivity()
+  }
 })
 
 async function fetchActivity() {

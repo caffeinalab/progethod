@@ -298,7 +298,9 @@
     "no_results": "Nessun risultato per questa ricerca",
     "retry": "Riprova",
     "copy_id": "Copia ID",
-    "copied": "Copiato!"
+    "copied": "Copiato!",
+    "all_boards": "Tutte le board",
+    "all_statuses": "Tutti gli stati"
   },
   "theme_label": "Tema",
   "theme_light": "Chiaro",

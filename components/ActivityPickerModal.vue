@@ -15,6 +15,7 @@
         class="w-full px-3 py-2 border border-stroke-muted rounded-lg text-sm text-ink bg-card focus:ring-2 focus:ring-focus-ring focus:border-transparent outline-none placeholder-ink-faint"
         :placeholder="searchPlaceholder"
       >
+      <slot name="filters" />
     </template>
 
     <LoadingState v-if="loading" :message="loadingText" />
