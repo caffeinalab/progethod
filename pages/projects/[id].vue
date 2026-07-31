@@ -1,95 +1,85 @@
 <template>
   <div class="mx-auto container py-10 pt-24">
-    <div class="flex items-center justify-between w-full">
-      <div class="flex flex-col lg:flex-row w-full items-start lg:items-center rounded-lg bg-card shadow">
-        <div class="w-full lg:w-2/3 h-64">
-          <div class="container mx-auto bg-card mt-10 rounded-lg px-4">
-            <div class="xl:w-full border-b border-stroke py-5">
-              <div class="flex w-11/12 mx-auto xl:w-full xl:mx-0 items-center">
-                <p class="text-lg text-ink font-bold">
-                  {{ $t('project_information') }}
-                </p>
-                <div class="ml-2 cursor-pointer text-ink-secondary">
-                  <IconInfoCircle :size="16" />
-                </div>
-              </div>
-            </div>
-            <div class="mx-auto pt-4">
-              <div class="container mx-auto">
-                <form class="my-6 w-11/12 mx-auto xl:w-full xl:mx-0">
-                  <div class="xl:w-1/4 lg:w-1/2 md:w-1/2 flex flex-col mb-6">
-                    <label for="name" class="pb-2 text-sm font-bold text-ink">{{ $t('project_name') }}</label>
-                    <input
-                      id="name"
-                      v-model="name"
-                      type="text"
-                      name="name"
-                      required
-                      class="border border-stroke pl-3 py-3 shadow-sm bg-transparent rounded-lg text-sm focus:outline-none focus:border-accent placeholder-ink-faint text-ink"
-                    >
-                  </div>
-                  <div class="flex flex-col mb-6">
-                    <label class="pb-2 text-sm font-bold text-ink">{{ $t('linked_project') }}</label>
-                    <v-select v-model="linkedProject" label="name" :options="apiDataStore.projects" @update:model-value="linkedArea = null" />
-                  </div>
-                  <div v-if="linkedProject" class="flex flex-col mb-6">
-                    <label class="pb-2 text-sm font-bold text-ink">{{ $t('linked_area') }}</label>
-                    <v-select v-model="linkedArea" label="name" :options="linkedProject.areas" />
-                  </div>
-                  <div class="flex justify-between items-center mb-8">
-                    <div class="w-9/12">
-                      <label class="pb-2 text-sm font-bold text-ink">{{ $t('require_notes') }}</label>
-                      <p class="text-sm text-ink-muted">{{ $t('require_notes_description') }}</p>
-                    </div>
-                    <div class="cursor-pointer rounded-full bg-card-hover relative shadow-sm">
-                      <input id="toggle" v-model="requiresNotes" type="checkbox" class="focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring checkbox w-6 h-6 rounded-full bg-accent absolute shadow-sm appearance-none cursor-pointer border border-transparent top-0 bottom-0 m-auto z-10">
-                      <label for="toggle" class="toggle-label block w-12 h-6 overflow-hidden rounded-full bg-stroke cursor-pointer" />
-                    </div>
-                  </div>
-                  <div class="xl:w-1/4 lg:w-1/2 md:w-1/2 flex flex-col mb-6">
-                    <label for="defaultNotes" class="pb-2 text-sm font-bold text-ink">{{ $t('default_notes') }}</label>
-                    <input
-                      id="defaultNotes"
-                      v-model="defaultNotes"
-                      type="text"
-                      name="defaultNotes"
-                      class="border border-stroke pl-3 py-3 shadow-sm bg-transparent rounded-lg text-sm focus:outline-none focus:border-accent placeholder-ink-faint text-ink"
-                    >
-                  </div>
-                  <div class="flex flex-col mb-6">
-                    <label class="pb-2 text-sm font-bold text-ink">{{ $t('magic_tag') }}</label>
-                    <p class="text-sm text-ink-muted mb-2">{{ $t('what_is_a_magic_tag') }}</p>
-                    <div class="flex flex-row justify-items-center">
-                      <input
-                        :value="magicTag"
-                        type="text"
-                        class="border border-stroke pl-3 py-3 shadow-sm bg-transparent rounded-lg text-sm focus:outline-none focus:border-accent placeholder-ink-faint text-ink"
-                        readonly
-                      >
-                      <button
-                        class="ml-2 mr-1 p-2 text-ink-inverse focus:outline-none border border-transparent focus:border-ink focus:shadow-outline-gray bg-accent hover:bg-accent-hover rounded-lg transition duration-150 ease-in-out disabled:cursor-default disabled:bg-ink-muted"
-                        :disabled="!linkedProject"
-                        :title="$t('copy')"
-                        type="button"
-                        @click="copyMagicTag"
-                      >
-                        <IconClipboard :size="20" />
-                      </button>
-                      <div class="text-sm font-bold text-ink-secondary ml-4">
-                        {{ $t('magic_tag_for_everybody') }}
-                      </div>
-                    </div>
-                  </div>
-                </form>
-              </div>
-            </div>
+    <div class="flex w-full flex-col overflow-hidden rounded-lg bg-card shadow lg:flex-row">
+      <div class="w-full px-4 py-6 lg:w-2/3 lg:px-6">
+        <div class="flex items-center border-b border-stroke pb-5">
+          <p class="text-lg font-bold text-ink">
+            {{ $t('project_information') }}
+          </p>
+          <div class="ml-2 text-ink-secondary">
+            <IconInfoCircle :size="16" />
           </div>
         </div>
-        <div class="w-full lg:w-1/3 h-24 lg:h-64 border-t lg:border-t-0 lg:border-r lg:border-l lg:rounded-r bg-card-dim">
-          <button class="m-5 transition duration-150 ease-in-out hover:bg-accent-hover focus:outline-none border bg-accent rounded-lg text-ink-inverse px-8 py-2 text-sm" @click="save">
-            {{ $t('save') }}
-          </button>
-        </div>
+        <form class="mt-6 space-y-6">
+          <div class="flex max-w-md flex-col">
+            <label for="name" class="pb-2 text-sm font-bold text-ink">{{ $t('project_name') }}</label>
+            <input
+              id="name"
+              v-model="name"
+              type="text"
+              name="name"
+              required
+              class="rounded-lg border border-stroke bg-transparent py-3 pl-3 text-sm text-ink shadow-sm placeholder-ink-faint focus:border-accent focus:outline-none"
+            >
+          </div>
+          <div class="flex flex-col">
+            <label class="pb-2 text-sm font-bold text-ink">{{ $t('linked_project') }}</label>
+            <v-select v-model="linkedProject" label="name" :options="apiDataStore.projects" @update:model-value="linkedArea = null" />
+          </div>
+          <div v-if="linkedProject" class="flex flex-col">
+            <label class="pb-2 text-sm font-bold text-ink">{{ $t('linked_area') }}</label>
+            <v-select v-model="linkedArea" label="name" :options="linkedProject.areas" />
+          </div>
+          <div class="flex items-center justify-between gap-4">
+            <div class="min-w-0 flex-1">
+              <label class="pb-2 text-sm font-bold text-ink">{{ $t('require_notes') }}</label>
+              <p class="text-sm text-ink-muted">{{ $t('require_notes_description') }}</p>
+            </div>
+            <div class="relative shrink-0 cursor-pointer rounded-full bg-card-hover shadow-sm">
+              <input id="toggle" v-model="requiresNotes" type="checkbox" class="checkbox absolute top-0 bottom-0 z-10 m-auto h-6 w-6 cursor-pointer appearance-none rounded-full border border-transparent bg-accent shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring">
+              <label for="toggle" class="toggle-label block h-6 w-12 cursor-pointer overflow-hidden rounded-full bg-stroke" />
+            </div>
+          </div>
+          <div class="flex max-w-md flex-col">
+            <label for="defaultNotes" class="pb-2 text-sm font-bold text-ink">{{ $t('default_notes') }}</label>
+            <input
+              id="defaultNotes"
+              v-model="defaultNotes"
+              type="text"
+              name="defaultNotes"
+              class="rounded-lg border border-stroke bg-transparent py-3 pl-3 text-sm text-ink shadow-sm placeholder-ink-faint focus:border-accent focus:outline-none"
+            >
+          </div>
+          <div class="flex flex-col">
+            <label class="pb-2 text-sm font-bold text-ink">{{ $t('magic_tag') }}</label>
+            <p class="mb-3 text-sm text-ink-muted">{{ $t('what_is_a_magic_tag') }}</p>
+            <div class="flex items-stretch gap-2">
+              <input
+                :value="magicTag"
+                type="text"
+                class="min-w-0 flex-1 rounded-lg border border-stroke bg-transparent py-3 pl-3 font-mono text-sm text-ink shadow-sm placeholder-ink-faint focus:border-accent focus:outline-none"
+                readonly
+              >
+              <button
+                class="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg border border-transparent bg-accent text-ink-inverse transition duration-150 ease-in-out hover:bg-accent-hover focus:border-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring disabled:cursor-default disabled:bg-ink-muted"
+                :disabled="!linkedProject"
+                :title="$t('copy')"
+                type="button"
+                @click="copyMagicTag"
+              >
+                <IconClipboard :size="20" />
+              </button>
+            </div>
+            <p class="mt-2 text-sm text-ink-muted">
+              {{ $t('magic_tag_for_everybody') }}
+            </p>
+          </div>
+        </form>
+      </div>
+      <div class="flex w-full items-start border-t border-stroke bg-card-dim p-5 lg:w-1/3 lg:border-t-0 lg:border-l">
+        <button class="rounded-lg border border-transparent bg-accent px-8 py-2 text-sm text-ink-inverse transition duration-150 ease-in-out hover:bg-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring" @click="save">
+          {{ $t('save') }}
+        </button>
       </div>
     </div>
   </div>
