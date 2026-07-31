@@ -89,6 +89,8 @@
 import { IconInfoCircle, IconClipboard } from '@tabler/icons-vue'
 import vSelect from 'vue-select'
 import 'vue-select/dist/vue-select.css'
+import { formatMagicTag } from '~/utils/magicTag'
+import { copyToClipboard } from '~/utils/clipboard'
 
 definePageMeta({ middleware: 'auth' })
 
@@ -121,7 +123,7 @@ const linkedArea = ref(
 
 const magicTag = computed(() => {
   if (!linkedProject.value) { return '' }
-  return `[progethod:${linkedProject.value.id}:${linkedArea.value ? linkedArea.value.id : 'generic'}]`
+  return formatMagicTag(linkedProject.value.id, linkedArea.value?.id)
 })
 
 function save() {
@@ -137,10 +139,7 @@ function save() {
 }
 
 async function copyMagicTag() {
-  try {
-    await navigator.clipboard.writeText(magicTag.value)
-  } catch (error) {
-    console.error(error)
-  }
+  if (!magicTag.value) { return }
+  await copyToClipboard(magicTag.value)
 }
 </script>

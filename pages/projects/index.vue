@@ -42,6 +42,8 @@
         </button>
       </div>
 
+      <MagicTagLookup class="mb-6" />
+
       <div v-if="projects.length" class="space-y-2">
         <div
           v-for="project in projects"

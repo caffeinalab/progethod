@@ -1,5 +1,6 @@
 import { startOfDay, endOfDay, differenceInMinutes, parseISO } from 'date-fns'
 import { useUserStore } from '~/stores/user'
+import { resolveMagicTag } from '~/utils/magicTag'
 
 declare global {
   interface Window {
@@ -215,25 +216,31 @@ async function findExistingOooEvent(dateStr: string, startTime: string, endTime:
   return events.find((event: any) => event.eventType === 'outOfOffice') || null
 }
 
-function matchEventToProject(description: string | null, projects: any[]) {
-  if (!description) { return null }
-  const matches = Array.from(description.matchAll(/\[progethod:([0-9]+):((generic)|(uid_[a-z0-9]+))\]/g))
-  if (matches.length < 1) { return null }
-  const [, projectIdString, areaIdString] = matches[0]
-  const projectId = parseInt(projectIdString)
-  const areaId = areaIdString === 'generic' ? null : areaIdString
-  return projects.find(project => project.linkedProjectId === projectId && project.linkedAreaId === areaId)
-}
-
-export function mapEventsToTimesheetEntries(events: any[], currentEntries: any[], projects: any[]) {
+export function mapEventsToTimesheetEntries(
+  events: any[],
+  currentEntries: any[],
+  localProjects: any[],
+  wethodProjects: any[] = [],
+) {
   return events
     .filter((event: any) => !currentEntries.find(entry => entry.data.gCalId === event.id))
     .filter((event: any) => event.start.dateTime && event.eventType === 'default')
     .filter((event: any) => !event.description || !event.description.match(/\[progethod:ignore\]/g))
-    .map((event: any) => ({
-      duration: Math.ceil(differenceInMinutes(parseISO(event.end.dateTime), parseISO(event.start.dateTime)) / 15) * 15,
-      project: matchEventToProject(event.description, projects),
-      notes: event.summary,
-      gCalId: event.id,
-    }))
+    .map((event: any) => {
+      const resolved = resolveMagicTag(event.description, localProjects, wethodProjects)
+      const entry: Record<string, any> = {
+        duration: Math.ceil(differenceInMinutes(parseISO(event.end.dateTime), parseISO(event.start.dateTime)) / 15) * 15,
+        notes: event.summary,
+        gCalId: event.id,
+      }
+
+      if (resolved?.kind === 'local') {
+        entry.project = resolved.project
+      } else if (resolved?.kind === 'wethod') {
+        entry.directWethodProjectId = resolved.projectId
+        entry.directWethodAreaId = resolved.areaId
+      }
+
+      return entry
+    })
 }
