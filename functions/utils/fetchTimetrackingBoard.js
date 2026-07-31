@@ -56,18 +56,38 @@ export async function fetchTimetrackingBoardPages (searchParams, authToken, env,
   return { entries: allEntries, status: lastStatus, body: lastBody }
 }
 
+/** Coerce Wethod hour fields to a finite number (rejects string-concat traps). */
+export function toHours (value) {
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : 0
+}
+
 export function sumAreaHours (hours) {
   if (!hours) { return 0 }
-  return (hours.internal || 0)
-    + (hours.remote || 0)
-    + (hours.travel || 0)
-    + (hours.overtime || 0)
-    + (hours.night_shift || 0)
+  return toHours(hours.internal)
+    + toHours(hours.remote)
+    + toHours(hours.travel)
+    + toHours(hours.overtime)
+    + toHours(hours.night_shift)
 }
 
 export function sumBoardHours (entries) {
   let total = 0
   for (const project of entries) {
+    for (const area of project.areas || []) {
+      total += sumAreaHours(area.hours)
+    }
+  }
+  return total
+}
+
+/** Same as sumBoardHours but skips automatic timesheet projects (leave, etc.). */
+export function sumBoardWorkHours (entries) {
+  let total = 0
+  for (const project of entries) {
+    if (project.project?.project_type?.is_timesheet_automatic) {
+      continue
+    }
     for (const area of project.areas || []) {
       total += sumAreaHours(area.hours)
     }
@@ -82,8 +102,9 @@ export function sumBoardInternalHours (entries) {
       continue
     }
     for (const area of project.areas || []) {
-      if (area.hours?.internal > 0) {
-        total += area.hours.internal
+      const internal = toHours(area.hours?.internal)
+      if (internal > 0) {
+        total += internal
       }
     }
   }

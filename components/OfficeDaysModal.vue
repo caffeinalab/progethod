@@ -8,7 +8,21 @@
         {{ monthLabel }}
       </p>
 
-      <LoadingState v-if="loading" :message="$t('office_days_modal_loading')" />
+      <div v-if="loading" class="py-4 space-y-3">
+        <p class="text-sm text-ink-muted text-center">
+          {{ $t('office_days_modal_loading') }}
+        </p>
+        <div class="flex justify-between text-xs text-ink-secondary">
+          <span>{{ $t('office_days_progress', { checked: checkedCount, total: totalCount }) }}</span>
+          <span>{{ progressPercent }}%</span>
+        </div>
+        <div class="w-full h-2 rounded-full bg-card-hover border border-stroke-muted overflow-hidden">
+          <div
+            class="h-full rounded-full bg-accent transition-all duration-300"
+            :style="{ width: progressPercent + '%' }"
+          />
+        </div>
+      </div>
 
       <ErrorState
         v-else-if="error"
@@ -18,36 +32,23 @@
       />
 
       <div v-else-if="result !== null" class="space-y-5">
-        <div>
-          <div class="flex justify-between text-xs text-ink-secondary mb-1.5">
-            <span>{{ result.count }} / {{ target }}</span>
-            <span :class="result.onTrack ? 'text-success-text' : 'text-warning-text'">
-              {{ result.onTrack ? $t('office_days_on_track') : $t('office_days_behind') }}
-            </span>
-          </div>
-          <div class="w-full h-3 rounded-full bg-card-hover border border-stroke-muted overflow-hidden relative">
-            <div
-              class="h-full rounded-full transition-all duration-500"
-              :class="result.onTrack ? 'bg-success' : 'bg-warning'"
-              :style="{ width: Math.min(100, (result.count / target) * 100) + '%' }"
-            />
-            <div
-              class="absolute top-0 bottom-0 w-0.5 bg-ink-muted opacity-60"
-              :style="{ left: (result.expectedPace / target) * 100 + '%' }"
-              :title="$t('office_days_pace_marker', { expected: result.expectedPace })"
-            />
-          </div>
-          <p class="text-xs text-ink-muted mt-1">
-            {{ $t('office_days_pace_explanation', { expected: result.expectedPace }) }}
-          </p>
-        </div>
+        <p class="text-center">
+          <span class="block text-3xl font-semibold text-ink tabular-nums">{{ result.count }}</span>
+          <span class="block text-sm text-ink-secondary mt-1">{{ $t('office_days_found_label') }}</span>
+        </p>
 
-        <div
-          class="rounded-lg px-4 py-3 text-sm font-medium border"
-          :class="thisWeekClasses"
-        >
-          {{ thisWeekMessage }}
-        </div>
+        <ul v-if="result.officeDates.length > 0" class="space-y-1">
+          <li
+            v-for="officeDate in result.officeDates"
+            :key="officeDate"
+            class="text-sm text-ink-secondary capitalize"
+          >
+            {{ formatOfficeDate(officeDate) }}
+          </li>
+        </ul>
+        <p v-else class="text-sm text-ink-muted text-center">
+          {{ $t('office_days_none') }}
+        </p>
       </div>
     </div>
   </Modal>
@@ -55,19 +56,19 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { startOfDay, startOfWeek, addDays } from 'date-fns'
+import { format, parseISO } from 'date-fns'
+import { it } from 'date-fns/locale'
+
+/** Parallel single-day checks — each Worker call has its own subrequest budget. */
+const CHECK_CONCURRENCY = 6
 
 const { t: $t } = useI18n()
 const api = useApi()
-
-const TARGET = 8
+const preferencesStore = usePreferencesStore()
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
   monthTrackedHours: { type: Array, default: () => [] },
-  monthFrom: { type: String, required: true },
-  monthTo: { type: String, required: true },
-  monthWorkingDays: { type: Number, required: true },
   monthLabel: { type: String, required: true },
 })
 
@@ -76,48 +77,79 @@ const emit = defineEmits(['update:modelValue'])
 const loading = ref(false)
 const error = ref(false)
 const result = ref(null)
-const target = TARGET
+const checkedCount = ref(0)
+const totalCount = ref(0)
 
-const thisWeekClasses = computed(() => {
-  if (!result.value) return ''
-  if (result.value.remaining <= 0) return 'bg-success-soft border-success text-success-text'
-  if (result.value.needsThisWeek) return 'bg-warning-soft border-warning text-warning-text'
-  return 'bg-success-soft border-success text-success-text'
+const buParam = computed(() => {
+  const selectedBuIds = preferencesStore.selectedBusinessUnitIds
+  if (selectedBuIds === null) return null
+  return selectedBuIds.map(String).join(',')
 })
 
-const thisWeekMessage = computed(() => {
-  if (!result.value) return ''
-  if (result.value.remaining <= 0) return $t('office_days_target_done')
-  if (result.value.needsThisWeek) return $t('office_days_go_this_week', { count: result.value.remainingThisWeekNeeded })
-  return $t('office_days_no_rush')
+const progressPercent = computed(() => {
+  if (totalCount.value <= 0) return 0
+  return Math.round((checkedCount.value / totalCount.value) * 100)
 })
 
 watch(() => props.modelValue, (open) => {
   if (open) {
     result.value = null
     error.value = false
+    checkedCount.value = 0
+    totalCount.value = 0
     fetchData()
   }
 })
 
 async function fetchData() {
-  const fullDays = props.monthTrackedHours
+  const candidates = props.monthTrackedHours
     .filter((entry) => entry.value >= 8)
-    .map((entry) => entry.date)
+    .map((entry) => ({ date: entry.date, expected: entry.value }))
+    .sort((first, second) => first.date.localeCompare(second.date))
 
-  if (fullDays.length === 0) {
-    result.value = buildResult([])
+  if (candidates.length === 0) {
+    result.value = { count: 0, officeDates: [] }
     return
   }
 
   loading.value = true
   error.value = false
+  checkedCount.value = 0
+  totalCount.value = candidates.length
 
   try {
-    const response = await api.$get('office-days', { params: { dates: fullDays.join(',') } })
-    if (Array.isArray(response?.data)) {
-      result.value = buildResult(response.data)
+    const officeDates = []
+    let hasFailure = false
+
+    await mapPool(candidates, CHECK_CONCURRENCY, async (candidate) => {
+      if (hasFailure) {
+        checkedCount.value += 1
+        return
+      }
+
+      try {
+        const params = { date: candidate.date, expected: String(candidate.expected) }
+        if (buParam.value) {
+          params.bu = buParam.value
+        }
+        const response = await api.$get('office-days', { params })
+        if (response?.data?.isOfficeDay) {
+          officeDates.push(candidate.date)
+        }
+      } catch {
+        hasFailure = true
+      } finally {
+        checkedCount.value += 1
+      }
+    })
+
+    if (hasFailure) {
+      error.value = true
+      return
     }
+
+    const sortedDates = officeDates.sort()
+    result.value = { count: sortedDates.length, officeDates: sortedDates }
   } catch {
     error.value = true
   } finally {
@@ -125,39 +157,29 @@ async function fetchData() {
   }
 }
 
-function buildResult(officeDays) {
-  const count = officeDays.length
-  const remaining = Math.max(0, TARGET - count)
+/**
+ * Run `worker` over `items` with at most `concurrency` in flight.
+ * @template T
+ * @param {T[]} items
+ * @param {number} concurrency
+ * @param {(item: T) => Promise<void>} worker
+ */
+async function mapPool(items, concurrency, worker) {
+  let nextIndex = 0
 
-  const today = startOfDay(new Date())
-  const monthEnd = new Date(props.monthTo + 'T00:00:00')
-  const effectiveEnd = today <= monthEnd ? today : monthEnd
-
-  let elapsedWorkingDays = 0
-  let current = new Date(props.monthFrom + 'T00:00:00')
-  while (current <= effectiveEnd) {
-    const dow = current.getDay()
-    if (dow !== 0 && dow !== 6) elapsedWorkingDays++
-    current = addDays(current, 1)
+  async function runWorker() {
+    while (nextIndex < items.length) {
+      const index = nextIndex
+      nextIndex += 1
+      await worker(items[index])
+    }
   }
 
-  const expectedPace = Math.round(TARGET * elapsedWorkingDays / props.monthWorkingDays)
+  const workerCount = Math.min(concurrency, items.length)
+  await Promise.all(Array.from({ length: workerCount }, () => runWorker()))
+}
 
-  const friday = addDays(startOfWeek(today, { weekStartsOn: 1 }), 4)
-  let remainingThisWeek = 0
-  let cursor = addDays(today, 1)
-  while (cursor <= friday) {
-    const dow = cursor.getDay()
-    if (dow !== 0 && dow !== 6) remainingThisWeek++
-    cursor = addDays(cursor, 1)
-  }
-
-  const onTrack = count + remainingThisWeek >= expectedPace
-  const weeksLeftInMonth = Math.max(1, Math.ceil((props.monthWorkingDays - elapsedWorkingDays) / 5))
-  const idealPerWeek = Math.ceil(remaining / weeksLeftInMonth)
-  const needsThisWeek = remaining > 0 && idealPerWeek > 0
-  const remainingThisWeekNeeded = Math.min(idealPerWeek, remainingThisWeek + 1)
-
-  return { count, remaining, expectedPace, onTrack, needsThisWeek, remainingThisWeekNeeded }
+function formatOfficeDate(dateKey) {
+  return format(parseISO(dateKey), 'EEEE d MMMM', { locale: it })
 }
 </script>

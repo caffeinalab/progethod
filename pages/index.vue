@@ -109,9 +109,6 @@
     <OfficeDaysModal
       v-model="showOfficeDaysModal"
       :month-tracked-hours="monthTrackedHours"
-      :month-from="monthFrom"
-      :month-to="monthTo"
-      :month-working-days="monthWorkingDays"
       :month-label="monthLabel"
     />
   </div>
