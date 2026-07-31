@@ -1,15 +1,16 @@
 <template>
   <div class="flex justify-center" :class="variant === 'text' ? 'ml-2 mr-2' : ''">
-    <!-- Day header: text toggle buttons -->
+    <!-- Day header: quick Casa/Ufficio + select for the rest -->
     <div
       v-if="variant === 'text'"
       class="flex items-center gap-1 p-0.5 bg-page rounded-full shadow"
+      ref="pickerContainer"
     >
       <button
-        v-for="option in options"
+        v-for="option in quickOptions"
         :key="option.key"
         class="focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring flex justify-center items-center disabled:cursor-default transition-colors duration-150 pl-2.5 pr-3 py-1.5 text-xs font-semibold gap-1.5 rounded-full"
-        :class="optionClasses(option)"
+        :class="optionClasses(option.key)"
         :disabled="disabled"
         :title="$t(option.label)"
         @click="select(option.key)"
@@ -17,6 +18,35 @@
         <component :is="option.icon" :size="14" />
         <span>{{ $t(option.label) }}</span>
       </button>
+
+      <div class="relative">
+        <button
+          class="focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring flex justify-center items-center disabled:cursor-default transition-colors duration-150 pl-2.5 pr-2 py-1.5 text-xs font-semibold gap-1 rounded-full"
+          :class="moreTriggerClasses"
+          :disabled="disabled"
+          :title="moreTriggerTitle"
+          @click="pickerOpen = !pickerOpen"
+        >
+          <component v-if="selectedMoreOption" :is="selectedMoreOption.icon" :size="14" />
+          <span>{{ $t(selectedMoreOption ? selectedMoreOption.label : 'location_other') }}</span>
+          <IconChevronDown :size="12" class="opacity-70" />
+        </button>
+        <div
+          v-if="pickerOpen && !disabled"
+          class="absolute left-0 top-full mt-1 z-50 bg-card border border-stroke-muted rounded-lg shadow-lg py-1 w-44"
+        >
+          <button
+            v-for="option in moreOptions"
+            :key="option.key"
+            class="w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors cursor-pointer hover:bg-card-hover"
+            :class="modelValue === option.key ? 'location-active font-medium' : 'text-ink-secondary'"
+            @click="selectAndClose(option.key)"
+          >
+            <component :is="option.icon" :size="16" />
+            <span>{{ $t(option.label) }}</span>
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Per-row: icon button with dropdown picker -->
@@ -37,7 +67,18 @@
         class="absolute right-0 top-full mt-1 z-50 bg-card border border-stroke-muted rounded-lg shadow-lg py-1 w-44"
       >
         <button
-          v-for="option in options"
+          v-for="option in quickOptions"
+          :key="option.key"
+          class="w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors cursor-pointer hover:bg-card-hover"
+          :class="modelValue === option.key ? 'location-active font-medium' : 'text-ink-secondary'"
+          @click="selectAndClose(option.key)"
+        >
+          <component :is="option.icon" :size="16" />
+          <span>{{ $t(option.label) }}</span>
+        </button>
+        <div class="my-1 border-t border-stroke-muted" />
+        <button
+          v-for="option in moreOptions"
           :key="option.key"
           class="w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors cursor-pointer hover:bg-card-hover"
           :class="modelValue === option.key ? 'location-active font-medium' : 'text-ink-secondary'"
@@ -53,7 +94,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount, markRaw } from 'vue'
-import { IconHome, IconBuilding, IconCar, IconClock, IconMoon } from '@tabler/icons-vue'
+import { IconHome, IconBuilding, IconCar, IconClock, IconMoon, IconChevronDown } from '@tabler/icons-vue'
 
 const { t: $t } = useI18n()
 
@@ -68,16 +109,31 @@ const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
 const pickerContainer = ref<HTMLElement | null>(null)
 const pickerOpen = ref(false)
 
-const options = [
+const quickOptions = [
   { key: 'home', label: 'home', icon: markRaw(IconHome) },
   { key: 'office', label: 'office', icon: markRaw(IconBuilding) },
+]
+
+const moreOptions = [
   { key: 'travel', label: 'travel', icon: markRaw(IconCar) },
   { key: 'overtime', label: 'overtime', icon: markRaw(IconClock) },
   { key: 'night_shift', label: 'night_shift', icon: markRaw(IconMoon) },
 ]
 
+const allOptions = [...quickOptions, ...moreOptions]
+
 const selectedOption = computed(() =>
-  options.find(option => option.key === props.modelValue) || options[0]
+  allOptions.find(option => option.key === props.modelValue) || quickOptions[0]
+)
+
+const selectedMoreOption = computed(() =>
+  moreOptions.find(option => option.key === props.modelValue) || null
+)
+
+const isMoreSelected = computed(() => selectedMoreOption.value != null)
+
+const moreTriggerTitle = computed(() =>
+  $t(selectedMoreOption.value ? selectedMoreOption.value.label : 'location_other')
 )
 
 function select(place: string) {
@@ -89,8 +145,8 @@ function selectAndClose(place: string) {
   pickerOpen.value = false
 }
 
-function optionClasses(option: typeof options[number]) {
-  const isActive = props.modelValue === option.key
+function optionClasses(optionKey: string) {
+  const isActive = props.modelValue === optionKey
   if (props.disabled) {
     return isActive
       ? 'text-ink-inverse bg-ink-disabled cursor-default'
@@ -99,6 +155,16 @@ function optionClasses(option: typeof options[number]) {
   if (isActive) return 'location-active cursor-default'
   return 'text-ink-muted location-hover cursor-pointer'
 }
+
+const moreTriggerClasses = computed(() => {
+  if (props.disabled) {
+    return isMoreSelected.value
+      ? 'text-ink-inverse bg-ink-disabled cursor-default'
+      : 'text-ink-disabled cursor-default'
+  }
+  if (isMoreSelected.value) return 'location-active cursor-pointer'
+  return 'text-ink-muted location-hover cursor-pointer'
+})
 
 function onClickOutside(event: MouseEvent) {
   if (!pickerContainer.value?.contains(event.target as Node)) {
