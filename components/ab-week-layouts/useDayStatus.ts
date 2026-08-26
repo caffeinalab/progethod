@@ -91,11 +91,10 @@ export function buildWeekDayStatus(options: {
     && effectiveWethod < 8
 
   let statusLabel = ''
-  if (unsyncedCount > 0) { statusLabel = 'Pending' }
-  else if (health === 'weekend') { statusLabel = 'Weekend' }
+  if (health === 'weekend') { statusLabel = 'Weekend' }
   else if (health === 'holiday') { statusLabel = holidayName || 'Festivo' }
   else if (health === 'leave') { statusLabel = 'Assenza' }
-  else if (needsAttention) { statusLabel = 'Non completo' }
+  else if (unsyncedCount > 0 || needsAttention) { statusLabel = 'Non completo' }
 
   return {
     day: options.day,

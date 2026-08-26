@@ -4,13 +4,13 @@
     <div
       v-for="(status, index) in dayStatuses"
       :key="status.dayKey"
-      class="rounded-lg border shadow-sm transition-all duration-200 overflow-hidden"
+      class="rounded-lg border shadow-sm transition-all duration-200"
       :class="dayCardClass(status, index)"
     >
       <button
         v-if="expandedIndex !== index"
         type="button"
-        class="w-full flex items-center gap-3 px-3 py-2.5 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus-ring"
+        class="w-full flex items-center gap-3 px-3 py-2.5 text-left rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus-ring"
         @click="expandedIndex = index"
       >
         <span
@@ -55,31 +55,13 @@
             class="text-xs px-2 py-0.5 rounded border border-accent text-accent-fg bg-accent-soft"
           >Assenze {{ status.leaveHoursLabel }}</span>
           <span
-            v-if="status.unsyncedCount > 0"
-            class="text-xs px-2 py-0.5 rounded border border-warning text-warning-text bg-warning-soft font-semibold"
-          >Pending</span>
-          <span
-            v-if="status.needsAttention"
+            v-if="status.unsyncedCount > 0 || status.needsAttention"
             class="text-xs px-2 py-0.5 rounded border border-warning text-warning-text bg-warning-soft"
           >Non completo</span>
         </div>
       </button>
 
       <div v-else class="p-2">
-        <div class="mb-2 flex items-center justify-between gap-2">
-          <span
-            v-if="status.isToday"
-            class="text-xs font-semibold text-accent-fg"
-          >oggi</span>
-          <span v-else />
-          <button
-            type="button"
-            class="text-xs text-accent-fg hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring rounded"
-            @click="expandedIndex = -1"
-          >
-            Comprimi giorno
-          </button>
-        </div>
         <DayInputItem
           :ref="(element: any) => { dayRefs[index] = element }"
           :day="status.day"

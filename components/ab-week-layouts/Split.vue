@@ -43,12 +43,6 @@
             <div class="text-sm font-semibold tabular-nums text-ink">
               {{ primaryHours(status) }}
             </div>
-            <div
-              v-if="status.unsyncedCount > 0"
-              class="text-xs font-semibold text-warning-text"
-            >
-              Pending
-            </div>
           </div>
         </button>
       </aside>
@@ -132,16 +126,13 @@ function primaryHours(status: WeekDayStatus) {
 }
 
 function sideLabel(status: WeekDayStatus) {
-  // Pending is shown under the hours column — avoid duplicating it here
   if (status.holidayName) { return status.holidayName }
   if (status.leaveHours > 0) { return `Assenze ${status.leaveHoursLabel}` }
-  if (status.unsyncedCount > 0) {
-    return status.needsAttention ? 'Non completo' : ''
-  }
+  // Unfinished timesheet — unsynced entries and incomplete days share one label.
+  if (status.unsyncedCount > 0 || status.needsAttention) { return 'Non completo' }
   return status.statusLabel
 }
 
-/** Match the Pending column: warning when unsynced/incomplete, otherwise muted. */
 function sideLabelClass(status: WeekDayStatus) {
   if (status.unsyncedCount > 0 || status.needsAttention) { return 'text-warning-text' }
   return 'text-ink-muted'
