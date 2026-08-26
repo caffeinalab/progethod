@@ -46,21 +46,51 @@ export function askForBackupFile(): Promise<File | null> {
     input.addEventListener('cancel', () => {
       settle(null)
     })
+
+    // Some browsers never fire `cancel` — if the window regains focus without a
+    // selection, treat it as dismiss so callers are not left waiting forever.
+    window.addEventListener('focus', () => {
+      window.setTimeout(() => settle(null), 400)
+    }, { once: true })
+
     input.click()
   })
 }
 
-export async function restoreBackup(file: File): Promise<void> {
+/** Let Vue flush and the browser paint before the next sync burst. */
+function yieldToUi(): Promise<void> {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, 0)
+  })
+}
+
+export async function restoreBackup(
+  file: File,
+  onProgress?: (percent: number) => void,
+): Promise<void> {
+  const report = async (percent: number) => {
+    onProgress?.(percent)
+    await yieldToUi()
+  }
+
+  await report(10)
   const text = await file.text()
+
+  // Parse/hydrate/setItem are sync and can stall the main thread for large backups.
+  // Progress is updated *before* each burst so the bar is visible while that work runs.
+  await report(30)
   const data = JSON.parse(text) as PersistedState
   if (!data || typeof data !== 'object' || Array.isArray(data)) {
     throw new Error('Invalid backup file')
   }
 
+  await report(55)
   // Keep the exact backup on disk, then replace store state without a full SPA reload.
   // Persistence saves are suppressed during hydrate so we don't briefly wipe storage.
   // Collections are assigned once (not cleared then refilled) so sync won't push an empty list.
   window.localStorage.setItem('progethod', text)
+
+  await report(75)
   withoutPersistence(() => {
     useUserStore().$reset()
     useEntriesStore().$reset()
@@ -68,4 +98,6 @@ export async function restoreBackup(file: File): Promise<void> {
     usePreferencesStore().$reset()
     hydrateFromPersistedData(data, { replaceCollections: true })
   })
+
+  await report(100)
 }

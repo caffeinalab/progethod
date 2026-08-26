@@ -359,11 +359,22 @@
 
     <div
       v-if="isRestoring"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-page/80 backdrop-blur-sm"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-page/80 backdrop-blur-sm px-8"
       role="status"
       aria-live="polite"
     >
-      <LoadingState :message="$t('restore_loading')" />
+      <div class="w-full max-w-xs flex flex-col items-center">
+        <LoadingState :message="$t('restore_loading')" />
+        <div
+          class="w-full mt-2"
+          role="progressbar"
+          :aria-valuenow="restoreProgress"
+          aria-valuemin="0"
+          aria-valuemax="100"
+        >
+          <ProgressBar bare :fill="restoreProgress" />
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -400,6 +411,7 @@ const showStatusDropdown = ref(false)
 const showGuide = ref(false)
 const showMobileMenu = ref(false)
 const isRestoring = ref(false)
+const restoreProgress = ref(0)
 const tokenCopied = ref(false)
 let tokenCopiedTimeout: ReturnType<typeof setTimeout> | null = null
 
@@ -500,21 +512,36 @@ function backup() {
 async function restore() {
   if (isRestoring.value) { return }
 
-  const backupFile = await askForBackupFile()
-  if (!backupFile) { return }
-
   isRestoring.value = true
+  restoreProgress.value = 0
   showDropdown.value = false
-  // Let the overlay paint before parse/hydrate work on the main thread.
+  showMobileMenu.value = false
+
+  // Paint the overlay BEFORE opening the picker: while the native file dialog
+  // is up the page cannot repaint, so anything set after `input.click()` only
+  // becomes visible once a file is chosen — which read as "nothing happens".
   await nextTick()
-  await new Promise<void>(resolve => requestAnimationFrame(() => resolve()))
+  await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())))
+
+  // Still inside the click's transient-activation window, so the picker opens.
+  const backupFile = await askForBackupFile()
+  if (!backupFile) {
+    isRestoring.value = false
+    restoreProgress.value = 0
+    return
+  }
 
   try {
-    await restoreBackup(backupFile)
+    await restoreBackup(backupFile, (percent) => {
+      restoreProgress.value = percent
+    })
+    // Hold 100% briefly so the bar doesn't vanish in a single frame.
+    await new Promise<void>(resolve => window.setTimeout(resolve, 350))
   } catch (error) {
     console.error('Failed to restore backup:', error)
   } finally {
     isRestoring.value = false
+    restoreProgress.value = 0
   }
 }
 
