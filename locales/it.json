@@ -72,6 +72,8 @@
   "office_days_found_label": "giornate in ufficio",
   "office_days_none": "Nessuna giornata in ufficio trovata",
   "please_wait_sending": "Attendere mentre i dati vengono inviati...",
+  "please_wait_deleting": "Attendere mentre i dati vengono cancellati...",
+  "deleted": "Eliminato",
   "project_information": "Informazioni Progetto",
   "project_name": "Attività",
   "project": "Progetto",

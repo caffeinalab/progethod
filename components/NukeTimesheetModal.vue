@@ -14,33 +14,38 @@
         {{ $t('nuke_timesheet_hint') }}
       </p>
     </div>
-    <div v-if="isSubmitting && !isExpired" class="w-full mt-4">
-      <ProgressBar :fill="progressPercentage" />
+    <div v-if="isWorking && !isExpired" class="w-full mt-4">
+      <ProgressBar
+        :fill="progressPercentage"
+        :indeterminate="isLoadingBoard"
+        :progress-label="$t('deleted')"
+        wait-label=""
+      />
     </div>
     <Alert v-if="isExpired" class="w-full mt-4" level="error" :message="$t('session_expired')" />
     <div v-if="!isExpired" class="flex items-center gap-3 mt-6 w-full">
       <button
-        v-if="!isSubmitting"
+        v-if="!isWorking"
         class="flex-1 px-4 py-2.5 rounded-lg border border-stroke bg-card text-sm font-medium text-ink hover:bg-card-hover transition-colors focus:outline-none focus:ring-2 focus:ring-focus-ring"
         @click="emit('update:modelValue', false)"
       >
         {{ $t('calendar_page.cancel') }}
       </button>
       <button
-        v-if="!isSubmitting"
+        v-if="!isWorking"
         class="flex-1 px-4 py-2.5 rounded-lg bg-danger text-sm font-medium text-ink-inverse hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-danger"
         @click="submit()"
       >
         {{ $t('reset_day') }}
       </button>
       <button
-        v-if="isSubmitting"
+        v-if="isWorking"
         class="flex-1 px-4 py-2.5 rounded-lg bg-card-hover border border-stroke text-sm text-ink-muted cursor-default"
         disabled
       >
         <span class="inline-flex items-center gap-2">
           <IconLoader :size="16" class="animate-spin" />
-          {{ $t('please_wait_sending') }}
+          {{ $t('please_wait_deleting') }}
         </span>
       </button>
     </div>
@@ -54,8 +59,14 @@ import { prepareForCleanup } from '~/utils/timesheetMapper'
 const api = useApi()
 const userStore = useUserStore()
 const entriesStore = useEntriesStore()
+const preferencesStore = usePreferencesStore()
 
 const { isSubmitting, isExpired, progressPercentage, execute } = useTimesheetBatchPost()
+
+// Board fetch runs before execute() sets isSubmitting — track it so the UI
+// shows progress from the moment the user confirms.
+const isLoadingBoard = ref(false)
+const isWorking = computed(() => isLoadingBoard.value || isSubmitting.value)
 
 const props = defineProps({
   modelValue: { type: Boolean, default: true },
@@ -66,22 +77,36 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 
 function onConfirm() {
-  if (isSubmitting.value || isExpired.value) { return }
+  if (isWorking.value || isExpired.value) { return }
   submit()
 }
 
 async function submit() {
   const employeeId = userStore.info?.employee_id
 
-  const response = await api.$get('timetrackingboard', { params: { date: props.day } })
-  const editableProjects = (response.data || []).filter((entry) => entry.can_edit === true)
-  const entriesToPost = prepareForCleanup(editableProjects, employeeId)
+  isLoadingBoard.value = true
+  try {
+    // Same BU filter as project refresh / hours detail — keeps the board small
+    // (usually 1 page). Entries on projects outside the selected BUs are not cleared.
+    const params = { date: props.day }
+    const selectedBuIds = preferencesStore.selectedBusinessUnitIds
+    if (selectedBuIds !== null) {
+      params.bu = selectedBuIds.join(',')
+    }
 
-  const success = await execute(entriesToPost)
+    const response = await api.$get('timetrackingboard', { params })
+    const editableProjects = (response.data || []).filter((entry) => entry.can_edit === true)
+    const entriesToPost = prepareForCleanup(editableProjects, employeeId)
 
-  if (success) {
-    props.dayEntries.forEach(({ id }) => entriesStore.setSyncState({ id, synced: false }))
-    emit('update:modelValue', false)
+    isLoadingBoard.value = false
+    const success = await execute(entriesToPost)
+
+    if (success) {
+      props.dayEntries.forEach(({ id }) => entriesStore.setSyncState({ id, synced: false }))
+      emit('update:modelValue', false)
+    }
+  } finally {
+    isLoadingBoard.value = false
   }
 }
 </script>
