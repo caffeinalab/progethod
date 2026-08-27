@@ -54,6 +54,7 @@
       :class="selectedStatus.isToday ? 'border-accent bg-accent-soft' : 'border-stroke'"
     >
       <DayInputItem
+        :key="selectedStatus.dayKey"
         :ref="(element: any) => { dayRefs[selectedIndex] = element }"
         :day="selectedStatus.day"
         :focused="focused && focusedDayIndex === selectedIndex"
