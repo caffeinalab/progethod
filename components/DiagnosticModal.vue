@@ -208,7 +208,13 @@ async function runOne(result: CheckResult, ctx: DiagnosticContext) {
       result.error = error.message
       result.details = error.details
     } else {
-      result.error = error?.data?.data?.message || error?.data?.message || error?.message || 'unknown error'
+      // $fetch errors: error.data is the parsed body, error.message the HTTP status line.
+      // Wethod 500s carry only { code, status } — no message — so fall back to both.
+      result.error = error?.data?.data?.message
+        || error?.data?.message
+        || (error?.data?.status ? `Wethod: ${error.data.status} (code ${error.data.code ?? '?'})` : null)
+        || error?.message
+        || 'unknown error'
       result.details = []
     }
   } finally {

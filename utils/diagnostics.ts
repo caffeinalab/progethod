@@ -276,8 +276,11 @@ export function buildDiagnosticChecks(): DiagnosticCheck[] {
           throw new DiagnosticFailure('no editable project on today\'s board — user may not be whitelisted')
         }
         const projectId = projectIdOf(target)
-        // First real area if any; null area_id ("no area") is a valid write target
-        const areaId = (target.areas || []).find((area: any) => area != null) ?? null
+        // Board areas are objects ({ id, name, hours, on }); the "generic" area
+        // has id null. Prefer the first named area, else null (both are valid
+        // write targets — real submissions post null area_id for generic).
+        const areaIds = (target.areas || []).map((area: any) => (area && typeof area === 'object' ? area.id : area))
+        const areaId = areaIds.find((id: unknown) => id != null) ?? null
         const baseHours = { internal: null, remote: null, travel: null, overtime: null, night_shift: null }
         const writePayload = {
           project_id: projectId,
