@@ -42,7 +42,7 @@
           </button>
           <span
             class="inline-flex items-center min-h-10 px-4 text-sm font-semibold text-ink border-l border-r border-stroke-muted select-none cursor-pointer hover:bg-card-hover transition-colors"
-            @click.stop="monthCalendarRef?.toggle()"
+            @click.stop="monthCalendarRef?.toggle($event)"
           >
             {{ weekLabel }}
           </span>
@@ -67,7 +67,7 @@
               <span class="stat-label">{{ $t('week_short') }}</span>
               <span class="stat-value">{{ weekTrackedTotal + '/' + weekExpectedHours + 'h' }}</span>
             </div>
-            <div class="stat-card stat-card--interactive transition-colors" @click.stop="monthCalendarRef?.toggle()">
+            <div class="stat-card stat-card--interactive transition-colors" @click.stop="monthCalendarRef?.toggle($event)">
               <MonthCalendar
                 ref="monthCalendarRef"
                 :reference-date="weekAnchor"
@@ -323,7 +323,8 @@ async function fetchTrackedHours() {
 }
 
 async function fetchLeaveForRange(from: string, to: string, employeeId: number): Promise<VacationHoursEntry[]> {
-  const response = await api.$get<{ data: unknown }>('planningboard', { params: { from, to } })
+  const params = { from, to, projects: [...LEAVE_PROJECT_IDS].join(','), employeeId }
+  const response = await api.$get<{ data: unknown }>('planningboard', { params })
   return extractLeaveEntries(response?.data, employeeId)
 }
 

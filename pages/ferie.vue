@@ -833,7 +833,10 @@ async function refreshData() { pastVisibleCount.value = 10; await Promise.all([f
 async function fetchPlannings() {
   if (!userStore.canMakeRequests) return
   try {
-    const response = await api.$get('planningboard', { params: { from: monthFrom.value, to: monthTo.value } })
+    const employeeId = Number(userStore.info?.employee_id) || null
+    const params = { from: monthFrom.value, to: monthTo.value, projects: `${VACATION_PROJECT_ID},${LEAVES_PROJECT_ID}` }
+    if (employeeId) params.employeeId = employeeId
+    const response = await api.$get('planningboard', { params })
     const normalized = normalizePlanningsResponse(response?.data)
     const data = response?.data
     const payloadIsEmpty = Array.isArray(data) ? data.length === 0 : !data
