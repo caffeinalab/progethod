@@ -84,6 +84,7 @@ import { format } from 'date-fns'
 import {
   buildDiagnosticChecks,
   DiagnosticFailure,
+  summarizeBody,
   type DiagnosticCheck,
   type DiagnosticContext,
 } from '~/utils/diagnostics'
@@ -215,7 +216,17 @@ async function runOne(result: CheckResult, ctx: DiagnosticContext) {
         || (error?.data?.status ? `Wethod: ${error.data.status} (code ${error.data.code ?? '?'})` : null)
         || error?.message
         || 'unknown error'
-      result.details = []
+      // The actual log: failing call, field-level failures, and the raw body
+      const details: string[] = []
+      const requestUrl = error?.request || error?.response?.url
+      const httpStatus = error?.response?.status
+      if (requestUrl || httpStatus) { details.push(`${requestUrl || 'request'} → HTTP ${httpStatus ?? '?'}`) }
+      const failures = error?.data?.data?.failures ?? error?.data?.failures
+      if (Array.isArray(failures)) {
+        for (const failure of failures) { details.push(`${failure?.field}: ${failure?.message}`) }
+      }
+      if (error?.data !== undefined) { details.push(summarizeBody(error.data)) }
+      result.details = details
     }
   } finally {
     result.durationMs = Math.round(performance.now() - startedAt)

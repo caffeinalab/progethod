@@ -50,11 +50,25 @@ export function matchShape(value: unknown, spec: ShapeSpec, path = 'response'): 
   return mismatches
 }
 
+/** Compact one-line JSON for error details (truncated). */
+export function summarizeBody(body: unknown, maxLength = 600): string {
+  let text: string
+  try { text = JSON.stringify(body) } catch { text = String(body) }
+  return text.length > maxLength ? text.slice(0, maxLength) + '…' : text
+}
+
 /** Wethod envelopes carry { code, status, data }; HTTP can be 200 while code is an error. */
 export function assertEnvelope(body: any): void {
   if (body && typeof body === 'object' && 'code' in body && body.code !== 200) {
     const message = body?.data?.message || body?.message || `code ${body.code}`
-    throw new DiagnosticFailure(String(message))
+    const details: string[] = []
+    // Wethod validation errors carry field-level failures
+    const failures = body?.data?.failures
+    if (Array.isArray(failures)) {
+      for (const failure of failures) { details.push(`${failure?.field}: ${failure?.message}`) }
+    }
+    details.push(summarizeBody(body))
+    throw new DiagnosticFailure(String(message), details)
   }
 }
 
