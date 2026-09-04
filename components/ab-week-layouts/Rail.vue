@@ -50,7 +50,7 @@
 
     <div
       v-if="selectedStatus"
-      class="day-card w-full rounded-lg border p-2 shadow-sm"
+      class="day-card w-full rounded-lg border p-4 shadow-sm"
       :class="selectedStatus.isToday ? 'border-accent bg-accent-soft' : 'border-stroke'"
     >
       <DayInputItem

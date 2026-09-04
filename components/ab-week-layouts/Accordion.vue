@@ -61,7 +61,7 @@
         </div>
       </button>
 
-      <div v-else class="p-2">
+      <div v-else class="p-4">
         <DayInputItem
           :ref="(element: any) => { dayRefs[index] = element }"
           :day="status.day"
