@@ -81,6 +81,14 @@
                     <span class="ml-2">{{ tokenCopied ? $t('auth_token_copied') : $t('copy_auth_token') }}</span>
                   </li>
                   <li
+                    v-if="userStore.canMakeRequests"
+                    class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring rounded"
+                    @click="showDiagnostic = true; showStatusDropdown = false"
+                  >
+                    <IconTestPipe :size="20" :stroke-width="1.5" />
+                    <span class="ml-2">{{ $t('diagnostic.run') }}</span>
+                  </li>
+                  <li
                     v-else
                     class="px-1 py-2 select-none"
                     role="status"
@@ -285,6 +293,15 @@
               <span>{{ tokenCopied ? $t('auth_token_copied') : $t('copy_auth_token') }}</span>
             </button>
           </li>
+          <li v-if="userStore.canMakeRequests">
+            <button
+              class="w-full flex items-center gap-2 py-2 text-ink-secondary hover:text-accent-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring rounded"
+              @click="showDiagnostic = true; showMobileMenu = false"
+            >
+              <IconTestPipe :size="20" :stroke-width="1.5" />
+              <span>{{ $t('diagnostic.run') }}</span>
+            </button>
+          </li>
           <li
             v-else
             class="py-2 select-none"
@@ -356,6 +373,7 @@
     <KeyboardShortcutsHelp />
     <IntegrationHint />
     <AppGuideModal v-model="showGuide" />
+    <DiagnosticModal v-model="showDiagnostic" />
 
     <div
       v-if="isRestoring"
@@ -393,6 +411,7 @@ import {
   IconMoon,
   IconRefresh,
   IconSun,
+  IconTestPipe,
 } from '@tabler/icons-vue'
 import { getBackupData, getBackupFile, triggerFileDownload, askForBackupFile, restoreBackup } from '~/utils/backupRestore'
 import { copyToClipboard } from '~/utils/clipboard'
@@ -409,6 +428,7 @@ const eventBus = useEventBus()
 const showDropdown = ref(false)
 const showStatusDropdown = ref(false)
 const showGuide = ref(false)
+const showDiagnostic = ref(false)
 const showMobileMenu = ref(false)
 const isRestoring = ref(false)
 const restoreProgress = ref(0)
