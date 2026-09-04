@@ -323,7 +323,8 @@ async function fetchTrackedHours() {
 }
 
 async function fetchLeaveForRange(from: string, to: string, employeeId: number): Promise<VacationHoursEntry[]> {
-  const response = await api.$get<{ data: unknown }>('planningboard', { params: { from, to } })
+  // person_id is ignored by Wethod today; sent anyway in case they start honoring it
+  const response = await api.$get<{ data: unknown }>('planningboard', { params: { from, to, person_id: employeeId } })
   return extractLeaveEntries(response?.data, employeeId)
 }
 

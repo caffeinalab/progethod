@@ -833,7 +833,11 @@ async function refreshData() { pastVisibleCount.value = 10; await Promise.all([f
 async function fetchPlannings() {
   if (!userStore.canMakeRequests) return
   try {
-    const response = await api.$get('planningboard', { params: { from: monthFrom.value, to: monthTo.value } })
+    const params = { from: monthFrom.value, to: monthTo.value }
+    const employeeId = Number(userStore.info?.employee_id) || null
+    // Wethod ignores person_id today; sent anyway in case they start honoring it
+    if (employeeId) params.person_id = employeeId
+    const response = await api.$get('planningboard', { params })
     const normalized = normalizePlanningsResponse(response?.data)
     const data = response?.data
     const payloadIsEmpty = Array.isArray(data) ? data.length === 0 : !data
