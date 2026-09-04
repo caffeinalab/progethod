@@ -81,6 +81,7 @@ const emit = defineEmits<{ 'update:modelValue': [value: boolean] }>()
 
 const { t } = useI18n()
 const userStore = useUserStore()
+const preferencesStore = usePreferencesStore()
 const api = useApi()
 
 type CheckStatus = 'pending' | 'running' | 'ok' | 'fail'
@@ -140,6 +141,7 @@ async function startRun() {
     api,
     employeeId: Number(userStore.info?.employee_id) || 0,
     today: format(new Date(), 'yyyy-MM-dd'),
+    bu: preferencesStore.selectedBusinessUnitIds?.join(',') ?? null,
     cache: {},
   }
   // Reads run in parallel; writes run sequentially afterwards (create → update →

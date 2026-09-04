@@ -72,6 +72,8 @@ export interface DiagnosticContext {
   api: ReturnType<typeof useApi>
   employeeId: number
   today: string
+  /** CSV of selected business unit ids (null = all) — same filter as project refresh. */
+  bu: string | null
   /** Shared scratch space across checks (board reuse, created request id, cleanup payload). */
   cache: {
     board?: any[]
@@ -92,8 +94,13 @@ const LEAVE_PROJECT_IDS = [83, 90]
 const TEST_NOTES = 'test'
 const TEST_HOURS = 0.1
 
+function withBu(ctx: DiagnosticContext, params: Record<string, unknown>): Record<string, unknown> {
+  if (ctx.bu) { params.bu = ctx.bu }
+  return params
+}
+
 async function fetchBoard(ctx: DiagnosticContext): Promise<any[]> {
-  const response: any = await ctx.api.$get('timetrackingboard', { params: { date: ctx.today } })
+  const response: any = await ctx.api.$get('timetrackingboard', { params: withBu(ctx, { date: ctx.today }) })
   assertEnvelope(response)
   assertShape(response, { data: [{ can_edit: 'boolean', areas: 'array' }] })
   ctx.cache.board = Array.isArray(response?.data) ? response.data : []
@@ -174,7 +181,7 @@ export function buildDiagnosticChecks(): DiagnosticCheck[] {
       id: 'tracked_hours_detail',
       write: false,
       async run(ctx) {
-        const response: any = await ctx.api.$get('tracked-hours-detail', { params: { date: ctx.today } })
+        const response: any = await ctx.api.$get('tracked-hours-detail', { params: withBu(ctx, { date: ctx.today }) })
         assertEnvelope(response)
         assertShape(response, { data: { entries: 'array', total: 'number' } })
       },
@@ -183,7 +190,7 @@ export function buildDiagnosticChecks(): DiagnosticCheck[] {
       id: 'office_days',
       write: false,
       async run(ctx) {
-        const response: any = await ctx.api.$get('office-days', { params: { date: ctx.today } })
+        const response: any = await ctx.api.$get('office-days', { params: withBu(ctx, { date: ctx.today }) })
         assertEnvelope(response)
         assertShape(response, { data: { date: 'string', internal: 'number', isOfficeDay: 'boolean' } })
       },
@@ -262,28 +269,31 @@ export function buildDiagnosticChecks(): DiagnosticCheck[] {
       write: true,
       async run(ctx) {
         const board = ctx.cache.board ?? await fetchBoard(ctx)
-        const leaveProject = board.find((entry) => LEAVE_PROJECT_IDS.includes(Number(entry?.id)) && entry?.can_edit)
-        if (!leaveProject) {
-          throw new DiagnosticFailure('no editable leave project (83/90) on today\'s board — user may not be whitelisted')
+        const projectIdOf = (entry: any) => Number(entry?.project?.id ?? entry?.id)
+        // Leave projects are is_timesheet_automatic (can_edit: false) on most
+        // tenants, so prefer them when editable but fall back to any project.
+        const target = board.find((entry) => LEAVE_PROJECT_IDS.includes(projectIdOf(entry)) && entry?.can_edit)
+          ?? board.find((entry) => entry?.can_edit === true)
+        if (!target) {
+          throw new DiagnosticFailure('no editable project on today\'s board — user may not be whitelisted')
         }
-        const area = (leaveProject.areas || [])[0]
-        if (!area?.id) {
-          throw new DiagnosticFailure(`leave project ${leaveProject.id} has no areas to write to`)
-        }
+        const projectId = projectIdOf(target)
+        // First real area if any; null area_id ("no area") is a valid write target
+        const areaId = (target.areas || []).find((area: any) => area != null) ?? null
         const baseHours = { internal: null, remote: null, travel: null, overtime: null, night_shift: null }
         const writePayload = {
-          project_id: leaveProject.id,
+          project_id: projectId,
           employee_id: ctx.employeeId,
           date: ctx.today,
-          hours: [{ area_id: area.id, types: { ...baseHours, remote: TEST_HOURS }, notes: TEST_NOTES }],
+          hours: [{ area_id: areaId, types: { ...baseHours, remote: TEST_HOURS }, notes: TEST_NOTES }],
         }
         const response: any = await ctx.api.$post('timetracking', writePayload)
         assertEnvelope(response)
         ctx.cache.timetrackingCleanup = {
-          project_id: leaveProject.id,
+          project_id: projectId,
           employee_id: ctx.employeeId,
           date: ctx.today,
-          hours: [{ area_id: area.id, types: { ...baseHours } }],
+          hours: [{ area_id: areaId, types: { ...baseHours } }],
         }
       },
     },
