@@ -839,7 +839,7 @@ async function fetchPlannings() {
       // Shape changed upstream or Wethod rejected the request. Log only the error
       // envelope (key/message are error strings) — never the full planning payload,
       // which contains other employees' data.
-      const data = response.data as Record<string, unknown>
+      const data = response.data
       console.warn('[ferie] planningboard returned no usable plannings:', {
         keys: Object.keys(data),
         key: data?.key,
