@@ -6,9 +6,11 @@
     >
       {{ label }}:
     </span>
+    <Teleport to="body">
     <div
       v-if="open"
-      class="absolute left-0 top-full mt-2 z-50 bg-card rounded-lg shadow-xl border border-stroke-muted p-4 w-72"
+      class="fixed z-50 bg-card rounded-lg shadow-xl border border-stroke-muted p-4 w-72"
+      :style="popupStyle"
       @click.stop
     >
       <div class="flex items-center justify-between mb-3">
@@ -72,11 +74,12 @@
         </span>
       </div>
     </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onBeforeUnmount, nextTick } from 'vue'
 import { startOfMonth, endOfMonth, isSameDay, addMonths, format } from 'date-fns'
 import { it } from 'date-fns/locale'
 import { WEEKDAY_HEADERS_IT, buildMonthGridCells } from '~/utils/calendarGrid'
@@ -95,6 +98,24 @@ const emit = defineEmits(['month-changed', 'day-click'])
 
 const open = ref(false)
 const monthOffset = ref(0)
+const anchorElement = ref(null)
+const popupStyle = ref({})
+
+const POPUP_WIDTH = 288 // w-72
+const POPUP_GAP = 8
+
+function updatePopupPosition() {
+  if (!anchorElement.value) return
+  const rect = anchorElement.value.getBoundingClientRect()
+  let left = rect.left
+  if (left + POPUP_WIDTH > window.innerWidth - POPUP_GAP) {
+    left = Math.max(POPUP_GAP, window.innerWidth - POPUP_WIDTH - POPUP_GAP)
+  }
+  popupStyle.value = {
+    top: `${rect.bottom + POPUP_GAP}px`,
+    left: `${left}px`,
+  }
+}
 
 const displayedMonth = computed(() => {
   if (monthOffset.value === 0) return props.referenceDate
@@ -176,24 +197,34 @@ watch(open, (isOpen) => {
   if (isOpen) {
     document.addEventListener('keydown', handleKeydown, true)
     document.addEventListener('click', handleOutsideClick)
+    window.addEventListener('scroll', updatePopupPosition, true)
+    window.addEventListener('resize', updatePopupPosition)
   } else {
     document.removeEventListener('keydown', handleKeydown, true)
     document.removeEventListener('click', handleOutsideClick)
+    window.removeEventListener('scroll', updatePopupPosition, true)
+    window.removeEventListener('resize', updatePopupPosition)
   }
 })
 
 onBeforeUnmount(() => {
   document.removeEventListener('keydown', handleKeydown, true)
   document.removeEventListener('click', handleOutsideClick)
+  window.removeEventListener('scroll', updatePopupPosition, true)
+  window.removeEventListener('resize', updatePopupPosition)
 })
 
 function handleOutsideClick() {
   close()
 }
 
-function toggle() {
+function toggle(event) {
   open.value = !open.value
-  if (open.value) monthOffset.value = 0
+  if (open.value) {
+    monthOffset.value = 0
+    anchorElement.value = event?.currentTarget || anchorElement.value
+    nextTick(updatePopupPosition)
+  }
 }
 
 function close() {
