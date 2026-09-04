@@ -323,8 +323,7 @@ async function fetchTrackedHours() {
 }
 
 async function fetchLeaveForRange(from: string, to: string, employeeId: number): Promise<VacationHoursEntry[]> {
-  const params = { from, to, projects: [...LEAVE_PROJECT_IDS].join(','), employeeId }
-  const response = await api.$get<{ data: unknown }>('planningboard', { params })
+  const response = await api.$get<{ data: unknown }>('planningboard', { params: { from, to } })
   return extractLeaveEntries(response?.data, employeeId)
 }
 
