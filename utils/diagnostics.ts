@@ -90,7 +90,6 @@ export interface DiagnosticCheck {
 }
 
 const VACATION_PROJECT_ID = 83
-const LEAVE_PROJECT_IDS = [83, 90]
 const TEST_NOTES = 'test'
 const TEST_HOURS = 0.1
 
@@ -270,10 +269,9 @@ export function buildDiagnosticChecks(): DiagnosticCheck[] {
       async run(ctx) {
         const board = ctx.cache.board ?? await fetchBoard(ctx)
         const projectIdOf = (entry: any) => Number(entry?.project?.id ?? entry?.id)
-        // Leave projects are is_timesheet_automatic (can_edit: false) on most
-        // tenants, so prefer them when editable but fall back to any project.
-        const target = board.find((entry) => LEAVE_PROJECT_IDS.includes(projectIdOf(entry)) && entry?.can_edit)
-          ?? board.find((entry) => entry?.can_edit === true)
+        // Leave projects (83/90) are is_timesheet_automatic, so can_edit is
+        // always false — write the test hours to the first editable project.
+        const target = board.find((entry) => entry?.can_edit === true)
         if (!target) {
           throw new DiagnosticFailure('no editable project on today\'s board — user may not be whitelisted')
         }
