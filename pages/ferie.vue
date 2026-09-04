@@ -835,11 +835,12 @@ async function fetchPlannings() {
   try {
     const response = await api.$get('planningboard', { params: { from: monthFrom.value, to: monthTo.value } })
     const normalized = normalizePlanningsResponse(response?.data)
-    if (normalized.length === 0 && response?.data) {
+    const data = response?.data
+    const payloadIsEmpty = Array.isArray(data) ? data.length === 0 : !data
+    if (normalized.length === 0 && !payloadIsEmpty) {
       // Shape changed upstream or Wethod rejected the request. Log only the error
       // envelope (key/message are error strings) — never the full planning payload,
       // which contains other employees' data.
-      const data = response.data
       console.warn('[ferie] planningboard returned no usable plannings:', {
         keys: Object.keys(data),
         key: data?.key,
