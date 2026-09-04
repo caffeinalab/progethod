@@ -35,7 +35,7 @@
     <Alert v-if="showMonthEndReminder && !monthEndReminderDismissed" :message="$t('month_end_reminder')" level="warning" dismissable @dismiss="dismissMonthEndReminder" />
 
     <div class="my-6 lg:my-12 container px-6 mx-auto pb-4 border-b border-stroke">
-      <div class="flex items-center gap-3">
+      <div class="flex flex-wrap items-center gap-3">
         <div class="inline-flex items-center bg-card border border-stroke-muted rounded-lg shadow">
           <button class="inline-flex items-center justify-center min-w-10 min-h-10 p-2.5 text-ink-muted cursor-pointer hover:bg-card-hover rounded-l-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus-ring" :title="$t('previous_week')" @click="weekOffset--">
             <IconChevronLeft :size="18" />
@@ -57,35 +57,34 @@
         >
           {{ $t('current_week') }}
         </button>
-      </div>
-
-      <div class="flex flex-wrap items-center gap-3 mt-4">
-        <template v-if="trackedHoursLoading">
-          <div class="stat-card animate-pulse"><span class="inline-block w-20 h-4 bg-stroke-muted rounded" /></div>
-          <div class="stat-card animate-pulse"><span class="inline-block w-20 h-4 bg-stroke-muted rounded" /></div>
-        </template>
-        <template v-else>
-          <div class="stat-card">
-            <span class="stat-label">{{ $t('week_short') }}</span>
-            <span class="stat-value">{{ weekTrackedTotal + '/' + weekExpectedHours + 'h' }}</span>
-          </div>
-          <div class="stat-card stat-card--interactive transition-colors" @click.stop="monthCalendarRef?.toggle()">
-            <MonthCalendar
-              ref="monthCalendarRef"
-              :reference-date="weekAnchor"
-              :tracked-hours="calendarEffectiveHours"
-              :holidays="holidays"
-              :label="monthLabel"
-              @day-click="onCalendarDayClick"
-              @month-changed="onCalendarMonthChanged"
-            />
-            <span class="stat-value">{{ monthTrackedDays + '/' + monthWorkingDays }}</span>
-          </div>
-          <div class="stat-card stat-card--interactive transition-colors" @click="showOfficeDaysModal = true">
-            <IconBuilding :size="14" class="text-ink" />
-            <span class="stat-value">{{ $t('office_days_check_button') }}</span>
-          </div>
-        </template>
+        <div class="flex flex-wrap items-center gap-3 ml-auto">
+          <template v-if="trackedHoursLoading">
+            <div class="stat-card animate-pulse"><span class="inline-block w-20 h-4 bg-stroke-muted rounded" /></div>
+            <div class="stat-card animate-pulse"><span class="inline-block w-20 h-4 bg-stroke-muted rounded" /></div>
+          </template>
+          <template v-else>
+            <div class="stat-card">
+              <span class="stat-label">{{ $t('week_short') }}</span>
+              <span class="stat-value">{{ weekTrackedTotal + '/' + weekExpectedHours + 'h' }}</span>
+            </div>
+            <div class="stat-card stat-card--interactive transition-colors" @click.stop="monthCalendarRef?.toggle()">
+              <MonthCalendar
+                ref="monthCalendarRef"
+                :reference-date="weekAnchor"
+                :tracked-hours="calendarEffectiveHours"
+                :holidays="holidays"
+                :label="monthLabel"
+                @day-click="onCalendarDayClick"
+                @month-changed="onCalendarMonthChanged"
+              />
+              <span class="stat-value">{{ monthTrackedDays + '/' + monthWorkingDays }}</span>
+            </div>
+            <div class="stat-card stat-card--interactive transition-colors" @click="showOfficeDaysModal = true">
+              <IconBuilding :size="14" class="text-ink" />
+              <span class="stat-value">{{ $t('office_days_check_button') }}</span>
+            </div>
+          </template>
+        </div>
       </div>
     </div>
 
@@ -119,6 +118,7 @@ import { IconAlertTriangle, IconChevronLeft, IconChevronRight, IconBuilding } fr
 import { isSameDay, startOfMonth, endOfMonth, subDays, getDay, isAfter, isBefore, addWeeks, startOfWeek, addDays, format as formatDate } from 'date-fns'
 import { it } from 'date-fns/locale'
 import { effectiveWethodHours } from '~/utils/effectiveHours'
+import { filterPlannings, normalizePlanningsResponse } from '~/utils/plannings'
 
 definePageMeta({ middleware: 'auth' })
 
@@ -126,7 +126,6 @@ const LEAVE_PROJECT_IDS = new Set([83, 90])
 
 type TrackedHoursEntry = { date: string; value: number }
 type VacationHoursEntry = { date: string; amount: number; projectId: number }
-type PlanningRow = { employee_id: number; project_id: number; day: string; amount: number }
 
 const config = useRuntimeConfig()
 const userStore = useUserStore()
@@ -167,19 +166,11 @@ function leaveHoursMap(entries: VacationHoursEntry[]): Record<string, number> {
 }
 
 function extractLeaveEntries(
-  plannings: Record<string, PlanningRow[]>,
+  planningsPayload: unknown,
   employeeId: number,
 ): VacationHoursEntry[] {
-  const entries: VacationHoursEntry[] = []
-  for (const group of Object.values(plannings)) {
-    if (!Array.isArray(group)) { continue }
-    for (const planning of group) {
-      if (planning.employee_id === employeeId && LEAVE_PROJECT_IDS.has(planning.project_id)) {
-        entries.push({ date: planning.day, amount: planning.amount, projectId: planning.project_id })
-      }
-    }
-  }
-  return entries
+  return filterPlannings(normalizePlanningsResponse(planningsPayload), employeeId, LEAVE_PROJECT_IDS)
+    .map((entry) => ({ date: entry.day, amount: entry.amount, projectId: entry.projectId }))
 }
 
 function syncedLocalHoursForDay(dayKey: string): number {
@@ -332,8 +323,8 @@ async function fetchTrackedHours() {
 }
 
 async function fetchLeaveForRange(from: string, to: string, employeeId: number): Promise<VacationHoursEntry[]> {
-  const response = await api.$get<{ data: { plannings: Record<string, PlanningRow[]> } }>('planningboard', { params: { from, to } })
-  return extractLeaveEntries(response?.data?.plannings || {}, employeeId)
+  const response = await api.$get<{ data: unknown }>('planningboard', { params: { from, to } })
+  return extractLeaveEntries(response?.data, employeeId)
 }
 
 async function fetchVacationHours() {

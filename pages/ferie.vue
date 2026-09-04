@@ -420,6 +420,7 @@ import { IconChevronLeft, IconChevronRight, IconCheck, IconX } from '@tabler/ico
 import { createOutOfOfficeEvent } from '~/utils/gCal'
 import { formatDecimalHoursLabel } from '~/utils/duration'
 import { WEEKDAY_HEADERS_IT, buildMonthGridCells } from '~/utils/calendarGrid'
+import { normalizePlanningsResponse } from '~/utils/plannings'
 
 definePageMeta({ middleware: 'auth' })
 
@@ -503,20 +504,20 @@ const holidaysByDate = computed(() => {
 
 const planningsByDate = computed(() => {
   const map = {}
-  const employeeId = userStore.info?.employee_id
+  const employeeId = Number(userStore.info?.employee_id)
   for (const planning of plannings.value) {
-    if (planning.employee_id !== employeeId) continue
-    if (planning.project_id !== VACATION_PROJECT_ID && planning.project_id !== LEAVES_PROJECT_ID) continue
+    if (planning.employeeId !== employeeId) continue
+    if (planning.projectId !== VACATION_PROJECT_ID && planning.projectId !== LEAVES_PROJECT_ID) continue
     if (!map[planning.day]) map[planning.day] = { vacation: 0, leaves: 0, vacationPending: false, leavesPending: false, requestIds: [] }
-    if (planning.project_id === VACATION_PROJECT_ID) {
+    if (planning.projectId === VACATION_PROJECT_ID) {
       map[planning.day].vacation += planning.amount
-      if (planning.is_pending) map[planning.day].vacationPending = true
+      if (planning.isPending) map[planning.day].vacationPending = true
     } else {
       map[planning.day].leaves += planning.amount
-      if (planning.is_pending) map[planning.day].leavesPending = true
+      if (planning.isPending) map[planning.day].leavesPending = true
     }
-    if (planning.allocation_request_id && !map[planning.day].requestIds.includes(planning.allocation_request_id)) {
-      map[planning.day].requestIds.push(planning.allocation_request_id)
+    if (planning.allocationRequestId && !map[planning.day].requestIds.includes(planning.allocationRequestId)) {
+      map[planning.day].requestIds.push(planning.allocationRequestId)
     }
   }
   return map
@@ -833,11 +834,18 @@ async function fetchPlannings() {
   if (!userStore.canMakeRequests) return
   try {
     const response = await api.$get('planningboard', { params: { from: monthFrom.value, to: monthTo.value } })
-    const raw = response?.data?.plannings || {}
-    const flat = []
-    for (const group of Object.values(raw)) { if (Array.isArray(group)) flat.push(...group) }
-    plannings.value = flat
-  } catch { plannings.value = [] }
+    const normalized = normalizePlanningsResponse(response?.data)
+    if (normalized.length === 0 && response?.data) {
+      // Shape changed upstream? Log only the envelope keys (never the payload, it contains other employees' data)
+      console.warn('[ferie] planningboard returned no usable plannings; envelope keys:', Object.keys(response.data))
+    } else if (normalized.length > 0 && !Number(userStore.info?.employee_id)) {
+      console.warn('[ferie] missing employee_id in user info; leave plannings cannot be matched to the current user')
+    }
+    plannings.value = normalized
+  } catch (error) {
+    console.warn('[ferie] planningboard fetch failed:', error?.message || error)
+    plannings.value = []
+  }
 }
 
 async function fetchHolidays() { try { const response = await api.$get('holidays'); holidays.value = response?.data || [] } catch { holidays.value = [] } }
