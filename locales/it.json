@@ -7,6 +7,7 @@
   "auth_token_copied": "Token copiato!",
   "diagnostic": {
     "run": "Esegui diagnostica",
+    "start": "Avvia diagnostica",
     "title": "Diagnostica Wethod",
     "description": "Chiama gli endpoint Wethod con dati di prova e verifica che le risposte abbiano la struttura attesa. Le risorse create (richiesta ferie e ore di test) vengono eliminate al termine.",
     "rerun": "Esegui di nuovo",

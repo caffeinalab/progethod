@@ -2,7 +2,7 @@
   <PanelModal
     :model-value="modelValue"
     :title="$t('diagnostic.title')"
-    max-width-class="max-w-md"
+    max-width-class="max-w-xl"
     @update:model-value="close"
   >
     <div class="px-6 pb-6">
@@ -10,6 +10,17 @@
         {{ $t('diagnostic.description') }}
       </p>
 
+      <div v-if="!started" class="flex justify-center py-4">
+        <button
+          type="button"
+          class="px-4 py-2 text-sm font-medium rounded-lg bg-accent text-ink-inverse hover:bg-accent-hover transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+          @click="startRun"
+        >
+          {{ $t('diagnostic.start') }}
+        </button>
+      </div>
+
+      <template v-else>
       <ul class="space-y-0.5">
         <li v-for="result in results" :key="result.check.id">
           <button
@@ -62,6 +73,7 @@
           {{ $t('diagnostic.rerun') }}
         </button>
       </div>
+      </template>
     </div>
   </PanelModal>
 </template>
@@ -96,6 +108,7 @@ interface CheckResult {
 }
 
 const results = ref<CheckResult[]>([])
+const started = ref(false)
 const running = ref(false)
 
 const finishedCount = computed(() => results.value.filter((result) => result.status === 'ok' || result.status === 'fail').length)
@@ -113,7 +126,11 @@ const summaryClass = computed(() => {
 })
 
 watch(() => props.modelValue, (open) => {
-  if (open) { startRun() }
+  if (open) {
+    // Back to the start screen on every open; a run in progress keeps going
+    started.value = false
+    results.value = []
+  }
 })
 
 function close() {
@@ -127,6 +144,7 @@ function toggleDetails(result: CheckResult) {
 
 async function startRun() {
   if (running.value) { return }
+  started.value = true
   running.value = true
   const checks = buildDiagnosticChecks()
   results.value = checks.map((check) => ({
