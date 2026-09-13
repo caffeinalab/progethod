@@ -115,7 +115,7 @@
 
 <script setup lang="ts">
 import { IconAlertTriangle, IconChevronLeft, IconChevronRight, IconBuilding } from '@tabler/icons-vue'
-import { isSameDay, startOfMonth, endOfMonth, subDays, getDay, isAfter, isBefore, addWeeks, startOfWeek, addDays, format as formatDate } from 'date-fns'
+import { startOfMonth, endOfMonth, subDays, getDay, isAfter, isBefore, addWeeks, startOfWeek, addDays, format as formatDate } from 'date-fns'
 import { it } from 'date-fns/locale'
 import { effectiveWethodHours } from '~/utils/effectiveHours'
 import { filterPlannings, normalizePlanningsResponse } from '~/utils/plannings'
@@ -356,11 +356,12 @@ async function fetchHolidays() {
 function debouncedRefresh() { setTimeout(() => { fetchTrackedHours(); fetchVacationHours() }, 800) }
 
 function onCalendarDayClick(dateKey: string) {
-  const targetDate = new Date(dateKey)
+  const targetDate = new Date(dateKey + 'T00:00:00')
   const targetMonday = startOfWeek(targetDate, { weekStartsOn: 1 })
   const todayMonday = startOfWeek(today.value, { weekStartsOn: 1 })
   const diffMs = targetMonday.getTime() - todayMonday.getTime()
   weekOffset.value = Math.round(diffMs / (7 * 24 * 60 * 60 * 1000))
+  scrollToDay(dateKey)
 }
 
 async function onCalendarMonthChanged({ from, to }: { from: string; to: string }) {
@@ -393,16 +394,20 @@ function dismissMonthEndReminder() {
   localStorage.setItem('monthEndReminderDismissedAt', String(Date.now()))
 }
 
-function scrollToToday() {
-  if (weekOffset.value !== 0) { return }
-  const todayIndex = days.value.findIndex(day => isSameDay(day, today.value))
-  if (todayIndex < 0) { return }
-  focusedDayIndex.value = todayIndex
+function scrollToDay(dateKey: string) {
+  const targetIndex = days.value.findIndex(day => formatDate(day, 'yyyy-MM-dd') === dateKey)
+  if (targetIndex < 0) { return }
+  focusedDayIndex.value = targetIndex
   nextTick(() => {
     const component = getFocusedDayComponent()
     const element = component?.$el
     if (element) { element.scrollIntoView({ block: 'center', behavior: 'smooth' }) }
   })
+}
+
+function scrollToToday() {
+  if (weekOffset.value !== 0) { return }
+  scrollToDay(formatDate(today.value, 'yyyy-MM-dd'))
 }
 
 onMounted(() => {
