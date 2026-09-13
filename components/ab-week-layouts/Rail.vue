@@ -6,44 +6,42 @@
         v-for="(status, index) in dayStatuses"
         :key="status.dayKey"
         type="button"
-        class="flex flex-col gap-1 rounded-lg border px-2 py-1.5 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-1 focus-visible:ring-offset-page"
+        class="flex flex-col overflow-hidden rounded-lg border text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-1 focus-visible:ring-offset-page"
         :class="dayButtonClass(status, index)"
+        :aria-current="status.isToday ? 'date' : undefined"
         @click="selectedIndex = index"
       >
-        <div class="flex items-baseline gap-1 min-w-0">
+        <div class="flex items-center gap-1.5 px-2 pt-1.5">
           <span
-            class="min-w-0 truncate text-sm font-semibold leading-none tracking-tight"
-            :class="titleClass(status, index)"
-          >
-            <span class="capitalize font-medium" :class="weekdayClass(index)">{{ status.weekdayShort }}</span>
-            {{ status.dayOfMonth }}
-          </span>
+            class="min-w-0 truncate text-xs font-semibold uppercase tracking-wide leading-none"
+            :class="weekdayClass(status, index)"
+          >{{ status.weekdayShort }}</span>
           <span
-            v-if="status.isToday"
-            class="shrink-0 text-xs font-semibold text-accent-fg leading-none"
-          >oggi</span>
+            class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-semibold tabular-nums leading-none"
+            :class="dayNumberClass(status, index)"
+          >{{ status.dayOfMonth }}</span>
           <span
             class="ml-auto shrink-0 text-xs font-semibold tabular-nums leading-none"
-            :class="selectedIndex === index ? 'text-accent-fg' : 'text-ink-secondary'"
-          >
-            {{ status.wethodHoursLabel }}
-          </span>
+            :class="hoursClass(status, index)"
+          >{{ status.wethodHoursLabel }}</span>
         </div>
 
-        <div class="h-1 w-full rounded-full bg-stroke-muted overflow-hidden">
-          <div
-            class="h-full rounded-full"
-            :class="selectedIndex === index ? 'bg-accent' : fillProgressClass(status)"
-            :style="{ width: `${Math.round(status.fillRatio * 100)}%` }"
-          />
+        <div class="px-2 pt-0.5 pb-1 text-left">
+          <span
+            class="block min-h-3 truncate text-xs font-medium leading-none"
+            :class="selectedIndex === index ? 'text-accent-fg' : footerClass(status)"
+          >{{ footerLabel(status) }}</span>
         </div>
 
         <div
-          v-if="footerLabel(status)"
-          class="text-xs font-medium leading-none"
-          :class="selectedIndex === index ? 'text-accent-fg' : footerClass(status)"
+          class="h-1 w-full"
+          :class="status.fillRatio > 0 ? 'bg-stroke-muted' : 'bg-transparent'"
         >
-          {{ footerLabel(status) }}
+          <div
+            class="h-full"
+            :class="selectedIndex === index ? 'bg-accent' : fillProgressClass(status)"
+            :style="{ width: `${Math.round(status.fillRatio * 100)}%` }"
+          />
         </div>
       </button>
     </div>
@@ -98,15 +96,23 @@ function dayButtonClass(status: WeekDayStatus, index: number) {
   return 'border-stroke bg-card hover:bg-card-hover'
 }
 
-function titleClass(status: WeekDayStatus, index: number) {
+function weekdayClass(status: WeekDayStatus, index: number) {
+  if (selectedIndex.value === index) { return 'text-accent-fg' }
+  return 'text-ink-muted'
+}
+
+function dayNumberClass(status: WeekDayStatus, index: number) {
+  // Today gets a filled accent disc, calendar-style — this replaces the old "oggi" badge.
+  if (status.isToday) { return 'bg-accent text-ink-inverse' }
   if (selectedIndex.value === index) { return 'text-accent-fg' }
   if (status.isWeekend) { return 'text-ink-muted' }
   return 'text-ink'
 }
 
-function weekdayClass(index: number) {
+function hoursClass(status: WeekDayStatus, index: number) {
   if (selectedIndex.value === index) { return 'text-accent-fg' }
-  return 'text-ink-muted'
+  if (status.health === 'weekend' || status.health === 'empty') { return 'text-ink-muted' }
+  return 'text-ink-secondary'
 }
 
 function footerLabel(status: WeekDayStatus) {
