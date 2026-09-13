@@ -5,11 +5,6 @@
     ref="activeLayoutRef"
     v-bind="layoutProps"
   />
-  <AbWeekLayoutsAccordion
-    v-else-if="layout === 'accordion'"
-    ref="activeLayoutRef"
-    v-bind="layoutProps"
-  />
   <AbWeekLayoutsRail
     v-else-if="layout === 'rail'"
     ref="activeLayoutRef"

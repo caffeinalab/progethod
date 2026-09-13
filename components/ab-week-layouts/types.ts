@@ -3,7 +3,7 @@
  * Delete the whole `components/ab-week-layouts/` directory when the experiment ends.
  */
 
-export const WEEK_LAYOUT_KEYS = ['classic', 'accordion', 'rail', 'split'] as const
+export const WEEK_LAYOUT_KEYS = ['classic', 'rail', 'split'] as const
 
 export type WeekLayoutKey = (typeof WEEK_LAYOUT_KEYS)[number]
 

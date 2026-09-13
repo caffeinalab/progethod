@@ -178,7 +178,7 @@ const moreTriggerClasses = computed(() => {
 })
 
 // The dropdown is teleported to body with fixed coordinates so it can escape
-// clipping ancestors (e.g. overflow-hidden day cards in the accordion layout).
+// clipping ancestors (e.g. overflow-hidden day cards in the week layouts).
 function updateDropdownPosition() {
   const trigger = triggerButton.value
   if (!trigger) { return }

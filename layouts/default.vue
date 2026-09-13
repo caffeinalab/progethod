@@ -175,7 +175,7 @@
                   <!-- A/B week layouts — temporary; remove with components/ab-week-layouts/ -->
                   <li class="py-2">
                     <span class="text-xs font-semibold text-ink-faint uppercase tracking-wider">{{ $t('week_layout_label') }}</span>
-                    <div class="grid grid-cols-2 gap-1 mt-1.5">
+                    <div class="grid grid-cols-3 gap-1 mt-1.5">
                       <button
                         v-for="option in weekLayoutOptions"
                         :key="option.value"
@@ -340,7 +340,7 @@
           <!-- A/B week layouts — temporary; remove with components/ab-week-layouts/ -->
           <li class="py-2">
             <span class="text-xs font-semibold text-ink-faint uppercase tracking-wider">{{ $t('week_layout_label') }}</span>
-            <div class="grid grid-cols-2 gap-1 mt-1.5">
+            <div class="grid grid-cols-3 gap-1 mt-1.5">
               <button
                 v-for="option in weekLayoutOptions"
                 :key="option.value"

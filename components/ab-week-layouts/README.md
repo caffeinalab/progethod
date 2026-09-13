@@ -12,6 +12,5 @@ Experimental timesheet week presentations for A/B testing.
 | Key | Component | Idea |
 |-----|-----------|------|
 | `classic` | `Classic.vue` | All 7 days fully open (current) |
-| `accordion` | `Accordion.vue` | One open day; others dense status rows |
 | `rail` | `Rail.vue` | Horizontal 7-day strip + single editor |
 | `split` | `Split.vue` | Sticky day list + editor pane |
