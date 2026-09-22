@@ -129,7 +129,7 @@ export async function fetchActivity(config: OAuthProviderConfig, day: Date | str
   const dayString = typeof day === 'string' ? day : day.toISOString().split('T')[0]
 
   const response = await api.$get<{ data: any[] }>(config.activityEndpoint, {
-    params: { day: dayString, _t: Date.now() },
+    params: { day: dayString, tz: new Date().getTimezoneOffset(), _t: Date.now() },
     headers: config.getActivityHeaders(accessToken!),
   })
 
