@@ -149,6 +149,41 @@
                   </li>
                   <li class="border-t border-stroke-muted my-2" />
                   <li class="py-2">
+                    <span class="text-xs font-semibold text-ink-faint uppercase tracking-wider">{{ $t('duration_rounding_label') }}</span>
+                    <div class="grid grid-cols-3 gap-1 mt-1.5">
+                      <button
+                        v-for="option in durationRoundingOptions"
+                        :key="option.value"
+                        type="button"
+                        class="flex items-center justify-center py-1.5 text-xs rounded transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+                        :class="preferencesStore.durationRoundingMinutes === option.value
+                          ? 'bg-accent text-ink-inverse font-semibold'
+                          : 'text-ink-muted hover:text-ink-secondary hover:bg-card-hover'"
+                        @click.stop="preferencesStore.setDurationRoundingMinutes(option.value)"
+                      >
+                        {{ option.label }}
+                      </button>
+                    </div>
+                  </li>
+                  <!-- A/B week layouts — temporary; remove with components/ab-week-layouts/ -->
+                  <li class="py-2">
+                    <span class="text-xs font-semibold text-ink-faint uppercase tracking-wider">{{ $t('week_layout_label') }}</span>
+                    <div class="grid grid-cols-3 gap-1 mt-1.5">
+                      <button
+                        v-for="option in weekLayoutOptions"
+                        :key="option.value"
+                        type="button"
+                        class="flex items-center justify-center py-1.5 text-xs rounded transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+                        :class="preferencesStore.weekLayout === option.value
+                          ? 'bg-accent text-ink-inverse font-semibold'
+                          : 'text-ink-muted hover:text-ink-secondary hover:bg-card-hover'"
+                        @click.stop="preferencesStore.setWeekLayout(option.value)"
+                      >
+                        {{ option.label }}
+                      </button>
+                    </div>
+                  </li>
+                  <li class="py-2">
                     <span class="text-xs font-semibold text-ink-faint uppercase tracking-wider">{{ $t('theme_label') }}</span>
                     <div class="flex items-center gap-1 mt-1.5">
                       <button
@@ -171,24 +206,6 @@
                   >
                     <span>{{ $t('high_contrast') }}</span>
                     <ToggleSwitch :model-value="preferencesStore.highContrast" />
-                  </li>
-                  <!-- A/B week layouts — temporary; remove with components/ab-week-layouts/ -->
-                  <li class="py-2">
-                    <span class="text-xs font-semibold text-ink-faint uppercase tracking-wider">{{ $t('week_layout_label') }}</span>
-                    <div class="grid grid-cols-3 gap-1 mt-1.5">
-                      <button
-                        v-for="option in weekLayoutOptions"
-                        :key="option.value"
-                        type="button"
-                        class="flex items-center justify-center py-1.5 text-xs rounded transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
-                        :class="preferencesStore.weekLayout === option.value
-                          ? 'bg-accent text-ink-inverse font-semibold'
-                          : 'text-ink-muted hover:text-ink-secondary hover:bg-card-hover'"
-                        @click.stop="preferencesStore.setWeekLayout(option.value)"
-                      >
-                        {{ option.label }}
-                      </button>
-                    </div>
                   </li>
                   <li class="border-t border-stroke-muted my-2" />
                   <li
@@ -312,6 +329,41 @@
           </li>
           <li class="border-t border-stroke-muted my-2" />
           <li class="py-2">
+            <span class="text-xs font-semibold text-ink-faint uppercase tracking-wider">{{ $t('duration_rounding_label') }}</span>
+            <div class="grid grid-cols-3 gap-1 mt-1.5">
+              <button
+                v-for="option in durationRoundingOptions"
+                :key="option.value"
+                type="button"
+                class="flex items-center justify-center py-1.5 text-xs rounded transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+                :class="preferencesStore.durationRoundingMinutes === option.value
+                  ? 'bg-accent text-ink-inverse font-semibold'
+                  : 'text-ink-muted hover:text-ink-secondary hover:bg-card-hover'"
+                @click.stop="preferencesStore.setDurationRoundingMinutes(option.value)"
+              >
+                {{ option.label }}
+              </button>
+            </div>
+          </li>
+          <!-- A/B week layouts — temporary; remove with components/ab-week-layouts/ -->
+          <li class="py-2">
+            <span class="text-xs font-semibold text-ink-faint uppercase tracking-wider">{{ $t('week_layout_label') }}</span>
+            <div class="grid grid-cols-3 gap-1 mt-1.5">
+              <button
+                v-for="option in weekLayoutOptions"
+                :key="option.value"
+                type="button"
+                class="flex items-center justify-center py-1.5 text-xs rounded transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+                :class="preferencesStore.weekLayout === option.value
+                  ? 'bg-accent text-ink-inverse font-semibold'
+                  : 'text-ink-muted hover:text-ink-secondary hover:bg-card-hover'"
+                @click.stop="preferencesStore.setWeekLayout(option.value)"
+              >
+                {{ option.label }}
+              </button>
+            </div>
+          </li>
+          <li class="py-2">
             <span class="text-xs font-semibold text-ink-faint uppercase tracking-wider">{{ $t('theme_label') }}</span>
             <div class="flex items-center gap-1 mt-1.5">
               <button
@@ -336,24 +388,6 @@
               <span>{{ $t('high_contrast') }}</span>
               <ToggleSwitch :model-value="preferencesStore.highContrast" />
             </button>
-          </li>
-          <!-- A/B week layouts — temporary; remove with components/ab-week-layouts/ -->
-          <li class="py-2">
-            <span class="text-xs font-semibold text-ink-faint uppercase tracking-wider">{{ $t('week_layout_label') }}</span>
-            <div class="grid grid-cols-3 gap-1 mt-1.5">
-              <button
-                v-for="option in weekLayoutOptions"
-                :key="option.value"
-                type="button"
-                class="flex items-center justify-center py-1.5 text-xs rounded transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
-                :class="preferencesStore.weekLayout === option.value
-                  ? 'bg-accent text-ink-inverse font-semibold'
-                  : 'text-ink-muted hover:text-ink-secondary hover:bg-card-hover'"
-                @click.stop="preferencesStore.setWeekLayout(option.value)"
-              >
-                {{ option.label }}
-              </button>
-            </div>
           </li>
           <li>
             <button
@@ -417,6 +451,7 @@ import { getBackupData, getBackupFile, triggerFileDownload, askForBackupFile, re
 import { copyToClipboard } from '~/utils/clipboard'
 import { updateApiData } from '~/utils/updateApiData'
 import { WEEK_LAYOUT_KEYS, type WeekLayoutKey } from '~/components/ab-week-layouts/types'
+import { DURATION_ROUNDING_OPTIONS } from '~/stores/preferences'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -522,6 +557,13 @@ const weekLayoutOptions = computed(() =>
   WEEK_LAYOUT_KEYS.map(key => ({
     value: key as WeekLayoutKey,
     label: t(`week_layout_${key}`),
+  })),
+)
+
+const durationRoundingOptions = computed(() =>
+  DURATION_ROUNDING_OPTIONS.map(minutes => ({
+    value: minutes,
+    label: minutes === 0 ? t('duration_rounding_none') : `${minutes} min`,
   })),
 )
 

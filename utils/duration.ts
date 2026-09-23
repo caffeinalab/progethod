@@ -1,3 +1,9 @@
+/** Rounds minutes up to the given quantum (e.g. 15 → 15→15, 16→30); quantum 0 returns the raw minutes. */
+export function roundDurationMinutes(durationMinutes: number, quantumMinutes: number): number {
+  if (!quantumMinutes) { return durationMinutes }
+  return Math.ceil(durationMinutes / quantumMinutes) * quantumMinutes
+}
+
 export function getDecimalDuration(duration?: number): number {
   return duration ? (Math.floor(duration * 10 / 60)) / 10 : 0
 }

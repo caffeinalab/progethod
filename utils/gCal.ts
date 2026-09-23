@@ -1,6 +1,8 @@
 import { startOfDay, endOfDay, differenceInMinutes, parseISO } from 'date-fns'
 import { useUserStore } from '~/stores/user'
+import { usePreferencesStore } from '~/stores/preferences'
 import { resolveMagicTag } from '~/utils/magicTag'
+import { roundDurationMinutes } from '~/utils/duration'
 
 declare global {
   interface Window {
@@ -228,8 +230,9 @@ export function mapEventsToTimesheetEntries(
     .filter((event: any) => !event.description || !event.description.match(/\[progethod:ignore\]/g))
     .map((event: any) => {
       const resolved = resolveMagicTag(event.description, localProjects, wethodProjects)
+      const rawMinutes = differenceInMinutes(parseISO(event.end.dateTime), parseISO(event.start.dateTime))
       const entry: Record<string, any> = {
-        duration: Math.ceil(differenceInMinutes(parseISO(event.end.dateTime), parseISO(event.start.dateTime)) / 15) * 15,
+        duration: roundDurationMinutes(rawMinutes, usePreferencesStore().durationRoundingMinutes),
         notes: event.summary,
         gCalId: event.id,
       }

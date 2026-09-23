@@ -27,6 +27,7 @@ export type PersistedState = {
     selectedBusinessUnitIds?: number[] | null
     theme?: 'auto' | 'light' | 'dark'
     highContrast?: boolean
+    durationRoundingMinutes?: number
     weekLayout?: string
   }
 }
@@ -100,6 +101,9 @@ export function hydrateFromPersistedData(data: PersistedState, options: { replac
     if (data.preferences.theme) { preferencesStore.theme = data.preferences.theme }
     if (data.preferences.highContrast !== undefined) {
       preferencesStore.highContrast = data.preferences.highContrast
+    }
+    if (data.preferences.durationRoundingMinutes !== undefined) {
+      preferencesStore.setDurationRoundingMinutes(data.preferences.durationRoundingMinutes as any)
     }
     if (data.preferences.weekLayout) {
       preferencesStore.setWeekLayout(data.preferences.weekLayout as any)
