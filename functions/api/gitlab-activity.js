@@ -51,6 +51,7 @@ export async function onRequestGet ({ request }) {
 
     const dayEvents = eventsResult.events.filter((event) => {
       const pushData = event.push_data
+      // commit_to is null on branch deletions — skip those
       if (!pushData || pushData.ref_type !== 'branch' || !pushData.ref || !pushData.commit_to) {
         return false
       }
@@ -62,30 +63,21 @@ export async function onRequestGet ({ request }) {
       return new JSONResponse({ data: [] })
     }
 
-    // Merge same-branch pushes into one range: newest commit_to, oldest commit_from
-    dayEvents.sort((first, second) => Date.parse(second.created_at) - Date.parse(first.created_at))
-    const rangesByBranch = new Map()
+    // Unique branches pushed that day — one cheap commit-list call each
+    const branchesByKey = new Map()
     for (const event of dayEvents) {
       const key = `${event.project_id}:${event.push_data.ref}`
-      const existing = rangesByBranch.get(key)
-      if (!existing) {
-        rangesByBranch.set(key, {
-          projectId: event.project_id,
-          ref: event.push_data.ref,
-          from: event.push_data.commit_from,
-          to: event.push_data.commit_to
-        })
-      } else if (event.push_data.commit_from) {
-        existing.from = event.push_data.commit_from
+      if (!branchesByKey.has(key)) {
+        branchesByKey.set(key, { projectId: event.project_id, ref: event.push_data.ref })
       }
     }
 
-    const ranges = [...rangesByBranch.values()]
-    const projectIds = [...new Set(ranges.map((range) => range.projectId))]
+    const branches = [...branchesByKey.values()]
+    const projectIds = [...new Set(branches.map((branch) => branch.projectId))]
 
-    // Round 2: branch commit ranges + project info, all parallel (concurrency-limited)
+    // Round 2: branch commits + project info, all parallel (concurrency-limited)
     const [branchCommits, projects] = await Promise.all([
-      mapWithConcurrency(ranges, REQUEST_CONCURRENCY, (range) => fetchRangeCommits(range, headers, since, until)),
+      mapWithConcurrency(branches, REQUEST_CONCURRENCY, (branch) => fetchBranchCommits(branch, headers, since, until)),
       mapWithConcurrency(projectIds, REQUEST_CONCURRENCY, (projectId) => fetchProject(projectId, headers))
     ])
 
@@ -97,19 +89,19 @@ export async function onRequestGet ({ request }) {
     const commits = []
     const commitMap = new Map()
 
-    branchCommits.forEach((rangeResult, rangeIndex) => {
-      const range = ranges[rangeIndex]
-      const project = projectsById.get(range.projectId)
-      const projectPath = project?.path || `project-${range.projectId}`
+    branchCommits.forEach((commitList, branchIndex) => {
+      const branch = branches[branchIndex]
+      const project = projectsById.get(branch.projectId)
+      const projectPath = project?.path || `project-${branch.projectId}`
       const projectName = project?.name || projectPath
 
-      for (const commit of rangeResult) {
+      for (const commit of commitList) {
         if (profile && !isOwnCommit(commit, profile)) { continue }
 
         if (commitMap.has(commit.id)) {
           const existing = commitMap.get(commit.id)
-          if (!existing.branches.includes(range.ref)) {
-            existing.branches.push(range.ref)
+          if (!existing.branches.includes(branch.ref)) {
+            existing.branches.push(branch.ref)
           }
           continue
         }
@@ -121,7 +113,7 @@ export async function onRequestGet ({ request }) {
           message: commit.message,
           project: projectPath,
           projectName,
-          branches: [range.ref],
+          branches: [branch.ref],
           createdAt: commit.created_at,
           webUrl: commit.web_url || (project?.webUrl ? `${project.webUrl}/-/commit/${commit.id}` : null)
         }
@@ -147,16 +139,34 @@ async function fetchPushEvents (headers, day) {
   const previousDay = getOffsetDay(day, -1)
   const nextDay = getOffsetDay(day, 1)
 
-  const events = []
-  let page = 1
-  while (page <= MAX_EVENT_PAGES) {
-    const eventsUrl = new URL(`${GITLAB_API}/events`)
-    eventsUrl.searchParams.set('action', 'pushed')
-    eventsUrl.searchParams.set('after', previousDay)
-    eventsUrl.searchParams.set('before', nextDay)
-    eventsUrl.searchParams.set('per_page', '100')
-    eventsUrl.searchParams.set('page', String(page))
+  const firstPage = await fetchEventsPage(headers, previousDay, nextDay, 1)
+  if (firstPage.error) { return { error: firstPage.error } }
 
+  const events = [...firstPage.events]
+  if (firstPage.hasNextPage) {
+    // Remaining pages are independent — fetch them in parallel instead of chaining on x-next-page.
+    // Requesting a page beyond the last one just returns an empty array.
+    const extraPages = await Promise.all(
+      Array.from({ length: MAX_EVENT_PAGES - 1 }, (_, index) => fetchEventsPage(headers, previousDay, nextDay, index + 2))
+    )
+    for (const result of extraPages) {
+      if (result.error) { return { error: result.error } }
+      events.push(...result.events)
+    }
+  }
+
+  return { events }
+}
+
+async function fetchEventsPage (headers, after, before, page) {
+  const eventsUrl = new URL(`${GITLAB_API}/events`)
+  eventsUrl.searchParams.set('action', 'pushed')
+  eventsUrl.searchParams.set('after', after)
+  eventsUrl.searchParams.set('before', before)
+  eventsUrl.searchParams.set('per_page', '100')
+  eventsUrl.searchParams.set('page', String(page))
+
+  try {
     const response = await fetch(eventsUrl.toString(), { headers })
     if (!response.ok) {
       const errorBody = await response.text()
@@ -168,13 +178,12 @@ async function fetchPushEvents (headers, day) {
         }, { status: response.status })
       }
     }
-
-    events.push(...await response.json())
-    if (!response.headers.get('x-next-page')) { break }
-    page++
+    return { events: await response.json(), hasNextPage: Boolean(response.headers.get('x-next-page')) }
+  } catch (error) {
+    return {
+      error: new JSONResponse({ code: 502, status: 'Error', message: error.message }, { status: 502 })
+    }
   }
-
-  return { events }
 }
 
 async function fetchUserProfile (headers) {
@@ -211,27 +220,15 @@ function isOwnCommit (commit, profile) {
   return Boolean(authorName) && (authorName === profile.name || authorName === profile.username)
 }
 
-async function fetchRangeCommits (range, headers, since, until) {
-  // Exact push range via compare: only commits added by that push, no date ambiguity
-  if (range.from && range.to && range.from !== range.to) {
-    try {
-      const compareUrl = new URL(`${GITLAB_API}/projects/${range.projectId}/repository/compare`)
-      compareUrl.searchParams.set('from', range.from)
-      compareUrl.searchParams.set('to', range.to)
-      const response = await fetch(compareUrl.toString(), { headers })
-      if (response.ok) {
-        const payload = await response.json()
-        return payload.commits || []
-      }
-    } catch {
-      // fall through to the ref-based query
-    }
-  }
-
-  // Fallback: new branch (no commit_from) or unresolvable range — scan the ref for the day
+async function fetchBranchCommits (branch, headers, since, until) {
+  // Commits created that day on a pushed branch — cheap list call.
+  // Deliberately NOT the compare API: compare computes the full file diff for the push
+  // range (which we never display) and was the main reason the modal took 30-40s to load.
+  // Trade-off: commits authored before today that entered the branch via this push
+  // (e.g. merging an old branch) are not listed.
   try {
-    const commitsUrl = new URL(`${GITLAB_API}/projects/${range.projectId}/repository/commits`)
-    commitsUrl.searchParams.set('ref_name', range.ref)
+    const commitsUrl = new URL(`${GITLAB_API}/projects/${branch.projectId}/repository/commits`)
+    commitsUrl.searchParams.set('ref_name', branch.ref)
     commitsUrl.searchParams.set('since', since)
     commitsUrl.searchParams.set('until', until)
     commitsUrl.searchParams.set('per_page', '100')
