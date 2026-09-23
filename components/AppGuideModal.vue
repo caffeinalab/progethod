@@ -59,6 +59,33 @@
 
     <section>
       <h3 class="text-sm font-bold text-ink mb-2 flex items-center gap-1.5">
+        <IconBeach :size="16" class="text-accent" />
+        {{ $t('guide.leave_title') }}
+      </h3>
+      <p class="text-sm text-ink-secondary mb-2">{{ $t('guide.leave_desc') }}</p>
+      <ul class="text-sm text-ink-secondary space-y-1 ml-4 list-disc">
+        <li>{{ $t('guide.leave_1') }}</li>
+        <li>{{ $t('guide.leave_2') }}</li>
+        <li>{{ $t('guide.leave_3') }}</li>
+      </ul>
+    </section>
+
+    <section>
+      <h3 class="text-sm font-bold text-ink mb-2 flex items-center gap-1.5">
+        <IconChartBar :size="16" class="text-accent" />
+        {{ $t('guide.stats_title') }}
+      </h3>
+      <p class="text-sm text-ink-secondary mb-2">{{ $t('guide.stats_desc') }}</p>
+      <ul class="text-sm text-ink-secondary space-y-1 ml-4 list-disc">
+        <li>{{ $t('guide.stats_1') }}</li>
+        <li>{{ $t('guide.stats_2') }}</li>
+        <li>{{ $t('guide.stats_3') }}</li>
+        <li>{{ $t('guide.stats_4') }}</li>
+      </ul>
+    </section>
+
+    <section>
+      <h3 class="text-sm font-bold text-ink mb-2 flex items-center gap-1.5">
         <IconKeyboard :size="16" class="text-accent" />
         {{ $t('guide.keyboard_title') }}
       </h3>
@@ -130,7 +157,7 @@
 import {
   IconBookmark, IconCalendarTime, IconAlertTriangle,
   IconSend, IconKeyboard, IconDatabaseExport, IconTag,
-  IconPlug, IconMapPin, IconPalette,
+  IconPlug, IconMapPin, IconPalette, IconBeach, IconChartBar,
 } from '@tabler/icons-vue'
 
 defineProps({
