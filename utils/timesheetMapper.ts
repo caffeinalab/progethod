@@ -73,7 +73,7 @@ function mergeEntries(entries: any[], userProjects: any[], linkedProjects: any[]
         default: area.decimal_duration.remote = decimalAdd(area.decimal_duration.remote, data.decimal_duration)
       }
 
-      area.notes.push(`- ${data.notes || '%'} *${minutesToHHmm(data.duration)}* #${id}`)
+      area.notes.push(`[${minutesToHHmm(data.duration)}] ${data.notes || 'Nessuna nota'}`)
       area.internal_ids.push(id)
     })
 
