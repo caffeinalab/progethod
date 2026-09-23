@@ -1,5 +1,5 @@
 import { useUserStore } from '~/stores/user'
-import { connectOAuth, getActivityWithRetry, type OAuthProviderConfig } from '~/utils/oauthPopup'
+import { connectOAuth, ensureOAuth, fetchActivity, type OAuthProviderConfig } from '~/utils/oauthPopup'
 
 function getGitlabConfig(): OAuthProviderConfig {
   const userStore = useUserStore()
@@ -35,6 +35,38 @@ export async function connectGitlab(): Promise<void> {
   await connectOAuth(getGitlabConfig())
 }
 
+// In-flight request sharing, so a hover prefetch and the modal opening share a single
+// request. Settled results are never kept — this is not a cache.
+const inFlightRequests = new Map<string, Promise<any[]>>()
+
+function fetchActivityShared(day: string): Promise<any[]> {
+  const existing = inFlightRequests.get(day)
+  if (existing) { return existing }
+  const request = fetchActivity(getGitlabConfig(), day)
+    .finally(() => { inFlightRequests.delete(day) })
+  inFlightRequests.set(day, request)
+  return request
+}
+
+export function prefetchGitlabActivity(day: string): void {
+  const config = getGitlabConfig()
+  // Never trigger a token refresh or the OAuth popup from a hover
+  if (!config.getAccessToken() || !config.isTokenValid()) { return }
+  void fetchActivityShared(day).catch(() => {})
+}
+
 export async function getGitlabActivity(day: Date | string): Promise<any[]> {
-  return getActivityWithRetry(getGitlabConfig(), day)
+  const config = getGitlabConfig()
+  await ensureOAuth(config)
+  const dayString = typeof day === 'string' ? day : day.toISOString().split('T')[0]
+  try {
+    return await fetchActivityShared(dayString)
+  } catch (error: any) {
+    if (error.response?.status === 401) {
+      config.clearAuth()
+      await connectOAuth(config)
+      return await fetchActivityShared(dayString)
+    }
+    throw error
+  }
 }

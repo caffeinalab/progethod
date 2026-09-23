@@ -72,7 +72,13 @@
       <IconButton variant="jira" :title="isJiraConfigured ? $t('jira.fetch_activity') : $t('jira.login')" @click="handleJiraClick">
         <IconsJiraIcon :size="18" />
       </IconButton>
-      <IconButton variant="gitlab" :title="isGitlabConfigured ? $t('gitlab.fetch_activity') : $t('gitlab.login')" @click="handleGitlabClick">
+      <IconButton
+        variant="gitlab"
+        :title="isGitlabConfigured ? $t('gitlab.fetch_activity') : $t('gitlab.login')"
+        @click="handleGitlabClick"
+        @mouseenter="prefetchGitlab"
+        @focus="prefetchGitlab"
+      >
         <IconsGitlabIcon :size="18" />
       </IconButton>
       <div class="flex-1" />
@@ -102,7 +108,7 @@ import { effectiveWethodHours } from '~/utils/effectiveHours'
 import { prepareForSubmission } from '~/utils/timesheetMapper'
 import { getEvents, mapEventsToTimesheetEntries } from '~/utils/gCal'
 import { connectJira } from '~/utils/jira'
-import { connectGitlab } from '~/utils/gitlab'
+import { connectGitlab, prefetchGitlabActivity } from '~/utils/gitlab'
 import { TranslatableError } from '~/utils/localizableErrors'
 
 const props = defineProps<{
@@ -262,6 +268,10 @@ async function handleJiraClick() {
 function handleJiraIssueSelect(issue: { key: string; summary: string }) {
   const notes = `${issue.key} | ${issue.summary}`
   entriesStore.add({ day: dayId.value, data: { location: location.value, notes } })
+}
+
+function prefetchGitlab() {
+  if (isGitlabConfigured.value) { prefetchGitlabActivity(dayId.value) }
 }
 
 async function handleGitlabClick() {
