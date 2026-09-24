@@ -1,20 +1,35 @@
 import { JSONResponse } from '../utils/response'
 
-const ICAL_BASE_URL = 'https://factorialhr.com/icals'
+// Public Google Calendar "Festività in Italia" — no auth needed, covers ~10
+// years with one all-day event per holiday (no RRULE expansion required).
+const ICAL_URL = 'https://calendar.google.com/calendar/ical/it.italian%23holiday%40group.v.calendar.google.com/public/basic.ics'
 
-export async function onRequestGet ({ env }) {
-  const token = env.FACTORIAL_ICAL_TOKEN
+// The calendar also includes observances that are not days off (Venerdì
+// Santo, Festa della Mamma, San Silvestro, ...). Only allow actual Italian
+// public holidays, so expected/working hours are never skewed by them.
+const PUBLIC_HOLIDAY_NAMES = new Set([
+  'Capodanno',
+  'Epifania',
+  'Pasqua',
+  'Lunedì di Pasquetta',
+  'Liberazione',
+  'Festa del Lavoro',
+  'Festa della Repubblica',
+  'Assunzione',
+  'Ferragosto',
+  "San Francesco d'Assisi",
+  'Tutti i Santi',
+  'Immacolata',
+  'Natale',
+  'Santo Stefano'
+])
 
-  if (!token) {
-    return new JSONResponse({ code: 500, message: 'FACTORIAL_ICAL_TOKEN not configured' }, { status: 500 })
-  }
-
-  const url = `${ICAL_BASE_URL}?token=${token}&own=true`
-  const response = await fetch(url)
+export async function onRequestGet () {
+  const response = await fetch(ICAL_URL)
 
   if (!response.ok) {
     return new JSONResponse(
-      { code: response.status, message: 'Failed to fetch Factorial calendar' },
+      { code: response.status, message: 'Failed to fetch holidays calendar' },
       { status: 502 }
     )
   }
@@ -22,7 +37,10 @@ export async function onRequestGet ({ env }) {
   const icalText = await response.text()
   const holidays = parseHolidays(icalText)
 
-  return new JSONResponse({ code: 200, data: holidays })
+  return new JSONResponse(
+    { code: 200, data: holidays },
+    { headers: { 'Cache-Control': 'public, max-age=3600, s-maxage=86400' } }
+  )
 }
 
 function parseHolidays (icalText) {
@@ -33,7 +51,7 @@ function parseHolidays (icalText) {
     const block = events[eventIndex]
     const summary = extractField(block, 'SUMMARY')
 
-    if (!summary || summary.startsWith('🎉')) {
+    if (!summary || !PUBLIC_HOLIDAY_NAMES.has(summary)) {
       continue
     }
 
