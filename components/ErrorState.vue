@@ -1,14 +1,17 @@
 <template>
   <div class="text-center py-6">
     <p class="text-sm text-danger">{{ message }}</p>
-    <button
-      v-if="retryLabel"
-      type="button"
-      class="mt-3 text-sm text-accent-fg hover:text-accent-hover font-medium"
-      @click="$emit('retry')"
-    >
-      {{ retryLabel }}
-    </button>
+    <div class="mt-3 flex items-center justify-center gap-4">
+      <button
+        v-if="retryLabel"
+        type="button"
+        class="text-sm text-accent-fg hover:text-accent-hover font-medium"
+        @click="$emit('retry')"
+      >
+        {{ retryLabel }}
+      </button>
+      <slot />
+    </div>
   </div>
 </template>
 

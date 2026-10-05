@@ -25,7 +25,16 @@
       :message="error"
       :retry-label="retryLabel"
       @retry="emit('retry')"
-    />
+    >
+      <button
+        v-if="reconnectLabel"
+        type="button"
+        class="px-3 py-1.5 text-sm font-medium rounded-lg bg-accent text-ink-inverse hover:bg-accent-hover transition-colors"
+        @click="emit('reconnect')"
+      >
+        {{ reconnectLabel }}
+      </button>
+    </ErrorState>
 
     <div v-else-if="isEmpty" class="py-8 text-center text-sm text-ink-faint">
       {{ emptyText }}
@@ -72,6 +81,7 @@ const props = defineProps<{
   error: string | null
   loadingText: string
   retryLabel: string
+  reconnectLabel?: string
   emptyText: string
   noResultsText: string
   groups: ActivityGroup[]
@@ -83,6 +93,7 @@ const emit = defineEmits<{
   'update:modelValue': [value: boolean]
   select: [item: ActivityItem]
   retry: []
+  reconnect: []
 }>()
 
 const searchQuery = ref('')

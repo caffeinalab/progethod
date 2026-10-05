@@ -1,5 +1,5 @@
 import { useUserStore } from '~/stores/user'
-import { connectOAuth, ensureOAuth, fetchActivity, type OAuthProviderConfig } from '~/utils/oauthPopup'
+import { connectOAuth, ensureOAuth, fetchActivity, OAuthPopupBlockedError, type OAuthProviderConfig } from '~/utils/oauthPopup'
 
 const GITLAB_API = 'https://gitlab.com/api/v4'
 const MAX_EVENT_PAGES = 3
@@ -76,7 +76,15 @@ export async function getGitlabActivity(day: Date | string): Promise<any[]> {
 }
 
 function isAuthError(error: any): boolean {
-  return error?.status === 401 || error?.response?.status === 401
+  const status = error?.status ?? error?.response?.status
+  // 403 too: GitLab uses it for valid-but-under-scoped or blocked tokens, not just 401
+  return status === 401 || status === 403
+}
+
+// Errors the activity modal can recover from by re-running the OAuth flow on a real
+// click (which restores the user activation needed to open the popup)
+export function isGitlabAuthError(error: any): boolean {
+  return error instanceof OAuthPopupBlockedError || isAuthError(error)
 }
 
 // GitLab tarpits authenticated API calls from Cloudflare's shared egress IPs (Sept 2026:

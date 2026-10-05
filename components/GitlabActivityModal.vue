@@ -7,6 +7,7 @@
     :error="error"
     :loading-text="$t('gitlab.loading')"
     :retry-label="$t('gitlab.retry')"
+    :reconnect-label="offerReconnect ? $t('gitlab.reconnect') : undefined"
     :empty-text="$t('gitlab.no_activity')"
     :no-results-text="$t('gitlab.no_results')"
     :groups="groupedCommits"
@@ -14,6 +15,7 @@
     :filter-item="filterCommit"
     @update:model-value="emit('update:modelValue', $event)"
     @retry="fetchActivity"
+    @reconnect="handleReconnect"
     @select="onSelect"
   >
     <template #item="{ item, copiedId, copy }">
@@ -52,7 +54,7 @@
 
 <script setup lang="ts">
 import { IconCopy } from '@tabler/icons-vue'
-import { getGitlabActivity } from '~/utils/gitlab'
+import { connectGitlab, getGitlabActivity, isGitlabAuthError } from '~/utils/gitlab'
 import type { ActivityGroup } from '~/utils/activityPicker'
 
 interface GitlabCommit {
@@ -77,6 +79,7 @@ const emit = defineEmits<{
 
 const loading = ref(false)
 const error = ref<string | null>(null)
+const offerReconnect = ref(false)
 const commits = ref<GitlabCommit[]>([])
 
 const groupedCommits = computed<ActivityGroup<GitlabCommit>[]>(() => {
@@ -98,6 +101,7 @@ watch(() => props.modelValue, (open) => {
 async function fetchActivity() {
   loading.value = true
   error.value = null
+  offerReconnect.value = false
   try {
     const raw = await getGitlabActivity(props.day)
     commits.value = (raw || []).map((commit: any) => ({
@@ -107,9 +111,28 @@ async function fetchActivity() {
   } catch (err: any) {
     console.error('GitLab fetch failed:', err)
     error.value = err.response?.data?.message || err.message || 'Errore GitLab'
+    offerReconnect.value = isGitlabAuthError(err)
   } finally {
     loading.value = false
   }
+}
+
+// Click-triggered on purpose: the fresh user activation lets the OAuth popup open even
+// when the automatic recovery (which runs after awaited network calls) got it blocked
+async function handleReconnect() {
+  loading.value = true
+  error.value = null
+  offerReconnect.value = false
+  try {
+    await connectGitlab()
+  } catch (err: any) {
+    console.error('GitLab reconnect failed:', err)
+    error.value = err.response?.data?.message || err.message || 'Errore GitLab'
+    offerReconnect.value = true
+    loading.value = false
+    return
+  }
+  await fetchActivity()
 }
 
 function filterCommit(commit: GitlabCommit, query: string) {

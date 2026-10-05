@@ -18,6 +18,16 @@ export interface OAuthProviderConfig {
   getActivityHeaders: (accessToken: string) => Record<string, string>
 }
 
+// Thrown when window.open is blocked, typically because transient user activation was
+// lost while awaiting network calls before opening the popup. Distinct type so callers
+// can offer a click-triggered reconnect (a real click restores activation).
+export class OAuthPopupBlockedError extends Error {
+  constructor() {
+    super('Popup bloccato dal browser: consenti i popup per questo sito e riprova')
+    this.name = 'OAuthPopupBlockedError'
+  }
+}
+
 export function generateCodeVerifier(): string {
   const array = new Uint8Array(32)
   crypto.getRandomValues(array)
@@ -39,6 +49,9 @@ export function base64UrlEncode(buffer: Uint8Array): string {
 }
 
 export function waitForCallback(popup: Window | null, callbackType: string): Promise<string> {
+  // A null popup means window.open was blocked — reject instead of polling forever
+  // (popup?.closed is never truthy on null, so the timer below would never settle)
+  if (!popup) { return Promise.reject(new OAuthPopupBlockedError()) }
   return new Promise((resolve, reject) => {
     const handleMessage = (event: MessageEvent) => {
       if (event.origin !== window.location.origin) { return }
@@ -88,6 +101,7 @@ export async function connectOAuth(config: OAuthProviderConfig): Promise<void> {
     config.stateParam,
     `width=${popupWidth},height=${popupHeight},left=${left},top=${top},popup=yes`,
   )
+  if (!popup) { throw new OAuthPopupBlockedError() }
 
   const code = await waitForCallback(popup, config.callbackType)
 

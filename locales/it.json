@@ -371,6 +371,7 @@
     "no_activity": "Nessun commit trovato per questo giorno",
     "no_results": "Nessun risultato per questa ricerca",
     "retry": "Riprova",
+    "reconnect": "Ricollega GitLab",
     "copy_sha": "Copia SHA",
     "copied": "Copiato!"
   }
