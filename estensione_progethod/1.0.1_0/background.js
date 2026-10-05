@@ -27,5 +27,22 @@ chrome.action.onClicked.addListener(async () => {
     return
   }
 
-  chrome.tabs.create({'url': `https://progethod.caffeina.io/login?token=${biscottino.value}`}, function(tab) {});
+  // Hand the token over via a short-lived first-party cookie set before the
+  // tab opens, so it never leaks into the URL (address bar, tab hover, history).
+  // The login page reads and deletes it; the 60s expiry covers abandoned tabs.
+  chrome.cookies.set({
+    url: 'https://progethod.caffeina.io',
+    name: 'progethod_login_token',
+    value: biscottino.value,
+    secure: true,
+    sameSite: 'strict',
+    expirationDate: Math.floor(Date.now() / 1000) + 60,
+  }, (cookie) => {
+    if (chrome.runtime.lastError || !cookie) {
+      // Fall back to the legacy URL handoff; the login page strips it immediately
+      chrome.tabs.create({'url': `https://progethod.caffeina.io/login?token=${biscottino.value}`}, function(tab) {});
+      return
+    }
+    chrome.tabs.create({'url': 'https://progethod.caffeina.io/login'}, function(tab) {});
+  });
 });
