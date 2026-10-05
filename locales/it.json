@@ -70,7 +70,8 @@
     "step_2c": "Clicca <strong>Carica estensione non pacchettizzata</strong> e seleziona la cartella decompressa",
     "step_3": "Clicca sull'icona con la P di Progethod in alto a destra (potrebbe essere nascosta sotto l'icona del puzzle)",
     "step_4": "Se non sei già loggato su Wethod, ti verrà chiesto di effettuare il login. Dopo aver effettuato l'accesso, clicca di nuovo l'estensione",
-    "step_5": "Il login avverrà in automatico e verrai reindirizzato a Progethod"
+    "step_5": "Il login avverrà in automatico e verrai reindirizzato a Progethod",
+    "error_invalid_token": "La sessione Wethod non è valida o è scaduta. Riprova cliccando di nuovo sull'estensione."
   },
   "magic_tag": "Magic Tag™️",
   "magic_tag_for_everybody": "Il meeting è con più persone? Questo tag funziona per tutti: associa la scorciatoia locale se c'è, altrimenti la commessa/area Wethod direttamente.",
