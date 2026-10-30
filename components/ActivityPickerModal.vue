@@ -42,10 +42,23 @@
 
     <template v-else>
       <div v-for="group in filteredGroups" :key="group.key" class="mb-4 last:mb-0">
-        <h3 class="text-xs font-semibold text-ink-faint uppercase tracking-wide mb-2">
-          {{ group.label }}
+        <h3 class="mb-2">
+          <button
+            type="button"
+            class="flex w-full items-center gap-1.5 min-h-6 rounded text-left text-xs font-semibold text-ink-faint uppercase tracking-wide hover:text-ink transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+            :aria-expanded="isGroupExpanded(group.key)"
+            @click="toggleGroup(group.key)"
+          >
+            <IconChevronRight
+              :size="14"
+              class="flex-shrink-0 transition-transform"
+              :class="{ 'rotate-90': isGroupExpanded(group.key) }"
+            />
+            <span class="truncate">{{ group.label }}</span>
+            <span class="ml-auto flex-shrink-0 font-normal normal-case tracking-normal">{{ group.items.length }}</span>
+          </button>
         </h3>
-        <ul class="space-y-1">
+        <ul v-show="isGroupExpanded(group.key)" class="space-y-1">
           <li
             v-for="item in group.items"
             :key="item.id"
@@ -69,7 +82,7 @@
 </template>
 
 <script setup lang="ts">
-import { IconCheck } from '@tabler/icons-vue'
+import { IconCheck, IconChevronRight } from '@tabler/icons-vue'
 import { copyToClipboard } from '~/utils/clipboard'
 import type { ActivityGroup, ActivityItem } from '~/utils/activityPicker'
 
@@ -100,6 +113,9 @@ const searchQuery = ref('')
 const copiedId = ref<string | null>(null)
 const addedIds = ref<string[]>([])
 const searchInput = ref<HTMLInputElement | null>(null)
+const collapsedGroupKeys = ref(new Set<string>())
+
+const isSearching = computed(() => searchQuery.value.trim() !== '')
 
 const filteredGroups = computed(() => {
   if (!searchQuery.value.trim()) return props.groups
@@ -116,8 +132,22 @@ watch(() => props.modelValue, (open) => {
   if (!open) return
   searchQuery.value = ''
   addedIds.value = []
+  collapsedGroupKeys.value = new Set()
   nextTick(() => searchInput.value?.focus())
 })
+
+// Searching shows every match, so collapsed groups don't hide results.
+function isGroupExpanded(key: string) {
+  return isSearching.value || !collapsedGroupKeys.value.has(key)
+}
+
+function toggleGroup(key: string) {
+  if (isSearching.value) return
+  const next = new Set(collapsedGroupKeys.value)
+  if (next.has(key)) next.delete(key)
+  else next.add(key)
+  collapsedGroupKeys.value = next
+}
 
 function selectItem(item: ActivityItem) {
   if (addedIds.value.includes(item.id)) return
