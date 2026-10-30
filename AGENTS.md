@@ -1,8 +1,3 @@
----
-description: Project context and architecture decisions for Progethod
-alwaysApply: true
----
-
 # Progethod
 
 A simplified timesheet interface for Wethod. Data is stored locally (localStorage) and synced to a backend API. Built with Nuxt 4 (SPA mode, static preset) + Pinia 4 + Tailwind CSS 4.
