@@ -18,20 +18,14 @@
   >
     <template v-if="issues.length > 0" #filters>
       <div class="flex gap-2 mt-2">
-        <select
-          v-model="selectedBoard"
-          class="flex-1 px-2.5 py-1.5 border border-stroke-muted rounded-lg text-xs text-ink bg-card focus:ring-2 focus:ring-focus-ring focus:border-transparent outline-none"
-        >
+        <SelectInput v-model="selectedBoard" class="flex-1">
           <option value="">{{ $t('jira.all_boards') }}</option>
           <option v-for="board in availableBoards" :key="board" :value="board">{{ board }}</option>
-        </select>
-        <select
-          v-model="selectedStatus"
-          class="flex-1 px-2.5 py-1.5 border border-stroke-muted rounded-lg text-xs text-ink bg-card focus:ring-2 focus:ring-focus-ring focus:border-transparent outline-none"
-        >
+        </SelectInput>
+        <SelectInput v-model="selectedStatus" class="flex-1">
           <option value="">{{ $t('jira.all_statuses') }}</option>
           <option v-for="status in availableStatuses" :key="status" :value="status">{{ status }}</option>
-        </select>
+        </SelectInput>
       </div>
     </template>
     <template #item="{ item, copiedId, copy }">

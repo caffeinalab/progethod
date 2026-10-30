@@ -58,6 +58,7 @@ A simplified timesheet interface for Wethod. Data is stored locally (localStorag
   - `DayStatBadge` — day/month status chips (border tint only)
   - `PanelModal` — shared panel shell (guide, shortcuts, Jira/GitLab pickers). Default chrome: `max-w-lg`, `max-h-[85vh]`, `px-6 pt-6 pb-4` header, `text-lg` title. Only override when needed (e.g. shortcuts `max-w-md`).
   - `ActivityPickerModal` — search + grouped selectable list; thin `JiraActivityModal` / `GitlabActivityModal` wrappers own fetch + item slots
+  - `SelectInput` — native `<select>` with `appearance-none` and a Tabler chevron inset at `right-2.5` (matching `pl-2.5`), so it lines up with custom dropdowns. Use it for every native select; the browser default arrow sits flush against the edge.
   - `IconButton`, `ToggleSwitch`; `LoadingState` / `ErrorState` use one accent-spinner style everywhere
   - Leave UI: `LeaveTypePill`, `LeaveTypeToggle`, `HoursPerDayPicker`, `SidebarRequestRow`, `RequestStatusBadge` + `utils/leaveStatus.ts`. Type pills (F/P) share one accent style (solid `bg-accent` / `text-ink-inverse`) — no color distinction between Ferie and Permesso. Sidebar request rows cluster date+hours on the left (weekday + day, e.g. `ven 10`) and type+status on the right.
   - `utils/calendarGrid.ts` — Monday-first month grid + Italian weekday headers
