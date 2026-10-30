@@ -1,6 +1,8 @@
 <template>
   <ActivityPickerModal
     :model-value="modelValue"
+    :day="day"
+    :viewed-day="viewedDay"
     :title="$t('gitlab.modal_title')"
     :search-placeholder="$t('gitlab.search_placeholder')"
     :loading="loading"
@@ -14,6 +16,7 @@
     :is-empty="filteredCommits.length === 0"
     :filter-item="filterCommit"
     @update:model-value="emit('update:modelValue', $event)"
+    @update:viewed-day="changeViewedDay"
     @retry="fetchActivity"
     @reconnect="handleReconnect"
     @select="onSelect"
@@ -89,6 +92,7 @@ const emit = defineEmits<{
   select: [commit: Omit<GitlabCommit, 'id'>]
 }>()
 
+const viewedDay = ref(props.day)
 const loading = ref(false)
 const error = ref<string | null>(null)
 const offerReconnect = ref(false)
@@ -140,26 +144,35 @@ watch(() => props.modelValue, (open) => {
   if (open) {
     selectedProject.value = ''
     selectedBranch.value = ''
+    viewedDay.value = props.day
     fetchActivity()
   }
 })
 
+function changeViewedDay(day: string) {
+  viewedDay.value = day
+  fetchActivity()
+}
+
 async function fetchActivity() {
+  const requestedDay = viewedDay.value
   loading.value = true
   error.value = null
   offerReconnect.value = false
   try {
-    const raw = await getGitlabActivity(props.day)
+    const raw = await getGitlabActivity(requestedDay)
+    if (requestedDay !== viewedDay.value) return
     commits.value = (raw || []).map((commit: any) => ({
       ...commit,
       id: commit.sha,
     }))
   } catch (err: any) {
+    if (requestedDay !== viewedDay.value) return
     console.error('GitLab fetch failed:', err)
     error.value = err.response?.data?.message || err.message || 'Errore GitLab'
     offerReconnect.value = isGitlabAuthError(err)
   } finally {
-    loading.value = false
+    if (requestedDay === viewedDay.value) loading.value = false
   }
 }
 

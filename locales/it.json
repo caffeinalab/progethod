@@ -332,6 +332,12 @@
     "cancel": "Annulla",
     "reorder_hint": "Trascina le righe per riordinare i preset."
   },
+  "activity_picker": {
+    "previous_day": "Giorno precedente",
+    "next_day": "Giorno successivo",
+    "adding_to": "Le voci verranno aggiunte a {day}",
+    "back_to_day": "Torna al giorno"
+  },
   "jira": {
     "login": "Accedi a Jira",
     "fetch_activity": "Attività Jira del giorno",

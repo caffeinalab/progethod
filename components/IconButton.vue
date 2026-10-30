@@ -86,6 +86,11 @@ const rootClass = computed(() => {
   width: auto;
   height: auto;
 }
-.icon-btn--ghost:hover { color: var(--color-accent-fg); }
-.icon-btn--ghost-danger:hover { color: var(--color-danger); }
+.icon-btn--ghost:not(:disabled):hover { color: var(--color-accent-fg); }
+.icon-btn--ghost-danger:not(:disabled):hover { color: var(--color-danger); }
+.icon-btn--ghost:disabled,
+.icon-btn--ghost-danger:disabled {
+  color: var(--color-ink-disabled);
+  cursor: default;
+}
 </style>

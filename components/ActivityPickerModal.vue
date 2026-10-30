@@ -8,6 +8,11 @@
     @update:model-value="emit('update:modelValue', $event)"
   >
     <template #toolbar>
+      <ActivityDayNavigator
+        :model-value="viewedDay"
+        :target-day="day"
+        @update:model-value="emit('update:viewedDay', $event)"
+      />
       <input
         ref="searchInput"
         v-model="searchQuery"
@@ -88,6 +93,10 @@ import type { ActivityGroup, ActivityItem } from '~/utils/activityPicker'
 
 const props = defineProps<{
   modelValue: boolean
+  /** Day the selected items are added to */
+  day: string
+  /** Day whose activity is listed; may differ from `day` */
+  viewedDay: string
   title: string
   searchPlaceholder: string
   loading: boolean
@@ -104,6 +113,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
+  'update:viewedDay': [day: string]
   select: [item: ActivityItem]
   retry: []
   reconnect: []

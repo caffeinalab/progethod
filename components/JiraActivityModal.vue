@@ -1,6 +1,8 @@
 <template>
   <ActivityPickerModal
     :model-value="modelValue"
+    :day="day"
+    :viewed-day="viewedDay"
     :title="$t('jira.modal_title')"
     :search-placeholder="$t('jira.search_placeholder')"
     :loading="loading"
@@ -13,6 +15,7 @@
     :is-empty="filteredIssues.length === 0"
     :filter-item="filterIssue"
     @update:model-value="emit('update:modelValue', $event)"
+    @update:viewed-day="changeViewedDay"
     @retry="fetchActivity"
     @select="onSelect"
   >
@@ -79,6 +82,7 @@ const emit = defineEmits<{
   select: [issue: Omit<JiraIssue, 'id'> & { key: string }]
 }>()
 
+const viewedDay = ref(props.day)
 const loading = ref(false)
 const error = ref<string | null>(null)
 const issues = ref<JiraIssue[]>([])
@@ -87,11 +91,13 @@ const selectedStatus = ref('')
 
 const availableBoards = computed(() => {
   const boards = new Set(issues.value.map((issue) => issue.project || 'Altro'))
+  if (selectedBoard.value) boards.add(selectedBoard.value)
   return [...boards].sort()
 })
 
 const availableStatuses = computed(() => {
   const statuses = new Set(issues.value.map((issue) => issue.status).filter(Boolean))
+  if (selectedStatus.value) statuses.add(selectedStatus.value)
   return [...statuses].sort()
 })
 
@@ -119,24 +125,33 @@ watch(() => props.modelValue, (open) => {
   if (open) {
     selectedBoard.value = ''
     selectedStatus.value = ''
+    viewedDay.value = props.day
     fetchActivity()
   }
 })
 
+function changeViewedDay(day: string) {
+  viewedDay.value = day
+  fetchActivity()
+}
+
 async function fetchActivity() {
+  const requestedDay = viewedDay.value
   loading.value = true
   error.value = null
   try {
-    const raw = await getJiraActivity(props.day)
+    const raw = await getJiraActivity(requestedDay)
+    if (requestedDay !== viewedDay.value) return
     issues.value = (raw || []).map((issue: any) => ({
       ...issue,
       id: issue.key,
     }))
   } catch (err: any) {
+    if (requestedDay !== viewedDay.value) return
     console.error('Jira fetch failed:', err)
     error.value = err.response?.data?.message || err.message || 'Errore Jira'
   } finally {
-    loading.value = false
+    if (requestedDay === viewedDay.value) loading.value = false
   }
 }
 
