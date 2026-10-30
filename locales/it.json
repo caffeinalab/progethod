@@ -373,6 +373,8 @@
     "retry": "Riprova",
     "reconnect": "Ricollega GitLab",
     "copy_sha": "Copia SHA",
-    "copied": "Copiato!"
+    "copied": "Copiato!",
+    "all_projects": "Tutti i progetti",
+    "all_branches": "Tutti i branch"
   }
 }

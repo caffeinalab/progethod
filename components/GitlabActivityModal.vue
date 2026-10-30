@@ -11,13 +11,25 @@
     :empty-text="$t('gitlab.no_activity')"
     :no-results-text="$t('gitlab.no_results')"
     :groups="groupedCommits"
-    :is-empty="commits.length === 0"
+    :is-empty="filteredCommits.length === 0"
     :filter-item="filterCommit"
     @update:model-value="emit('update:modelValue', $event)"
     @retry="fetchActivity"
     @reconnect="handleReconnect"
     @select="onSelect"
   >
+    <template v-if="commits.length > 0" #filters>
+      <div class="flex gap-2 mt-2">
+        <SelectInput v-model="selectedProject" class="flex-1 min-w-0">
+          <option value="">{{ $t('gitlab.all_projects') }}</option>
+          <option v-for="project in availableProjects" :key="project" :value="project">{{ project }}</option>
+        </SelectInput>
+        <SelectInput v-model="selectedBranch" class="flex-1 min-w-0">
+          <option value="">{{ $t('gitlab.all_branches') }}</option>
+          <option v-for="branch in availableBranches" :key="branch" :value="branch">{{ branch }}</option>
+        </SelectInput>
+      </div>
+    </template>
     <template #item="{ item, copiedId, copy }">
       <div class="flex items-center gap-2">
         <code class="text-xs font-semibold text-accent-fg flex-shrink-0">{{ item.shortSha || shortSha(item.sha) }}</code>
@@ -81,12 +93,42 @@ const loading = ref(false)
 const error = ref<string | null>(null)
 const offerReconnect = ref(false)
 const commits = ref<GitlabCommit[]>([])
+const selectedProject = ref('')
+const selectedBranch = ref('')
+
+function projectOf(commit: GitlabCommit) {
+  return commit.project || 'altro'
+}
+
+const availableProjects = computed(() => {
+  return [...new Set(commits.value.map(projectOf))].sort()
+})
+
+// Scoped to the selected project: generic names like `main` repeat across repos
+const availableBranches = computed(() => {
+  const scopedCommits = selectedProject.value
+    ? commits.value.filter((commit) => projectOf(commit) === selectedProject.value)
+    : commits.value
+  return [...new Set(scopedCommits.flatMap((commit) => commit.branches || []))].sort()
+})
+
+watch(availableBranches, (branches) => {
+  if (selectedBranch.value && !branches.includes(selectedBranch.value)) selectedBranch.value = ''
+})
+
+const filteredCommits = computed(() => {
+  return commits.value.filter((commit) => {
+    if (selectedProject.value && projectOf(commit) !== selectedProject.value) return false
+    if (selectedBranch.value && !(commit.branches || []).includes(selectedBranch.value)) return false
+    return true
+  })
+})
 
 const groupedCommits = computed<ActivityGroup<GitlabCommit>[]>(() => {
   const groups: Record<string, { name: string; commits: GitlabCommit[] }> = {}
-  for (const commit of commits.value) {
-    const projectKey = commit.project || 'altro'
-    if (!groups[projectKey]) groups[projectKey] = { name: commit.project || projectKey, commits: [] }
+  for (const commit of filteredCommits.value) {
+    const projectKey = projectOf(commit)
+    if (!groups[projectKey]) groups[projectKey] = { name: projectKey, commits: [] }
     groups[projectKey].commits.push(commit)
   }
   return Object.entries(groups)
@@ -95,7 +137,11 @@ const groupedCommits = computed<ActivityGroup<GitlabCommit>[]>(() => {
 })
 
 watch(() => props.modelValue, (open) => {
-  if (open) fetchActivity()
+  if (open) {
+    selectedProject.value = ''
+    selectedBranch.value = ''
+    fetchActivity()
+  }
 })
 
 async function fetchActivity() {
