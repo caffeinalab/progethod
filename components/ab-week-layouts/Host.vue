@@ -29,6 +29,7 @@ const layoutProps = computed(() => ({
   today: props.today,
   wethodHoursByDay: props.wethodHoursByDay,
   leaveHoursByDay: props.leaveHoursByDay,
+  leaveEntriesByDay: props.leaveEntriesByDay,
   holidaysByDate: props.holidaysByDate,
   focused: props.focused,
   focusedDayIndex: props.focusedDayIndex,

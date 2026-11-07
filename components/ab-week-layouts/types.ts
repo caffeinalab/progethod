@@ -3,6 +3,8 @@
  * Delete the whole `components/ab-week-layouts/` directory when the experiment ends.
  */
 
+import type { DayLeaveEntry } from '~/utils/plannings'
+
 export const WEEK_LAYOUT_KEYS = ['classic', 'rail', 'split'] as const
 
 export type WeekLayoutKey = (typeof WEEK_LAYOUT_KEYS)[number]
@@ -18,6 +20,7 @@ export interface WeekLayoutProps {
   today: Date
   wethodHoursByDay: Record<string, number>
   leaveHoursByDay: Record<string, number>
+  leaveEntriesByDay: Record<string, DayLeaveEntry[]>
   holidaysByDate: Record<string, string>
   focused?: boolean
   focusedDayIndex?: number | null

@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="ts">
-const VACATION_PROJECT_ID = 83
+import { VACATION_PROJECT_ID } from '~/utils/leaveStatus'
 
 const props = defineProps<{
   projectId: number

@@ -1,6 +1,8 @@
 import { IconCircleCheck, IconCircleX, IconClock } from '@tabler/icons-vue'
 import type { Component } from 'vue'
 
+export const VACATION_PROJECT_ID = 83
+
 export type LeaveRequestStatus = 'approved' | 'pending' | 'rejected' | 'conflict' | string
 
 export function leaveStatusIcon(status: LeaveRequestStatus): Component {

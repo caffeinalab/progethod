@@ -13,6 +13,7 @@
         :focused="focused && insideDay && focusedDayIndex === index"
         :wethod-hours="wethodHoursByDay[formatDate(day, 'yyyy-MM-dd')]"
         :leave-hours="leaveHoursByDay[formatDate(day, 'yyyy-MM-dd')]"
+        :leave-entries="leaveEntriesByDay[formatDate(day, 'yyyy-MM-dd')]"
         :holiday-name="holidaysByDate[formatDate(day, 'yyyy-MM-dd')]"
       />
     </div>

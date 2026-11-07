@@ -97,6 +97,7 @@
         :today="today"
         :wethod-hours-by-day="trackedHoursByDay"
         :leave-hours-by-day="leaveHoursByDay"
+        :leave-entries-by-day="leaveEntriesByDay"
         :holidays-by-date="holidaysByDate"
         :focused="navigating && insideDay"
         :focused-day-index="focusedDayIndex"
@@ -118,14 +119,14 @@ import { IconAlertTriangle, IconChevronLeft, IconChevronRight, IconBuilding } fr
 import { startOfMonth, endOfMonth, subDays, getDay, isAfter, isBefore, addWeeks, startOfWeek, addDays, format as formatDate } from 'date-fns'
 import { it } from 'date-fns/locale'
 import { effectiveWethodHours } from '~/utils/effectiveHours'
-import { filterPlannings, normalizePlanningsResponse } from '~/utils/plannings'
+import { filterPlannings, groupLeaveByDay, normalizePlanningsResponse } from '~/utils/plannings'
 
 definePageMeta({ middleware: 'auth' })
 
 const LEAVE_PROJECT_IDS = new Set([83, 90])
 
 type TrackedHoursEntry = { date: string; value: number }
-type VacationHoursEntry = { date: string; amount: number; projectId: number }
+type VacationHoursEntry = { date: string; amount: number; projectId: number; isPending: boolean }
 
 const config = useRuntimeConfig()
 const userStore = useUserStore()
@@ -170,7 +171,7 @@ function extractLeaveEntries(
   employeeId: number,
 ): VacationHoursEntry[] {
   return filterPlannings(normalizePlanningsResponse(planningsPayload), employeeId, LEAVE_PROJECT_IDS)
-    .map((entry) => ({ date: entry.day, amount: entry.amount, projectId: entry.projectId }))
+    .map((entry) => ({ date: entry.day, amount: entry.amount, projectId: entry.projectId, isPending: entry.isPending }))
 }
 
 function syncedLocalHoursForDay(dayKey: string): number {
@@ -257,6 +258,7 @@ const trackedHoursByDay = computed(() => {
   return map
 })
 const leaveHoursByDay = computed(() => leaveHoursMap(weekVacationHours.value))
+const leaveEntriesByDay = computed(() => groupLeaveByDay(weekVacationHours.value))
 const holidaysByDate = computed(() => {
   const map: Record<string, string> = {}
   for (const holiday of holidays.value) { map[holiday.date] = holiday.name }

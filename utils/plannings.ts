@@ -100,3 +100,24 @@ export function filterPlannings(entries: PlanningEntry[], employeeId: number, pr
   const wanted = new Set([...projectIds].map(Number))
   return entries.filter((entry) => entry.employeeId === Number(employeeId) && wanted.has(entry.projectId))
 }
+
+export interface DayLeaveEntry {
+  projectId: number
+  hours: number
+  isPending: boolean
+}
+
+/** Per-day leave rows, one per project + approval state (multiple allocations on the same day are summed). */
+export function groupLeaveByDay(entries: Array<{ date: string; amount: number; projectId: number; isPending: boolean }>): Record<string, DayLeaveEntry[]> {
+  const byDay: Record<string, DayLeaveEntry[]> = {}
+  for (const entry of entries) {
+    const dayEntries = (byDay[entry.date] ||= [])
+    const existing = dayEntries.find(candidate => candidate.projectId === entry.projectId && candidate.isPending === entry.isPending)
+    if (existing) {
+      existing.hours += entry.amount
+    } else {
+      dayEntries.push({ projectId: entry.projectId, hours: entry.amount, isPending: entry.isPending })
+    }
+  }
+  return byDay
+}

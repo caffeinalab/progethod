@@ -58,6 +58,7 @@
         :focused="focused && focusedDayIndex === selectedIndex"
         :wethod-hours="wethodHoursByDay[selectedStatus.dayKey]"
         :leave-hours="leaveHoursByDay[selectedStatus.dayKey]"
+        :leave-entries="leaveEntriesByDay[selectedStatus.dayKey]"
         :holiday-name="holidaysByDate[selectedStatus.dayKey]"
       />
     </div>

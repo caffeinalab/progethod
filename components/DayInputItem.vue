@@ -36,11 +36,16 @@
     </div>
     <div class="entries-table mb-4 mt-4">
       <div />
-      <div :class="entries.length ? 'entries-th' : 'entries-th-muted'">{{ $t('project') }}</div>
-      <div class="text-center" :class="entries.length ? 'entries-th' : 'entries-th-muted'">{{ $t('duration') }}</div>
-      <div :class="entries.length ? 'entries-th' : 'entries-th-muted'">{{ $t('notes') }}</div>
+      <div :class="headerClass">{{ $t('project') }}</div>
+      <div class="text-center" :class="headerClass">{{ $t('duration') }}</div>
+      <div :class="headerClass">{{ $t('notes') }}</div>
       <div />
       <div />
+      <LeaveEntryRow
+        v-for="leaveEntry in leaveEntries || []"
+        :key="`leave_${leaveEntry.projectId}_${leaveEntry.isPending}`"
+        :entry="leaveEntry"
+      />
       <template v-for="(entry, entryIndex) in entries" :key="`row_${entry.id}`">
         <div
           class="entry-row col-span-full grid grid-cols-subgrid items-start rounded transition-shadow duration-100"
@@ -110,11 +115,13 @@ import { getEvents, mapEventsToTimesheetEntries } from '~/utils/gCal'
 import { connectJira } from '~/utils/jira'
 import { connectGitlab, prefetchGitlabActivity } from '~/utils/gitlab'
 import { TranslatableError } from '~/utils/localizableErrors'
+import type { DayLeaveEntry } from '~/utils/plannings'
 
 const props = defineProps<{
   day: Date
   wethodHours?: number | null
   leaveHours?: number | null
+  leaveEntries?: DayLeaveEntry[]
   holidayName?: string
   focused?: boolean
 }>()
@@ -143,6 +150,7 @@ const isJiraConfigured = computed(() => userStore.isJiraConfigured)
 const isGitlabConfigured = computed(() => userStore.isGitlabConfigured)
 const dayId = computed(() => formatDate(props.day, 'yyyy-MM-dd'))
 const entries = computed(() => entriesStore.entries.filter(entry => entry.day === dayId.value))
+const headerClass = computed(() => entries.value.length || props.leaveEntries?.length ? 'entries-th' : 'entries-th-muted')
 const disableSubmission = computed(() => entries.value.every(entry => entry.synced))
 const totalDuration = computed(() => entries.value.reduce((sum, entry) => sum + (entry.data.duration || 0), 0))
 const totalDecimalDuration = computed(() => entries.value.reduce((sum, entry) => ((sum * 10) + (entry.data.decimal_duration || 0) * 10) / 10, 0))
