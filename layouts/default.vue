@@ -55,11 +55,11 @@
                   <IconKey
                     :size="20"
                     :stroke-width="1.5"
-                    :class="userStore.isTokenExpired ? 'text-danger' : 'text-ink-secondary'"
+                    :class="userStore.canMakeRequests ? 'text-ink-secondary' : 'text-danger'"
                   />
                   <span
                     class="absolute -right-0.5 -bottom-0.5 w-2 h-2 rounded-full border-2 border-card"
-                    :class="userStore.isTokenExpired ? 'bg-danger' : 'bg-success'"
+                    :class="userStore.canMakeRequests ? 'bg-success' : 'bg-danger'"
                     aria-hidden="true"
                   />
                 </span>
@@ -71,6 +71,14 @@
                   @click.stop
                 >
                   <li
+                    v-if="!userStore.canMakeRequests"
+                    class="px-1 py-2 select-none"
+                    role="status"
+                  >
+                    <p class="text-sm font-semibold text-danger">{{ $t('session_expired') }}</p>
+                    <p class="text-xs text-ink-muted mt-1 leading-snug">{{ $t('session_expired_hint') }}</p>
+                  </li>
+                  <li
                     v-if="userStore.canMakeRequests"
                     class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring rounded"
                     :class="{ 'text-success hover:text-success': tokenCopied }"
@@ -81,20 +89,19 @@
                     <span class="ml-2">{{ tokenCopied ? $t('auth_token_copied') : $t('copy_auth_token') }}</span>
                   </li>
                   <li
+                    class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring rounded"
+                    @click="openTokenModal"
+                  >
+                    <IconPencil :size="20" :stroke-width="1.5" />
+                    <span class="ml-2">{{ $t('session_token.menu') }}</span>
+                  </li>
+                  <li
                     v-if="userStore.canMakeRequests"
                     class="cursor-pointer text-ink-secondary text-sm leading-normal tracking-normal py-2 hover:text-accent-fg flex items-center focus:text-accent-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring rounded"
                     @click="showDiagnostic = true; showStatusDropdown = false"
                   >
                     <IconTestPipe :size="20" :stroke-width="1.5" />
                     <span class="ml-2">{{ $t('diagnostic.run') }}</span>
-                  </li>
-                  <li
-                    v-else
-                    class="px-1 py-2 select-none"
-                    role="status"
-                  >
-                    <p class="text-sm font-semibold text-danger">{{ $t('session_expired') }}</p>
-                    <p class="text-xs text-ink-muted mt-1 leading-snug">{{ $t('session_expired_hint') }}</p>
                   </li>
                 </ul>
               </Transition>
@@ -299,6 +306,14 @@
               <span>{{ $t('update_projects') }}</span>
             </button>
           </li>
+          <li
+            v-if="!userStore.canMakeRequests"
+            class="py-2 select-none"
+            role="status"
+          >
+            <p class="text-sm font-semibold text-danger">{{ $t('session_expired') }}</p>
+            <p class="text-xs text-ink-muted mt-1 leading-snug">{{ $t('session_expired_hint') }}</p>
+          </li>
           <li v-if="userStore.canMakeRequests">
             <button
               class="w-full flex items-center gap-2 py-2 text-ink-secondary hover:text-accent-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring rounded"
@@ -310,6 +325,15 @@
               <span>{{ tokenCopied ? $t('auth_token_copied') : $t('copy_auth_token') }}</span>
             </button>
           </li>
+          <li>
+            <button
+              class="w-full flex items-center gap-2 py-2 text-ink-secondary hover:text-accent-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring rounded"
+              @click="openTokenModal"
+            >
+              <IconPencil :size="20" :stroke-width="1.5" />
+              <span>{{ $t('session_token.menu') }}</span>
+            </button>
+          </li>
           <li v-if="userStore.canMakeRequests">
             <button
               class="w-full flex items-center gap-2 py-2 text-ink-secondary hover:text-accent-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring rounded"
@@ -318,14 +342,6 @@
               <IconTestPipe :size="20" :stroke-width="1.5" />
               <span>{{ $t('diagnostic.run') }}</span>
             </button>
-          </li>
-          <li
-            v-else
-            class="py-2 select-none"
-            role="status"
-          >
-            <p class="text-sm font-semibold text-danger">{{ $t('session_expired') }}</p>
-            <p class="text-xs text-ink-muted mt-1 leading-snug">{{ $t('session_expired_hint') }}</p>
           </li>
           <li class="border-t border-stroke-muted my-2" />
           <li class="py-2">
@@ -403,11 +419,11 @@
     </nav>
 
     <slot />
-    <DevAuthBar />
     <KeyboardShortcutsHelp />
     <IntegrationHint />
     <AppGuideModal v-model="showGuide" />
     <DiagnosticModal v-model="showDiagnostic" />
+    <SessionTokenModal v-model="showTokenModal" />
 
     <div
       v-if="isRestoring"
@@ -443,6 +459,7 @@ import {
   IconLoader,
   IconMenu,
   IconMoon,
+  IconPencil,
   IconRefresh,
   IconSun,
   IconTestPipe,
@@ -464,6 +481,7 @@ const showDropdown = ref(false)
 const showStatusDropdown = ref(false)
 const showGuide = ref(false)
 const showDiagnostic = ref(false)
+const showTokenModal = ref(false)
 const showMobileMenu = ref(false)
 const isRestoring = ref(false)
 const restoreProgress = ref(0)
@@ -542,7 +560,7 @@ const userInitials = computed(() => {
 
 const sessionStatusTitle = computed(() => {
   if (apiDataStore.isUpdating) return t('session_updating')
-  if (userStore.isTokenExpired) return t('session_expired')
+  if (!userStore.canMakeRequests) return t('session_expired')
   return t('session_active')
 })
 
@@ -609,6 +627,12 @@ async function restore() {
 
 async function updateProjectsFromApi() {
   await updateApiData()
+}
+
+function openTokenModal() {
+  showStatusDropdown.value = false
+  showMobileMenu.value = false
+  showTokenModal.value = true
 }
 
 async function copyAuthToken() {

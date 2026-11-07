@@ -162,6 +162,19 @@
                   "new": false,
                   "number": 3,
                   "score": ""
+                },
+                {
+                  "id": "16f87dc7-85d4-48db-8b34-02a248715348",
+                  "title": "Manually pasted session token",
+                  "status": "Mitigated",
+                  "severity": "Low",
+                  "type": "Spoofing",
+                  "description": "Any user can paste a Wethod session token into the session menu (all environments). A social-engineered or someone else's token would make the app act as that Wethod user.",
+                  "mitigation": "The token is validated against /api/me before it is stored, and user info is replaced with the token owner's, so the active identity is visible in the header. It grants nothing beyond what holding the token already allows against Wethod directly. A rejected pasted token never invalidates the current session (useApi only invalidates on 401 for the stored token). The input has autocomplete off and is not logged.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 14,
+                  "score": ""
                 }
               ],
               "hasOpenThreats": false,
@@ -875,6 +888,6 @@
       }
     ],
     "diagramTop": 1,
-    "threatTop": 13
+    "threatTop": 14
   }
 }

@@ -20,7 +20,9 @@ export function useApi() {
       body: options?.body,
       headers: { ...headers.value, ...options?.headers },
       onResponseError({ response: errorResponse }) {
-        if (errorResponse.status === 401 && !isExternalAuthRequest(url)) {
+        // A 401 for a caller-supplied token (e.g. validating a pasted one) says nothing about the stored session.
+        const usesStoredToken = !options?.headers?.['x-sf-sess-id']
+        if (errorResponse.status === 401 && usesStoredToken && !isExternalAuthRequest(url)) {
           userStore.invalidateToken()
         }
       },

@@ -369,13 +369,14 @@
   "week_layout_classic": "Classica",
   "week_layout_rail": "Rail",
   "week_layout_split": "Split",
-  "dev_bar": {
-    "label": "Dev Mode",
-    "no_token": "Nessun token impostato",
+  "session_token": {
+    "menu": "Inserisci token Wethod",
+    "title": "Inserisci token Wethod",
+    "description": "Incolla un token di sessione Wethod. Viene verificato prima di sostituire quello attuale.",
     "placeholder": "Incolla il token Wethod...",
     "apply": "Applica",
-    "error_invalid": "Token non valido (401)",
-    "error_generic": "Errore: {status}"
+    "error_invalid": "Token non valido o scaduto",
+    "error_generic": "Verifica non riuscita ({status})"
   },
   "gitlab": {
     "login": "Accedi a GitLab",
