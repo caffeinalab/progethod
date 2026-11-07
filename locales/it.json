@@ -130,6 +130,7 @@
   "sent": "Inviato",
   "session_expired": "Sessione Scaduta",
   "session_expired_hint": "Rieffettua il login tramite l'estensione per rinnovare la sessione.",
+  "session_expired_retry": "Sessione scaduta. Rieffettua il login tramite l'estensione e riprova.",
   "month_end_reminder": "Ricorda di completare il timesheet entro fine mese!",
   "submit_daily_timesheet": "Invia Timesheet Giornaliero",
   "submit_timesheet_warning": "I dati su Wethod per i progetti selezionati verranno sovrascritti.",

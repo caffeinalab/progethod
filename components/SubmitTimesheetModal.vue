@@ -17,8 +17,8 @@
     <div v-if="isSubmitting && !isExpired" class="w-full mt-4">
       <ProgressBar :fill="progressPercentage" />
     </div>
-    <Alert v-if="isExpired" class="w-full mt-4" level="error" :message="$t('session_expired')" />
-    <Alert v-if="hasError" class="w-full mt-4" level="error" :message="errorMessage" />
+    <Alert v-if="isExpired" class="w-full mt-4" level="error" :message="$t('session_expired_retry')" />
+    <Alert v-if="hasError && !isExpired" class="w-full mt-4" level="error" :message="errorMessage" />
     <div v-if="!isExpired && !hasError && isConfirmOnSubmitRequired" class="flex items-center justify-center mt-6 w-full">
       <button
         :disabled="isSubmitting"

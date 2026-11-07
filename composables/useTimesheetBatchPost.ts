@@ -18,6 +18,8 @@ interface BatchPostOptions {
   formatError?: (details: BatchPostErrorDetails) => string
 }
 
+const UNAUTHORIZED_STATUS = 401
+
 export function useTimesheetBatchPost() {
   const api = useApi()
   const userStore = useUserStore()
@@ -60,6 +62,12 @@ export function useTimesheetBatchPost() {
                 code: fetchError.response?.status || 500,
                 message: fetchError.message,
               }
+            }
+
+            if (response.code === UNAUTHORIZED_STATUS) {
+              // Reported once by the modal's session-expired alert, not as a generic error too.
+              userStore.invalidateToken()
+              throw new Error('session_expired')
             }
 
             if (response.code !== 200) {
