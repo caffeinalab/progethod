@@ -17,6 +17,7 @@ A simplified timesheet interface for Wethod. Data is stored locally (localStorag
 - **PWA**: `@vite-pwa/nuxt` v1
 - **Build**: `nuxt generate` outputs to `.output/public/`, deployed to Cloudflare Pages
 - **Node**: 22 LTS (via Volta)
+- **Dependencies**: `.npmrc` sets `min-release-age=1` (1-day cooldown on new releases). Don't bypass it. Use `npm audit fix` without `--force`: for the remaining advisories (transitive `glob`/`minimatch`/`deepmerge`/`archiver`, build-time only) npm's only suggestion is a *downgrade* (`nuxt@4.1.3`, `@nuxtjs/i18n@8`, `@vite-pwa/nuxt@1.0.7`). Bulk `npm update` fails with ERESOLVE (`@intlify/bundle-utils` pins esbuild 0.25 vs vite 8.3's optional peer 0.27/0.28) — update packages individually with `npm install pkg@^x.y.z` instead.
 
 ## Security
 

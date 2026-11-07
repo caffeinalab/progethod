@@ -14,25 +14,25 @@
     "api": "eval wrangler pages dev .output/public --compatibility-date=2024-09-01 $(node env2Bindings.js)"
   },
   "dependencies": {
-    "@pinia/nuxt": "^1.0.1",
-    "@tabler/icons-vue": "^3.45.0",
-    "@vueuse/core": "^14.3.0",
+    "@pinia/nuxt": "^1.0.3",
+    "@tabler/icons-vue": "^3.50.0",
+    "@vueuse/core": "^14.4.0",
     "animejs": "^4.5.0",
     "date-fns": "^4.4.0",
     "mitt": "^3.0.1",
-    "p-limit": "^7.3.0",
-    "pinia": "^4.0.2",
+    "p-limit": "^7.3.3",
+    "pinia": "^4.1.0",
     "short-unique-id": "^5.3.2",
-    "uuid": "^14.0.1",
+    "uuid": "^14.0.3",
     "vue-select": "^4.0.0-beta.6"
   },
   "devDependencies": {
     "@nuxtjs/i18n": "^10.4.1",
-    "@tailwindcss/vite": "^4.3.3",
+    "@tailwindcss/vite": "^4.3.4",
     "@vite-pwa/nuxt": "^1.1.1",
     "concurrently": "^10.0.3",
     "nuxt": "^4.5.0",
-    "tailwindcss": "^4.3.3",
+    "tailwindcss": "^4.3.4",
     "typescript": "^6.0.3",
     "wrangler": "^4.112.0"
   },
