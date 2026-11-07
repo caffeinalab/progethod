@@ -18,6 +18,10 @@ A simplified timesheet interface for Wethod. Data is stored locally (localStorag
 - **Build**: `nuxt generate` outputs to `.output/public/`, deployed to Cloudflare Pages
 - **Node**: 22 LTS (via Volta)
 
+## Security
+
+- Threat Dragon v2 model at `security/threat-model.json` — update it when touching endpoints, auth, data handling or third-party calls. Known open items: `Alert.vue` renders `message` with `v-html` (some messages interpolate Wethod error text / user project names), no rate limiting on `/api/*`, no CSP.
+
 ## Pinia Stores
 
 - `stores/softDeletableStore.ts` — Factory composable (`useSoftDeletableCollection<T>`) providing shared CRUD + soft-delete logic (items ref, updatedAt ref, visibleItems computed, add/update/remove/restoreBackup/restoreFromServer). Used by projects and presets stores.

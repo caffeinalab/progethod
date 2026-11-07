@@ -1,0 +1,880 @@
+{
+  "version": "2.2.0",
+  "summary": {
+    "title": "Progethod",
+    "owner": "Stefano Fasoli",
+    "description": "Simplified Wethod timesheet SPA (Nuxt, Cloudflare Pages) with a Chrome extension for login and Jira/GitLab/Google Calendar integrations.",
+    "id": 0
+  },
+  "detail": {
+    "contributors": [],
+    "reviewer": "",
+    "diagrams": [
+      {
+        "id": 0,
+        "title": "Progethod data flow",
+        "diagramType": "STRIDE",
+        "placeholder": "New STRIDE diagram description",
+        "thumbnail": "./public/content/images/thumbnail.stride.jpg",
+        "version": "2.2.0",
+        "cells": [
+          {
+            "position": {
+              "x": 20,
+              "y": 20
+            },
+            "size": {
+              "width": 520,
+              "height": 640
+            },
+            "attrs": {
+              "label": {
+                "text": "User browser"
+              }
+            },
+            "visible": true,
+            "shape": "trust-boundary-box",
+            "id": "363d6d55-2b71-493b-a757-91d38a81f879",
+            "zIndex": -1,
+            "data": {
+              "type": "tm.BoundaryBox",
+              "name": "User browser",
+              "description": "",
+              "isTrustBoundary": true,
+              "hasOpenThreats": false
+            }
+          },
+          {
+            "position": {
+              "x": 600,
+              "y": 240
+            },
+            "size": {
+              "width": 260,
+              "height": 420
+            },
+            "attrs": {
+              "label": {
+                "text": "Cloudflare edge"
+              }
+            },
+            "visible": true,
+            "shape": "trust-boundary-box",
+            "id": "5df84c48-e0a5-4d84-8fc9-66ce85ed85b4",
+            "zIndex": -1,
+            "data": {
+              "type": "tm.BoundaryBox",
+              "name": "Cloudflare edge",
+              "description": "",
+              "isTrustBoundary": true,
+              "hasOpenThreats": false
+            }
+          },
+          {
+            "position": {
+              "x": 40,
+              "y": 300
+            },
+            "size": {
+              "width": 160,
+              "height": 80
+            },
+            "attrs": {
+              "text": {
+                "text": "User"
+              }
+            },
+            "visible": true,
+            "shape": "actor",
+            "id": "4f97c849-0df2-4fea-bbf3-6dc0dfaa886c",
+            "zIndex": 1,
+            "data": {
+              "type": "tm.Actor",
+              "name": "User",
+              "description": "Employee using Progethod to fill the Wethod timesheet and manage leave.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "threats": [],
+              "hasOpenThreats": false,
+              "providesAuthentication": false
+            }
+          },
+          {
+            "position": {
+              "x": 320,
+              "y": 280
+            },
+            "size": {
+              "width": 140,
+              "height": 140
+            },
+            "attrs": {
+              "text": {
+                "text": "Progethod SPA"
+              }
+            },
+            "visible": true,
+            "shape": "process",
+            "id": "a9782b16-9a0a-46db-a343-633296aaaaca",
+            "zIndex": 2,
+            "data": {
+              "type": "tm.Process",
+              "name": "Progethod SPA",
+              "description": "Nuxt 4 static SPA running in the user's browser. Holds the Wethod session token and integration tokens in Pinia (persisted to localStorage).",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "threats": [
+                {
+                  "id": "d2d0227f-f3b7-44d8-a449-e301c6d58d33",
+                  "title": "XSS steals Wethod session token from localStorage",
+                  "status": "Open",
+                  "severity": "High",
+                  "type": "Information disclosure",
+                  "description": "The Wethod SF6SESSID token and Jira/GitLab tokens live in localStorage; any XSS exfiltrates them. Alert.vue renders `message` via v-html, and some messages interpolate Wethod error text and user-defined project names.",
+                  "mitigation": "Vue text interpolation escapes everything else (including leave rows built from planning data). Open: escape interpolated values or drop v-html in Alert.vue; add a CSP.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 1,
+                  "score": ""
+                },
+                {
+                  "id": "24c09cc0-73ec-489f-b2ff-4457025b21ef",
+                  "title": "Expired Wethod session causes partial or confusing writes",
+                  "status": "Mitigated",
+                  "severity": "Low",
+                  "type": "Tampering",
+                  "description": "Timesheet batch posts can hit a 401 mid-run, leaving some areas written and others not.",
+                  "mitigation": "useApi and useTimesheetBatchPost invalidate the token on 401 (HTTP or Wethod `code`) and show one session-expired alert. Entries are only marked synced per successful POST, so the user can re-login and resubmit.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 2,
+                  "score": ""
+                },
+                {
+                  "id": "295fbc26-82b8-486f-9dda-999ac3335e5d",
+                  "title": "User submits leave hours manually on top of Wethod's automatic ones",
+                  "status": "Mitigated",
+                  "severity": "Low",
+                  "type": "Tampering",
+                  "description": "Leave projects 83/90 are filled automatically by Wethod; manual entries would double count.",
+                  "mitigation": "Leave is shown as read-only LeaveEntryRow rows built from planning data, never stored as entries, so submit/reset never send them; Wethod also marks those projects is_timesheet_automatic.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 3,
+                  "score": ""
+                }
+              ],
+              "hasOpenThreats": true,
+              "handlesCardPayment": false,
+              "handlesGoodsOrServices": false,
+              "isWebApplication": true,
+              "privilegeLevel": "low"
+            }
+          },
+          {
+            "position": {
+              "x": 320,
+              "y": 40
+            },
+            "size": {
+              "width": 140,
+              "height": 140
+            },
+            "attrs": {
+              "text": {
+                "text": "Chrome extension"
+              }
+            },
+            "visible": true,
+            "shape": "process",
+            "id": "439a8bab-0521-4dd5-a6ad-a4c4acd109ed",
+            "zIndex": 3,
+            "data": {
+              "type": "tm.Process",
+              "name": "Chrome extension",
+              "description": "Reads the SF6SESSID cookie from wethod.com, validates it via /api/me and hands it to the SPA.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "threats": [
+                {
+                  "id": "af224dd1-5fc6-4a4c-a264-5b3d11a8dac6",
+                  "title": "Session token leaks through the login URL",
+                  "status": "Mitigated",
+                  "severity": "High",
+                  "type": "Information disclosure",
+                  "description": "Passing the token as a query param exposes it in history, the address bar and tab previews.",
+                  "mitigation": "Token handed over via a 60s Secure, SameSite=Strict first-party cookie set before opening /login; login.vue reads and deletes it, and strips the legacy ?token= param synchronously via history.replaceState.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 4,
+                  "score": ""
+                }
+              ],
+              "hasOpenThreats": false,
+              "handlesCardPayment": false,
+              "handlesGoodsOrServices": false,
+              "isWebApplication": true,
+              "privilegeLevel": "low"
+            }
+          },
+          {
+            "position": {
+              "x": 640,
+              "y": 280
+            },
+            "size": {
+              "width": 140,
+              "height": 140
+            },
+            "attrs": {
+              "text": {
+                "text": "Cloudflare Pages Functions"
+              }
+            },
+            "visible": true,
+            "shape": "process",
+            "id": "384f6f89-7653-4bcf-91fe-d8ea53ddfd24",
+            "zIndex": 4,
+            "data": {
+              "type": "tm.Process",
+              "name": "Cloudflare Pages Functions",
+              "description": "/api/* proxy to Wethod plus OAuth token exchange for Jira/GitLab and the holidays iCal proxy.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "threats": [
+                {
+                  "id": "0010b942-1d32-4da8-9929-e61c88445ca6",
+                  "title": "Unauthenticated use of the proxy",
+                  "status": "Mitigated",
+                  "severity": "Medium",
+                  "type": "Spoofing",
+                  "description": "Anyone can call /api/*.",
+                  "mitigation": "_middleware.js rejects /api requests without x-sf-sess-id (except jira-token, gitlab-token, holidays); Wethod validates the session on every proxied call.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 5,
+                  "score": ""
+                },
+                {
+                  "id": "ff681610-1bbb-45b0-9a76-589c5db7878c",
+                  "title": "No rate limiting on /api endpoints",
+                  "status": "Open",
+                  "severity": "Low",
+                  "type": "Denial of service",
+                  "description": "Functions have no per-IP or per-user rate limiting; the OAuth token and holidays endpoints are unauthenticated.",
+                  "mitigation": "Relies on Cloudflare platform limits and Wethod/GitLab/Atlassian upstream limits. Open: add Cloudflare rate limiting rules for /api/*-token and /api/holidays.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 6,
+                  "score": ""
+                },
+                {
+                  "id": "d87c328a-1e47-436a-aaa2-8e2b34802fe0",
+                  "title": "Internal error details leaked to clients",
+                  "status": "Open",
+                  "severity": "Low",
+                  "type": "Information disclosure",
+                  "description": "The error handler returns err.message in 500 responses.",
+                  "mitigation": "Messages are upstream/fetch errors, not secrets. Open: return a generic message and log details server-side.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 7,
+                  "score": ""
+                },
+                {
+                  "id": "64ac5174-8222-4f37-af68-7257c62e8b7e",
+                  "title": "OAuth client secrets exposed",
+                  "status": "Mitigated",
+                  "severity": "High",
+                  "type": "Information disclosure",
+                  "description": "Jira/GitLab client secrets are needed for token exchange.",
+                  "mitigation": "Secrets stay in server env vars (*_CLIENT_SECRET); the client only gets *_CLIENT_ID via runtimeConfig.public. PKCE is used for both flows.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 8,
+                  "score": ""
+                },
+                {
+                  "id": "81ab9a63-504a-4f76-9851-2844e23788a6",
+                  "title": "Cross-origin calls to the API in production",
+                  "status": "Mitigated",
+                  "severity": "Low",
+                  "type": "Spoofing",
+                  "description": "Browsers on other origins could try to call /api with a stolen token header.",
+                  "mitigation": "CORS Allow-Origin is only set in development; production responds without it so cross-origin reads are blocked.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 9,
+                  "score": ""
+                }
+              ],
+              "hasOpenThreats": true,
+              "handlesCardPayment": false,
+              "handlesGoodsOrServices": false,
+              "isWebApplication": true,
+              "privilegeLevel": "medium"
+            }
+          },
+          {
+            "position": {
+              "x": 320,
+              "y": 520
+            },
+            "size": {
+              "width": 170,
+              "height": 70
+            },
+            "attrs": {
+              "text": {
+                "text": "Browser localStorage"
+              }
+            },
+            "visible": true,
+            "shape": "store",
+            "id": "bdcc0a06-2535-4b31-aabc-43194cf7cd5d",
+            "zIndex": 5,
+            "data": {
+              "type": "tm.Store",
+              "name": "Browser localStorage",
+              "description": "Pinia state under `progethod`: entries, project shortcuts, presets, Wethod/Jira/GitLab tokens, preferences.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "threats": [
+                {
+                  "id": "9c75a72d-b2ee-4a99-93d7-158dfb945bdb",
+                  "title": "Tokens readable by any script on the origin",
+                  "status": "Open",
+                  "severity": "Medium",
+                  "type": "Information disclosure",
+                  "description": "localStorage is not HttpOnly.",
+                  "mitigation": "Short-lived OAuth access tokens with refresh rotation; Wethod session expiry handled by re-login. See XSS threat on the SPA.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 10,
+                  "score": ""
+                }
+              ],
+              "hasOpenThreats": true,
+              "isALog": false,
+              "storesCredentials": true,
+              "isEncrypted": false,
+              "isSigned": false
+            }
+          },
+          {
+            "position": {
+              "x": 640,
+              "y": 520
+            },
+            "size": {
+              "width": 170,
+              "height": 70
+            },
+            "attrs": {
+              "text": {
+                "text": "Cloudflare KV (PROGETHOD_PROJECTS)"
+              }
+            },
+            "visible": true,
+            "shape": "store",
+            "id": "9f0c9d58-8192-486b-8962-d306b69eeca2",
+            "zIndex": 6,
+            "data": {
+              "type": "tm.Store",
+              "name": "Cloudflare KV (PROGETHOD_PROJECTS)",
+              "description": "Project shortcuts and note presets keyed by the user's Wethod email.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "threats": [
+                {
+                  "id": "348169ed-a612-4555-9645-f1c5a07ac01f",
+                  "title": "User overwrites another user's shortcuts",
+                  "status": "Mitigated",
+                  "severity": "Medium",
+                  "type": "Tampering",
+                  "description": "KV is keyed by email.",
+                  "mitigation": "The key is the email returned by Wethod authentication/userinfo for the caller's own session, never a client-supplied value.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 11,
+                  "score": ""
+                }
+              ],
+              "hasOpenThreats": false,
+              "isALog": false,
+              "storesCredentials": false,
+              "isEncrypted": false,
+              "isSigned": false
+            }
+          },
+          {
+            "position": {
+              "x": 940,
+              "y": 160
+            },
+            "size": {
+              "width": 160,
+              "height": 80
+            },
+            "attrs": {
+              "text": {
+                "text": "Wethod"
+              }
+            },
+            "visible": true,
+            "shape": "actor",
+            "id": "ce9f7c3e-521c-475b-ae09-84816b3f4e8f",
+            "zIndex": 7,
+            "data": {
+              "type": "tm.Actor",
+              "name": "Wethod",
+              "description": "Wethod timesheet/planning API (system of record).",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "threats": [],
+              "hasOpenThreats": false,
+              "providesAuthentication": false
+            }
+          },
+          {
+            "position": {
+              "x": 940,
+              "y": 420
+            },
+            "size": {
+              "width": 160,
+              "height": 80
+            },
+            "attrs": {
+              "text": {
+                "text": "GitLab / Atlassian / Google"
+              }
+            },
+            "visible": true,
+            "shape": "actor",
+            "id": "44506c70-81db-42e2-ad38-8313471968ce",
+            "zIndex": 8,
+            "data": {
+              "type": "tm.Actor",
+              "name": "GitLab / Atlassian / Google",
+              "description": "OAuth providers and activity APIs; Google Calendar (GIS/GAPI) and public holidays iCal.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "threats": [
+                {
+                  "id": "41373f09-2836-4c5b-8de9-4767c499f460",
+                  "title": "Third-party scripts loaded into the SPA",
+                  "status": "Open",
+                  "severity": "Medium",
+                  "type": "Tampering",
+                  "description": "GAPI and GIS scripts are loaded from Google domains via app.head without SRI (Google does not version them).",
+                  "mitigation": "Loaded only from Google's official domains over HTTPS. Open: add a CSP restricting script-src.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 12,
+                  "score": ""
+                }
+              ],
+              "hasOpenThreats": true,
+              "providesAuthentication": false
+            }
+          },
+          {
+            "shape": "flow",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "targetMarker": {
+                  "name": "block"
+                },
+                "sourceMarker": {
+                  "name": ""
+                },
+                "strokeDasharray": null
+              }
+            },
+            "width": 200,
+            "height": 100,
+            "zIndex": 11,
+            "connector": "smooth",
+            "id": "17601b3a-1ef4-4cee-ba5d-69f4353026a2",
+            "labels": [
+              "Uses UI"
+            ],
+            "source": {
+              "cell": "4f97c849-0df2-4fea-bbf3-6dc0dfaa886c"
+            },
+            "target": {
+              "cell": "a9782b16-9a0a-46db-a343-633296aaaaca"
+            },
+            "vertices": [],
+            "data": {
+              "type": "tm.Flow",
+              "name": "Uses UI",
+              "description": "",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "protocol": "N/A",
+              "isEncrypted": false,
+              "isPublicNetwork": false,
+              "threats": [],
+              "hasOpenThreats": false
+            }
+          },
+          {
+            "shape": "flow",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "targetMarker": {
+                  "name": "block"
+                },
+                "sourceMarker": {
+                  "name": ""
+                },
+                "strokeDasharray": null
+              }
+            },
+            "width": 200,
+            "height": 100,
+            "zIndex": 12,
+            "connector": "smooth",
+            "id": "a5a23cca-0476-48c8-96e6-a43e5da926f2",
+            "labels": [
+              "Login token handoff (cookie)"
+            ],
+            "source": {
+              "cell": "439a8bab-0521-4dd5-a6ad-a4c4acd109ed"
+            },
+            "target": {
+              "cell": "a9782b16-9a0a-46db-a343-633296aaaaca"
+            },
+            "vertices": [],
+            "data": {
+              "type": "tm.Flow",
+              "name": "Login token handoff (cookie)",
+              "description": "",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "protocol": "HTTPS",
+              "isEncrypted": true,
+              "isPublicNetwork": true,
+              "threats": [],
+              "hasOpenThreats": false
+            }
+          },
+          {
+            "shape": "flow",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "targetMarker": {
+                  "name": "block"
+                },
+                "sourceMarker": {
+                  "name": ""
+                },
+                "strokeDasharray": null
+              }
+            },
+            "width": 200,
+            "height": 100,
+            "zIndex": 13,
+            "connector": "smooth",
+            "id": "ad52f9dd-a415-433e-a221-5abebedd6de1",
+            "labels": [
+              "Validate session /api/me"
+            ],
+            "source": {
+              "cell": "439a8bab-0521-4dd5-a6ad-a4c4acd109ed"
+            },
+            "target": {
+              "cell": "384f6f89-7653-4bcf-91fe-d8ea53ddfd24"
+            },
+            "vertices": [],
+            "data": {
+              "type": "tm.Flow",
+              "name": "Validate session /api/me",
+              "description": "",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "protocol": "HTTPS",
+              "isEncrypted": true,
+              "isPublicNetwork": true,
+              "threats": [],
+              "hasOpenThreats": false
+            }
+          },
+          {
+            "shape": "flow",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "targetMarker": {
+                  "name": "block"
+                },
+                "sourceMarker": {
+                  "name": ""
+                },
+                "strokeDasharray": null
+              }
+            },
+            "width": 200,
+            "height": 100,
+            "zIndex": 14,
+            "connector": "smooth",
+            "id": "629f3209-83e0-4356-903d-9b9c82d05c8e",
+            "labels": [
+              "API calls with x-sf-sess-id"
+            ],
+            "source": {
+              "cell": "a9782b16-9a0a-46db-a343-633296aaaaca"
+            },
+            "target": {
+              "cell": "384f6f89-7653-4bcf-91fe-d8ea53ddfd24"
+            },
+            "vertices": [],
+            "data": {
+              "type": "tm.Flow",
+              "name": "API calls with x-sf-sess-id",
+              "description": "",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "protocol": "HTTPS",
+              "isEncrypted": true,
+              "isPublicNetwork": true,
+              "threats": [
+                {
+                  "id": "beac0eb0-eed7-4722-a050-41b4844dfd7d",
+                  "title": "Session token intercepted in transit",
+                  "status": "Mitigated",
+                  "severity": "Medium",
+                  "type": "Information disclosure",
+                  "description": "The Wethod token travels in a custom header.",
+                  "mitigation": "HTTPS only (Cloudflare Pages); token never placed in URLs.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 13,
+                  "score": ""
+                }
+              ],
+              "hasOpenThreats": false
+            }
+          },
+          {
+            "shape": "flow",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "targetMarker": {
+                  "name": "block"
+                },
+                "sourceMarker": {
+                  "name": ""
+                },
+                "strokeDasharray": null
+              }
+            },
+            "width": 200,
+            "height": 100,
+            "zIndex": 15,
+            "connector": "smooth",
+            "id": "7ec7a17b-1b14-46ff-977c-a446a0c8cfd7",
+            "labels": [
+              "Persist state"
+            ],
+            "source": {
+              "cell": "a9782b16-9a0a-46db-a343-633296aaaaca"
+            },
+            "target": {
+              "cell": "bdcc0a06-2535-4b31-aabc-43194cf7cd5d"
+            },
+            "vertices": [],
+            "data": {
+              "type": "tm.Flow",
+              "name": "Persist state",
+              "description": "",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "protocol": "N/A",
+              "isEncrypted": false,
+              "isPublicNetwork": false,
+              "threats": [],
+              "hasOpenThreats": false
+            }
+          },
+          {
+            "shape": "flow",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "targetMarker": {
+                  "name": "block"
+                },
+                "sourceMarker": {
+                  "name": ""
+                },
+                "strokeDasharray": null
+              }
+            },
+            "width": 200,
+            "height": 100,
+            "zIndex": 16,
+            "connector": "smooth",
+            "id": "30ccc638-0fe8-4d45-b52c-b17af3a9848d",
+            "labels": [
+              "Proxied Wethod requests"
+            ],
+            "source": {
+              "cell": "384f6f89-7653-4bcf-91fe-d8ea53ddfd24"
+            },
+            "target": {
+              "cell": "ce9f7c3e-521c-475b-ae09-84816b3f4e8f"
+            },
+            "vertices": [],
+            "data": {
+              "type": "tm.Flow",
+              "name": "Proxied Wethod requests",
+              "description": "",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "protocol": "HTTPS",
+              "isEncrypted": true,
+              "isPublicNetwork": true,
+              "threats": [],
+              "hasOpenThreats": false
+            }
+          },
+          {
+            "shape": "flow",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "targetMarker": {
+                  "name": "block"
+                },
+                "sourceMarker": {
+                  "name": ""
+                },
+                "strokeDasharray": null
+              }
+            },
+            "width": 200,
+            "height": 100,
+            "zIndex": 17,
+            "connector": "smooth",
+            "id": "09046b9b-3f84-4eaa-8ee6-2a79060b1dd1",
+            "labels": [
+              "Shortcuts/presets sync"
+            ],
+            "source": {
+              "cell": "384f6f89-7653-4bcf-91fe-d8ea53ddfd24"
+            },
+            "target": {
+              "cell": "9f0c9d58-8192-486b-8962-d306b69eeca2"
+            },
+            "vertices": [],
+            "data": {
+              "type": "tm.Flow",
+              "name": "Shortcuts/presets sync",
+              "description": "",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "protocol": "N/A",
+              "isEncrypted": false,
+              "isPublicNetwork": false,
+              "threats": [],
+              "hasOpenThreats": false
+            }
+          },
+          {
+            "shape": "flow",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "targetMarker": {
+                  "name": "block"
+                },
+                "sourceMarker": {
+                  "name": ""
+                },
+                "strokeDasharray": null
+              }
+            },
+            "width": 200,
+            "height": 100,
+            "zIndex": 18,
+            "connector": "smooth",
+            "id": "c7cb337c-de8a-47d2-8fd6-9c80a24eb3b4",
+            "labels": [
+              "OAuth token exchange / holidays"
+            ],
+            "source": {
+              "cell": "384f6f89-7653-4bcf-91fe-d8ea53ddfd24"
+            },
+            "target": {
+              "cell": "44506c70-81db-42e2-ad38-8313471968ce"
+            },
+            "vertices": [],
+            "data": {
+              "type": "tm.Flow",
+              "name": "OAuth token exchange / holidays",
+              "description": "",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "protocol": "HTTPS",
+              "isEncrypted": true,
+              "isPublicNetwork": true,
+              "threats": [],
+              "hasOpenThreats": false
+            }
+          },
+          {
+            "shape": "flow",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "targetMarker": {
+                  "name": "block"
+                },
+                "sourceMarker": {
+                  "name": ""
+                },
+                "strokeDasharray": null
+              }
+            },
+            "width": 200,
+            "height": 100,
+            "zIndex": 19,
+            "connector": "smooth",
+            "id": "9fe3198b-21c3-4ec0-90dc-e15ab7158600",
+            "labels": [
+              "Direct GitLab activity + Google Calendar"
+            ],
+            "source": {
+              "cell": "a9782b16-9a0a-46db-a343-633296aaaaca"
+            },
+            "target": {
+              "cell": "44506c70-81db-42e2-ad38-8313471968ce"
+            },
+            "vertices": [],
+            "data": {
+              "type": "tm.Flow",
+              "name": "Direct GitLab activity + Google Calendar",
+              "description": "",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "protocol": "HTTPS",
+              "isEncrypted": true,
+              "isPublicNetwork": true,
+              "threats": [],
+              "hasOpenThreats": false
+            }
+          }
+        ]
+      }
+    ],
+    "diagramTop": 1,
+    "threatTop": 13
+  }
+}
