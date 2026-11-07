@@ -20,7 +20,7 @@ A simplified timesheet interface for Wethod. Data is stored locally (localStorag
 
 ## Security
 
-- Threat Dragon v2 model at `security/threat-model.json` — update it when touching endpoints, auth, data handling or third-party calls. Known open items: `Alert.vue` renders `message` with `v-html` (some messages interpolate Wethod error text / user project names), no rate limiting on `/api/*`, no CSP.
+- Threat Dragon v2 model at `security/threat-model.json` — update it when touching endpoints, auth, data handling or third-party calls. Never use `v-html` with dynamic values: vue-i18n `escapeParameter` is off, so `$t()` params (Wethod error text, user project names) are inserted raw — `Alert.vue` renders its message as text for this reason. Known open items: no rate limiting on `/api/*`, no CSP.
 
 ## Pinia Stores
 

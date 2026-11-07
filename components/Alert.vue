@@ -9,7 +9,7 @@
           </p>
         </div>
         <div class="h-1 w-1 rounded-full mr-2 hidden xl:block" :class="iconColor" />
-        <p class="text-base" :class="textColor" v-html="message" />
+        <p class="text-base" :class="textColor">{{ message }}</p>
       </div>
       <button
         v-if="dismissable"

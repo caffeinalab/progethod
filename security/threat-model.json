@@ -127,11 +127,11 @@
                 {
                   "id": "d2d0227f-f3b7-44d8-a449-e301c6d58d33",
                   "title": "XSS steals Wethod session token from localStorage",
-                  "status": "Open",
+                  "status": "Mitigated",
                   "severity": "High",
                   "type": "Information disclosure",
-                  "description": "The Wethod SF6SESSID token and Jira/GitLab tokens live in localStorage; any XSS exfiltrates them. Alert.vue renders `message` via v-html, and some messages interpolate Wethod error text and user-defined project names.",
-                  "mitigation": "Vue text interpolation escapes everything else (including leave rows built from planning data). Open: escape interpolated values or drop v-html in Alert.vue; add a CSP.",
+                  "description": "The Wethod SF6SESSID token and Jira/GitLab tokens live in localStorage; any XSS exfiltrates them. Alert messages interpolate Wethod error text and user-defined project names (vue-i18n escapeParameter is off).",
+                  "mitigation": "Alert.vue renders messages as escaped text (no v-html); all other dynamic content uses Vue text interpolation. Remaining v-html only renders static translation strings (login tutorial). Residual: no CSP.",
                   "modelType": "STRIDE",
                   "new": false,
                   "number": 1,
@@ -164,7 +164,7 @@
                   "score": ""
                 }
               ],
-              "hasOpenThreats": true,
+              "hasOpenThreats": false,
               "handlesCardPayment": false,
               "handlesGoodsOrServices": false,
               "isWebApplication": true,
