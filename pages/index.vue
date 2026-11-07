@@ -1,38 +1,33 @@
 <template>
   <div class="pt-20">
     <div v-if="userStore.isTokenExpired" class="container px-6 mx-auto mt-4 mb-4">
-      <div class="bg-warning-soft border border-warning rounded-lg p-4">
-        <div class="flex items-start gap-2">
-          <IconAlertTriangle class="text-warning flex-shrink-0 mt-0.5" :size="20" />
-          <div class="flex-1">
-            <p class="text-base font-bold text-warning-text">{{ $t('session_expired') }}</p>
-            <p class="text-sm text-warning-text mt-1">{{ $t('session_expired_hint') }}</p>
-            <button
-              class="text-sm text-warning-text underline mt-2 hover:opacity-80 transition-opacity"
-              @click="showExtensionGuide = !showExtensionGuide"
-            >
-              {{ showExtensionGuide ? $t('calendar_page.cancel') : $t('login_instructions') }}
-            </button>
-            <ol v-if="showExtensionGuide" class="list-decimal list-inside space-y-2 mt-3 text-sm text-warning-text">
-              <li>{{ $t('login_tutorial.step_1') }}<a class="underline font-semibold" target="_blank" :href="config.public.loginExtensionUrl">{{ $t('login_tutorial.step_1_cta_store') }}</a>{{ $t('login_tutorial.step_1_alt') }}<a class="underline font-semibold" href="/progethod-extension.zip" download>{{ $t('login_tutorial.step_1_cta_download') }}</a></li>
-              <li>{{ $t('login_tutorial.step_2') }}
-                <ol class="list-[lower-alpha] list-inside ml-4 mt-1 space-y-1">
-                  <li>{{ $t('login_tutorial.step_2a') }}</li>
-                  <li v-html="$t('login_tutorial.step_2b')" />
-                  <li v-html="$t('login_tutorial.step_2c')" />
-                </ol>
-              </li>
-              <li>{{ $t('login_tutorial.step_3') }}</li>
-              <li>{{ $t('login_tutorial.step_4') }}</li>
-              <li>{{ $t('login_tutorial.step_5') }}</li>
+      <Alert level="warning" :title="$t('session_expired')" :message="$t('session_expired_hint')">
+        <button
+          class="underline hover:opacity-80 transition-opacity"
+          @click="showExtensionGuide = !showExtensionGuide"
+        >
+          {{ showExtensionGuide ? $t('calendar_page.cancel') : $t('login_instructions') }}
+        </button>
+        <ol v-if="showExtensionGuide" class="list-decimal list-inside space-y-2 pt-2">
+          <li>{{ $t('login_tutorial.step_1') }}<a class="underline font-semibold" target="_blank" :href="config.public.loginExtensionUrl">{{ $t('login_tutorial.step_1_cta_store') }}</a>{{ $t('login_tutorial.step_1_alt') }}<a class="underline font-semibold" href="/progethod-extension.zip" download>{{ $t('login_tutorial.step_1_cta_download') }}</a></li>
+          <li>{{ $t('login_tutorial.step_2') }}
+            <ol class="list-[lower-alpha] list-inside ml-4 mt-1 space-y-1">
+              <li>{{ $t('login_tutorial.step_2a') }}</li>
+              <li v-html="$t('login_tutorial.step_2b')" />
+              <li v-html="$t('login_tutorial.step_2c')" />
             </ol>
-          </div>
-        </div>
-      </div>
+          </li>
+          <li>{{ $t('login_tutorial.step_3') }}</li>
+          <li>{{ $t('login_tutorial.step_4') }}</li>
+          <li>{{ $t('login_tutorial.step_5') }}</li>
+        </ol>
+      </Alert>
     </div>
 
-    <Alert v-if="holidaysFetchFailed" :message="$t('holidays_error')" level="warning" dismissable @dismiss="holidaysFetchFailed = false" />
-    <Alert v-if="showMonthEndReminder && !monthEndReminderDismissed" :message="$t('month_end_reminder')" level="warning" dismissable @dismiss="dismissMonthEndReminder" />
+    <div v-if="holidaysFetchFailed || (showMonthEndReminder && !monthEndReminderDismissed)" class="container px-6 mx-auto mt-4 space-y-2">
+      <Alert v-if="holidaysFetchFailed" :message="$t('holidays_error')" level="warning" dismissable @dismiss="holidaysFetchFailed = false" />
+      <Alert v-if="showMonthEndReminder && !monthEndReminderDismissed" :message="$t('month_end_reminder')" level="warning" dismissable @dismiss="dismissMonthEndReminder" />
+    </div>
 
     <div class="my-6 lg:my-12 container px-6 mx-auto pb-4 border-b border-stroke">
       <div class="flex flex-wrap items-center gap-3">
@@ -115,7 +110,7 @@
 </template>
 
 <script setup lang="ts">
-import { IconAlertTriangle, IconChevronLeft, IconChevronRight, IconBuilding } from '@tabler/icons-vue'
+import { IconChevronLeft, IconChevronRight, IconBuilding } from '@tabler/icons-vue'
 import { startOfMonth, endOfMonth, subDays, getDay, isAfter, isBefore, addWeeks, startOfWeek, addDays, format as formatDate } from 'date-fns'
 import { it } from 'date-fns/locale'
 import { effectiveWethodHours } from '~/utils/effectiveHours'

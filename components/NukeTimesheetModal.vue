@@ -22,7 +22,7 @@
         wait-label=""
       />
     </div>
-    <Alert v-if="isExpired" class="w-full mt-4" level="error" :message="$t('session_expired_retry')" />
+    <Alert v-if="isExpired" class="w-full mt-4" level="error" :title="$t('session_expired')" :message="$t('session_expired_retry')" />
     <div v-if="!isExpired" class="flex items-center gap-3 mt-6 w-full">
       <button
         v-if="!isWorking"

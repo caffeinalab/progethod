@@ -30,7 +30,7 @@
         />
       </div>
     </div>
-    <div>
+    <div v-if="totalNotAdjustable || adjustmentWentWrong" class="mt-4 space-y-2">
       <Alert v-if="totalNotAdjustable" :message="$t('errors.total_not_adjustable')" level="error" />
       <Alert v-if="adjustmentWentWrong" :message="$t('errors.error_during_adjustment')" level="error" />
     </div>

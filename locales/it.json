@@ -136,7 +136,9 @@
     "locked_hint": "Ferie e permessi arrivano da Wethod: non vengono inviati né ripristinati da qui.",
     "manage": "Gestisci in Ferie & Permessi"
   },
-  "session_expired_retry": "Sessione scaduta. Rieffettua il login tramite l'estensione e riprova.",
+  "session_expired_retry": "Rieffettua il login tramite l'estensione e riprova.",
+  "submit_failed": "Invio non riuscito",
+  "close": "Chiudi",
   "month_end_reminder": "Ricorda di completare il timesheet entro fine mese!",
   "submit_daily_timesheet": "Invia Timesheet Giornaliero",
   "submit_timesheet_warning": "I dati su Wethod per i progetti selezionati verranno sovrascritti.",

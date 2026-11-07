@@ -36,13 +36,12 @@
             </div>
           </div>
 
-          <div
+          <Alert
             v-if="exportResult"
-            class="mb-4 p-3 rounded-lg border text-xs font-medium"
-            :class="exportResult.success ? 'border-vacation bg-vacation-soft text-vacation-text' : 'border-danger bg-danger-soft text-danger-text'"
-          >
-            {{ exportResult.message }}
-          </div>
+            class="mb-4"
+            :level="exportResult.success ? 'success' : 'error'"
+            :message="exportResult.message"
+          />
 
           <div class="grid grid-cols-7 gap-1.5 select-none">
             <div v-for="dayName in weekdayHeaders" :key="dayName" class="text-center text-xs font-semibold text-ink-faint py-2">
@@ -310,7 +309,7 @@
       <p v-if="requestModalMode === 'edit' && editingRequest" class="text-xs text-ink-muted mb-4">
         <RequestStatusBadge :status="editingRequest.status" />
       </p>
-      <div v-if="requestError" class="w-full mb-4 p-3 rounded-lg border border-danger bg-danger-soft text-danger-text text-xs font-medium">{{ requestError }}</div>
+      <Alert v-if="requestError" class="w-full mb-4" level="error" :message="requestError" />
       <div class="w-full mb-4">
         <label class="text-xs font-semibold text-ink-muted block mb-1.5">{{ $t('calendar_page.request_type') }}</label>
         <LeaveTypeToggle
@@ -366,7 +365,7 @@
     <Modal v-model="showBulkEditModal" confirmable @confirm="onBulkEditConfirm">
       <h3 class="text-lg font-bold text-ink mb-1">{{ $t('calendar_page.bulk_edit_title') }}</h3>
       <p class="text-sm text-ink-muted mb-4 text-center">{{ $t('calendar_page.bulk_edit_description') }}</p>
-      <div v-if="bulkError" class="w-full mb-4 p-3 rounded-lg border border-danger bg-danger-soft text-danger-text text-xs font-medium">{{ bulkError }}</div>
+      <Alert v-if="bulkError" class="w-full mb-4" level="error" :message="bulkError" />
       <div class="w-full mb-4">
         <label class="text-xs font-semibold text-ink-muted block mb-1.5">{{ $t('calendar_page.request_type') }}</label>
         <LeaveTypeToggle

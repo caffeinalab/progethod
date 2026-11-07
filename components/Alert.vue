@@ -1,43 +1,47 @@
 <template>
-  <div class="container px-6 mx-auto">
-    <div class="transition duration-150 ease-in-out shadow rounded-md md:flex justify-between items-center mt-4 mb-4 py-4 px-4" :class="bgColor">
-      <div class="sm:flex items-center">
-        <div class="flex items-end">
-          <IconAlertCircle class="mr-2 mt-0.5 sm:mt-0" :class="iconColor" :size="20" />
-          <p class="mr-2 text-base font-bold" :class="textColor">
-            {{ $t(level || 'warning') }}
-          </p>
-        </div>
-        <div class="h-1 w-1 rounded-full mr-2 hidden xl:block" :class="iconColor" />
-        <p class="text-base" :class="textColor">{{ message }}</p>
-      </div>
-      <button
-        v-if="dismissable"
-        class="ml-auto pl-4 flex-shrink-0 transition-colors hover:opacity-70"
-        :class="textColor"
-        @click="$emit('dismiss')"
-      >
-        <IconX :size="18" />
-      </button>
+  <div
+    :role="level === 'error' ? 'alert' : 'status'"
+    class="flex items-start gap-3 rounded-lg border p-3 text-left"
+    :class="tone.container"
+  >
+    <component :is="tone.icon" :size="20" class="shrink-0" :class="tone.iconColor" />
+    <div class="flex-1 min-w-0 space-y-1 text-sm leading-snug">
+      <p v-if="title" class="font-semibold">{{ title }}</p>
+      <p v-if="message">{{ message }}</p>
+      <slot />
     </div>
+    <button
+      v-if="dismissable"
+      type="button"
+      class="shrink-0 flex items-center justify-center min-w-6 min-h-6 -m-0.5 rounded transition-opacity hover:opacity-70 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+      :aria-label="$t('close')"
+      @click="$emit('dismiss')"
+    >
+      <IconX :size="18" />
+    </button>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { IconAlertCircle, IconX } from '@tabler/icons-vue'
+import { IconAlertCircle, IconAlertTriangle, IconCircleCheck, IconX } from '@tabler/icons-vue'
 
 const { t: $t } = useI18n()
 
-const props = defineProps<{
-  message: string
-  level?: 'error' | 'warning' | 'info'
+const props = withDefaults(defineProps<{
+  title?: string
+  message?: string
+  level?: 'error' | 'warning' | 'success'
   dismissable?: boolean
-}>()
+}>(), { level: 'warning' })
 
 defineEmits<{ dismiss: [] }>()
 
-const bgColor = computed(() => props.level === 'error' ? 'bg-danger-soft' : 'bg-warning-soft')
-const iconColor = computed(() => props.level === 'error' ? 'text-danger' : 'text-warning')
-const textColor = computed(() => props.level === 'error' ? 'text-danger-text' : 'text-warning-text')
+const TONES = {
+  error: { container: 'border-danger/40 bg-danger-soft text-danger-text', icon: IconAlertCircle, iconColor: 'text-danger' },
+  warning: { container: 'border-warning/40 bg-warning-soft text-warning-text', icon: IconAlertTriangle, iconColor: 'text-warning' },
+  success: { container: 'border-vacation/40 bg-vacation-soft text-vacation-text', icon: IconCircleCheck, iconColor: 'text-vacation-text' },
+}
+
+const tone = computed(() => TONES[props.level])
 </script>
